@@ -67,3 +67,4 @@ tmp
 src/generated/prisma
 
 .cursor
+AGENTS.md
