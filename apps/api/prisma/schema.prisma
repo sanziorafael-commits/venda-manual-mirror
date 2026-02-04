@@ -1,0 +1,77 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  GERENTE_COMERCIAL
+  SUPERVISOR
+  VENDEDOR
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  cnpj      String   @unique
+  logoUrl   String?
+  users     User[]
+  deletedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id           String    @id @default(cuid())
+  companyId    String?
+  company      Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  role         UserRole
+  fullName     String
+  cpf          String    @unique
+  email        String?   @unique
+  phone        String
+  passwordHash String?
+  isActive     Boolean   @default(true)
+  deletedAt    DateTime?
+  sessions     Session[]
+  activationTokens AccountActivationToken[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([companyId, phone], map: "users_company_phone_key")
+  @@index([companyId, role], map: "users_company_role_idx")
+}
+
+model Session {
+  id               String    @id @default(cuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshTokenHash String
+  userAgent        String?
+  ipAddress        String?
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([userId, refreshTokenHash], map: "sessions_user_refresh_hash_key")
+  @@index([userId, revokedAt], map: "sessions_user_revoked_idx")
+}
+
+model AccountActivationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, usedAt], map: "activation_tokens_user_used_idx")
+  @@index([expiresAt], map: "activation_tokens_expires_idx")
+}

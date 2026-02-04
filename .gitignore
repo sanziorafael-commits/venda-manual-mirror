@@ -67,4 +67,7 @@ tmp
 src/generated/prisma
 
 .cursor
+apps/api/prisma.config.js
 AGENTS.md
+docs/
+exports/

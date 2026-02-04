@@ -5,6 +5,9 @@ import importPlugin from "eslint-plugin-import";
 import unusedImports from "eslint-plugin-unused-imports";
 
 export default [
+  {
+    ignores: ["dist/**", "coverage/**", "prisma.config.ts", "prisma.config.js"],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   prettier,
