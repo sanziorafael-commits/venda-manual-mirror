@@ -150,8 +150,8 @@ export async function updateUser(actor: AuthActor, userId: string, input: Update
   const nextEmail = input.email === undefined ? existing.email : input.email;
   const hasNewPassword = Boolean(input.password);
 
-  if (nextRole === UserRole.VENDEDOR && hasNewPassword) {
-    throw badRequest('Vendedor não deve possuir senha');
+  if (hasNewPassword && nextRole !== UserRole.ADMIN) {
+    throw badRequest('Somente admin pode ter senha definida diretamente por cadastro/edicao');
   }
 
   if (isRoleWithDashboardAccess(nextRole) && !nextEmail) {
@@ -300,6 +300,10 @@ function validateCredentialsForRole(role: UserRole, email?: string, password?: s
 
   if (!email) {
     throw badRequest('Email obrigatório para cargos com acesso ao dashboard');
+  }
+
+  if (isInvitableRole(role) && password) {
+    throw badRequest('Gerente comercial e supervisor devem ativar senha via convite');
   }
 
   if (role === UserRole.ADMIN && !password) {

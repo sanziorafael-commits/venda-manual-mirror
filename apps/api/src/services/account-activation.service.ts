@@ -10,6 +10,8 @@ import { sha256 } from '../utils/hash.js';
 import { ttlToDate } from '../utils/time.js';
 import { canManageRole, isInvitableRole } from '../utils/user-role-policy.js';
 
+import { sendActivationInviteEmail } from './email.service.js';
+
 export type ActivationInviteResult = {
   userId: string;
   email: string;
@@ -26,6 +28,7 @@ export async function createActivationInviteForUser(userId: string) {
     select: {
       id: true,
       role: true,
+      fullName: true,
       email: true,
       passwordHash: true,
     },
@@ -60,6 +63,12 @@ export async function createActivationInviteForUser(userId: string) {
       },
     }),
   ]);
+
+  await sendActivationInviteEmail({
+    to: user.email!,
+    fullName: user.fullName,
+    token,
+  });
 
   return {
     userId: user.id,
@@ -98,70 +107,85 @@ export async function activateAccountWithToken(token: string, passwordHash: stri
   const tokenHash = sha256(token);
   const now = new Date();
 
-  const activationToken = await prisma.accountActivationToken.findFirst({
-    where: {
-      tokenHash,
-      usedAt: null,
-      expiresAt: {
-        gt: now,
-      },
-    },
-    include: {
-      user: true,
-    },
-  });
-
-  if (!activationToken) {
-    throw badRequest('Token de ativação inválido ou expirado');
-  }
-
-  const user = activationToken.user;
-  if (user.deletedAt || !user.isActive) {
-    throw forbidden('Conta inativa');
-  }
-
-  if (!isInvitableRole(user.role)) {
-    throw forbidden('Este cargo não pode ativar conta por token de convite');
-  }
-
-  if (user.passwordHash) {
-    throw badRequest('A conta já está ativa');
-  }
-
-  if (user.role !== UserRole.ADMIN && user.companyId) {
-    const company = await prisma.company.findFirst({
+  const updatedUser = await prisma.$transaction(async (tx) => {
+    const activationToken = await tx.accountActivationToken.findFirst({
       where: {
-        id: user.companyId,
-        deletedAt: null,
+        tokenHash,
+        usedAt: null,
+        expiresAt: {
+          gt: now,
+        },
       },
-      select: {
-        id: true,
+      include: {
+        user: true,
       },
     });
 
-    if (!company) {
+    if (!activationToken) {
+      throw badRequest('Token de ativação inválido ou expirado');
+    }
+
+    const user = activationToken.user;
+    if (user.deletedAt || !user.isActive) {
       throw forbidden('Conta inativa');
     }
-  }
 
-  const updatedUser = await prisma.$transaction(async (tx) => {
-    const nextUser = await tx.user.update({
+    if (!isInvitableRole(user.role)) {
+      throw forbidden('Este cargo não pode ativar conta por token de convite');
+    }
+
+    if (user.passwordHash) {
+      throw badRequest('A conta já está ativa');
+    }
+
+    if (user.role !== UserRole.ADMIN && user.companyId) {
+      const company = await tx.company.findFirst({
+        where: {
+          id: user.companyId,
+          deletedAt: null,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!company) {
+        throw forbidden('Conta inativa');
+      }
+    }
+
+    const consumedToken = await tx.accountActivationToken.updateMany({
+      where: {
+        id: activationToken.id,
+        usedAt: null,
+        expiresAt: {
+          gt: now,
+        },
+      },
+      data: {
+        usedAt: now,
+      },
+    });
+
+    if (consumedToken.count === 0) {
+      throw badRequest('Token de ativação inválido ou expirado');
+    }
+
+    const updated = await tx.user.updateMany({
       where: {
         id: user.id,
+        deletedAt: null,
+        isActive: true,
+        passwordHash: null,
       },
       data: {
         passwordHash,
       },
     });
 
-    await tx.accountActivationToken.update({
-      where: {
-        id: activationToken.id,
-      },
-      data: {
-        usedAt: now,
-      },
-    });
+    if (updated.count === 0) {
+      throw badRequest('A conta já está ativa');
+    }
 
     await tx.accountActivationToken.updateMany({
       where: {
@@ -173,7 +197,11 @@ export async function activateAccountWithToken(token: string, passwordHash: stri
       },
     });
 
-    return nextUser;
+    return tx.user.findUniqueOrThrow({
+      where: {
+        id: user.id,
+      },
+    });
   });
 
   return updatedUser;

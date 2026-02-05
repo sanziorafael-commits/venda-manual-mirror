@@ -39,6 +39,7 @@ model User {
   deletedAt    DateTime?
   sessions     Session[]
   activationTokens AccountActivationToken[]
+  passwordResetTokens PasswordResetToken[]
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -74,4 +75,18 @@ model AccountActivationToken {
 
   @@index([userId, usedAt], map: "activation_tokens_user_used_idx")
   @@index([expiresAt], map: "activation_tokens_expires_idx")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, usedAt], map: "password_reset_tokens_user_used_idx")
+  @@index([expiresAt], map: "password_reset_tokens_expires_idx")
 }

@@ -6,8 +6,10 @@ import type {
   ActivateAccountInput,
   AuthActor,
   BootstrapAdminInput,
+  ForgotPasswordInput,
   LoginInput,
   PublicUser,
+  ResetPasswordInput,
   ResendActivationInput,
   SessionInput,
   TokenResponse,
@@ -25,6 +27,7 @@ import {
   activateAccountWithToken,
   resendActivationInvite,
 } from './account-activation.service.js';
+import { requestPasswordReset, resetPasswordWithToken } from './password-reset.service.js';
 
 export async function login(input: LoginInput) {
   const email = normalizeEmail(input.email);
@@ -57,10 +60,7 @@ export async function login(input: LoginInput) {
 
   if (!user.passwordHash) {
     if (isInvitableRole(user.role)) {
-      throw accountPendingPassword({
-        userId: user.id,
-        role: user.role,
-      });
+      throw accountPendingPassword();
     }
 
     throw unauthorized('Credenciais inválidas');
@@ -237,6 +237,17 @@ export async function logout(refreshToken: string) {
 
 export async function resendActivation(actor: AuthActor, input: ResendActivationInput) {
   return resendActivationInvite(actor, input.userId);
+}
+
+export async function forgotPassword(input: ForgotPasswordInput) {
+  await requestPasswordReset(input.email);
+  return { ok: true };
+}
+
+export async function resetPassword(input: ResetPasswordInput) {
+  const passwordHash = await hashPassword(input.password);
+  await resetPasswordWithToken(input.token, passwordHash);
+  return { ok: true };
 }
 
 export async function getMe(userId: string) {

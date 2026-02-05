@@ -29,6 +29,15 @@ export type ResendActivationInput = {
   userId: string;
 };
 
+export type ForgotPasswordInput = {
+  email: string;
+};
+
+export type ResetPasswordInput = {
+  token: string;
+  password: string;
+};
+
 export type TokenResponse = {
   accessToken: string;
   refreshToken: string;

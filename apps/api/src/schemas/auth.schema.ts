@@ -18,6 +18,15 @@ export const resendActivationSchema = z.object({
   userId: z.string().cuid(),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(20),
+  password: z.string().min(6),
+});
+
 export const bootstrapAdminSchema = z.object({
   fullName: z.string().min(2),
   cpf: z.string().min(11),

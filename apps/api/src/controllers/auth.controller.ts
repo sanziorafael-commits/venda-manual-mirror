@@ -3,16 +3,20 @@ import type { Request, Response } from 'express';
 import {
   activateAccountSchema,
   bootstrapAdminSchema,
+  forgotPasswordSchema,
   loginSchema,
   refreshTokenSchema,
+  resetPasswordSchema,
   resendActivationSchema,
 } from '../schemas/auth.schema.js';
 import {
   activateAccount,
   bootstrapAdmin,
+  forgotPassword,
   login,
   logout,
   refreshSession,
+  resetPassword,
   resendActivation,
 } from '../services/auth.service.js';
 import { unauthorized } from '../utils/app-error.js';
@@ -74,5 +78,17 @@ export async function resendActivationHandler(req: Request, res: Response) {
   const payload = resendActivationSchema.parse(req.body);
   const data = await resendActivation(authUser, payload);
 
+  res.status(200).json({ data });
+}
+
+export async function forgotPasswordHandler(req: Request, res: Response) {
+  const payload = forgotPasswordSchema.parse(req.body);
+  const data = await forgotPassword(payload);
+  res.status(200).json({ data });
+}
+
+export async function resetPasswordHandler(req: Request, res: Response) {
+  const payload = resetPasswordSchema.parse(req.body);
+  const data = await resetPassword(payload);
   res.status(200).json({ data });
 }
