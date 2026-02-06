@@ -3,6 +3,9 @@ import { Fustat } from "next/font/google";
 
 import "./globals.css";
 
+import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/theme/theme-provider";
+
 const fustat = Fustat({
   variable: "--font-fustat",
   display: "swap",
@@ -30,8 +33,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-br">
-      <body className={`${fustat.variable} antialiased`}>{children}</body>
+    <html lang="pt-br" suppressHydrationWarning>
+      <body className={`${fustat.variable} antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
+        <Toaster richColors position="top-right" />
+      </body>
     </html>
   );
 }

@@ -18,24 +18,71 @@ import Link from "next/link";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import React from "react";
 import { Spinner } from "../ui/spinner";
+import { useRouter } from "next/navigation";
+import { loginResponseSchema, loginSchema, type LoginSchema } from "@/schemas/auth";
+import { tryApiPostDataParsed } from "@/lib/try-api";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { saveAuthSession } from "@/lib/auth-session";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
+  const router = useRouter();
   const [showPassword, setShowPassword] = React.useState(false);
-  const [credentials, setCredentials] = React.useState({
-    email: "",
-    password: "",
-  });
   const [loading, setLoading] = React.useState(false);
 
-  const isSubmitEnabled =
-    credentials.email.trim().length > 0 &&
-    credentials.password.trim().length > 0;
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<LoginSchema>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const email = watch("email", "");
+  const password = watch("password", "");
+
+  const isSubmitEnabled = email.trim().length > 0 && password.trim().length > 0;
+
+  const onSubmit = async (data: LoginSchema) => {
+    setLoading(true);
+
+    try {
+      const session = await tryApiPostDataParsed(
+        "/auth/login",
+        data,
+        (payload) => {
+          const parsed = loginResponseSchema.safeParse(payload);
+          return parsed.success ? parsed.data : null;
+        },
+        "Login realizado com sucesso!",
+        "Nao foi possivel concluir o login. Tente novamente.",
+      );
+
+      if (!session) {
+        return;
+      }
+
+      saveAuthSession(session);
+      router.push("/dashboard");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <form className={cn("flex flex-col gap-6", className)} {...props}>
+    <form
+      {...props}
+      className={cn("flex flex-col gap-6", className)}
+      onSubmit={handleSubmit(onSubmit)}
+    >
       <FieldGroup className="gap-0">
         <div className="flex flex-col items-center text-center mb-16">
           <h1 className="text-3xl font-bold">Portal do Cliente</h1>
@@ -46,16 +93,15 @@ export function LoginForm({
           </FieldLabel>
           <Input
             id="email"
-            name="email"
             type="email"
             placeholder="email@email.com"
             autoComplete="email"
-            value={credentials.email}
-            onChange={(event) =>
-              setCredentials((prev) => ({ ...prev, email: event.target.value }))
-            }
+            {...register("email")}
             required
           />
+          {errors.email && (
+            <p className="text-sm text-red-500">{errors.email.message}</p>
+          )}
         </Field>
 
         <Field className="gap-2 mb-3">
@@ -65,17 +111,10 @@ export function LoginForm({
           <InputGroup>
             <InputGroupInput
               id="password"
-              name="password"
               type={showPassword ? "text" : "password"}
               placeholder="*********"
               autoComplete="current-password"
-              value={credentials.password}
-              onChange={(event) =>
-                setCredentials((prev) => ({
-                  ...prev,
-                  password: event.target.value,
-                }))
-              }
+              {...register("password")}
               required
             />
             <InputGroupAddon align="inline-end">
@@ -90,6 +129,10 @@ export function LoginForm({
               </Button>
             </InputGroupAddon>
           </InputGroup>
+
+          {errors.password && (
+            <p className="text-sm text-red-500">{errors.password.message}</p>
+          )}
         </Field>
         <FieldDescription className="text-right [&>a]:no-underline">
           <Link href="/login/forgot-password" className="text-xs">
