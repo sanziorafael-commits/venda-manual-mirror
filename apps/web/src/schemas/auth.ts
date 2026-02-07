@@ -5,24 +5,37 @@ import { z } from "zod";
 // -----------------------------------------------------------------------------
 
 export const loginFormSchema = z.object({
-  email: z.string().email({ message: "E-mail inválido" }),
-  password: z.string().min(1, { message: "Senha obrigatória" }),
+  email: z.string().email({ message: "E-mail invalido" }),
+  password: z.string().min(1, { message: "Senha obrigatoria" }),
 });
 
 export const forgotPasswordFormSchema = z.object({
-  email: z.string().email({ message: "E-mail inválido" }),
+  email: z.string().email({ message: "E-mail invalido" }),
 });
 
 export const resetPasswordFormSchema = z
   .object({
-    token: z.string().min(1),
+    token: z.string().min(1, { message: "Token obrigatorio" }),
     newPassword: z
       .string()
       .min(6, { message: "A nova senha deve ter pelo menos 6 caracteres" }),
     confirmPassword: z.string().min(1, { message: "Confirme sua nova senha" }),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "As senhas não coincidem",
+    message: "As senhas nao coincidem",
+    path: ["confirmPassword"],
+  });
+
+export const activateAccountFormSchema = z
+  .object({
+    token: z.string().min(1, { message: "Token obrigatorio" }),
+    password: z
+      .string()
+      .min(6, { message: "A senha deve ter pelo menos 6 caracteres" }),
+    confirmPassword: z.string().min(1, { message: "Confirme sua senha" }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "As senhas nao coincidem",
     path: ["confirmPassword"],
   });
 
@@ -30,6 +43,7 @@ export const resetPasswordFormSchema = z
 export const loginSchema = loginFormSchema;
 export const forgotSchema = forgotPasswordFormSchema;
 export const resetPasswordSchema = resetPasswordFormSchema;
+export const activateAccountSchema = activateAccountFormSchema;
 
 // -----------------------------------------------------------------------------
 // Auth API + Session schemas
@@ -60,6 +74,10 @@ export const authSessionSchema = z.object({
   tokens: authTokenSchema,
 });
 
+export const authOkSchema = z.object({
+  ok: z.boolean(),
+});
+
 export const apiSuccessSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
   z.object({
     data: dataSchema,
@@ -76,10 +94,12 @@ export const loginApiResponseSchema = apiSuccessSchema(loginResponseSchema);
 export type LoginFormInput = z.infer<typeof loginFormSchema>;
 export type ForgotPasswordFormInput = z.infer<typeof forgotPasswordFormSchema>;
 export type ResetPasswordFormInput = z.infer<typeof resetPasswordFormSchema>;
+export type ActivateAccountFormInput = z.infer<typeof activateAccountFormSchema>;
 
 export type LoginSchema = LoginFormInput;
 export type ForgotSchema = ForgotPasswordFormInput;
 export type ResetPasswordSchema = ResetPasswordFormInput;
+export type ActivateAccountSchema = ActivateAccountFormInput;
 
 export type AuthUser = z.infer<typeof authSessionUserSchema>;
 export type AuthToken = z.infer<typeof authTokenSchema>;
