@@ -5,15 +5,19 @@ import { ActivationInviteEmailInput, ResetPasswordEmailInput } from '../types/em
 
 export async function sendActivationInviteEmail(input: ActivationInviteEmailInput) {
   if (env.MAIL_PROVIDER === 'disabled') {
+    console.warn('[mail] envio ignorado: MAIL_PROVIDER=disabled', {
+      to: input.to,
+      type: 'activation',
+    });
     return;
   }
 
   const activationLink = createAppLink(env.APP_ACTIVATION_PATH, input.token);
-  const subject = 'Ativação de conta HandSell';
+  const subject = 'Ativação de conta Handsell';
   const text = [
     `Olá, ${input.fullName}.`,
     '',
-    'Recebemos um cadastro para seu acesso no Portal HandSell.',
+    'Recebemos um cadastro para seu acesso no Portal Handsell.',
     `Ative sua conta no link: ${activationLink}`,
     '',
     'Se você não reconhece este cadastro, ignore este e-mail.',
@@ -21,7 +25,7 @@ export async function sendActivationInviteEmail(input: ActivationInviteEmailInpu
 
   const html = [
     `<p>Olá, ${escapeHtml(input.fullName)}.</p>`,
-    '<p>Recebemos um cadastro para seu acesso no Portal HandSell.</p>',
+    '<p>Recebemos um cadastro para seu acesso no Portal Handsell.</p>',
     `<p><a href="${activationLink}">Clique aqui para ativar sua conta</a></p>`,
     '<p>Se você não reconhece este cadastro, ignore este e-mail.</p>',
   ].join('');
@@ -31,11 +35,15 @@ export async function sendActivationInviteEmail(input: ActivationInviteEmailInpu
 
 export async function sendResetPasswordEmail(input: ResetPasswordEmailInput) {
   if (env.MAIL_PROVIDER === 'disabled') {
+    console.warn('[mail] envio ignorado: MAIL_PROVIDER=disabled', {
+      to: input.to,
+      type: 'reset-password',
+    });
     return;
   }
 
   const resetLink = createAppLink(env.APP_RESET_PASSWORD_PATH, input.token);
-  const subject = 'Recuperação de senha HandSell';
+  const subject = 'Recuperação de senha Handsell';
   const text = [
     `Olá, ${input.fullName}.`,
     '',
@@ -57,12 +65,22 @@ export async function sendResetPasswordEmail(input: ResetPasswordEmailInput) {
 
 async function sendEmail(to: string, subject: string, html: string, text: string) {
   const resend = getResendClient();
-  await resend.emails.send({
+  const result = await resend.emails.send({
     from: getMailFrom(),
     to,
     subject,
     html,
     text,
+  });
+
+  if (result.error) {
+    throw new Error(`Falha ao enviar e-mail via Resend: ${result.error.message}`);
+  }
+
+  console.info('[mail] e-mail enviado com sucesso', {
+    to,
+    subject,
+    id: result.data?.id,
   });
 }
 

@@ -67,7 +67,7 @@ export async function getCompanyById(companyId: string) {
   });
 
   if (!company) {
-    throw notFound('Empresa não encontrada');
+    throw notFound('Empresa nao encontrada');
   }
 
   return {
@@ -111,16 +111,17 @@ export async function updateCompany(companyId: string, input: UpdateCompanyInput
 export async function deleteCompany(companyId: string) {
   await getCompanyById(companyId);
 
-  const usersCount = await prisma.user.count({
+  const activeUsersCount = await prisma.user.count({
     where: {
       companyId,
       deletedAt: null,
+      isActive: true,
     },
   });
 
-  if (usersCount > 0) {
-    throw conflict('Não é possível excluir empresa com usuários vinculados', {
-      usersCount,
+  if (activeUsersCount > 0) {
+    throw conflict('Nao e possivel excluir empresa com usuarios ativos vinculados', {
+      activeUsersCount,
     });
   }
 

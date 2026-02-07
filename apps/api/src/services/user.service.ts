@@ -14,6 +14,12 @@ import { normalizeCpf, normalizeEmail, normalizePhone } from '../utils/normalize
 import { getPagination } from '../utils/pagination.js';
 import { hashPassword } from '../utils/password.js';
 import {
+  assertActorCompanyScope,
+  canReadUserForContext,
+  getUserRoleScopeWhere,
+  resolveActorCompanyScope,
+} from '../utils/rbac-scope-policy.js';
+import {
   canCreateRole,
   canManageRole,
   isInvitableRole,
@@ -24,11 +30,13 @@ import { createActivationInviteForUser } from './account-activation.service.js';
 
 export async function listUsers(actor: AuthActor, input: UserListInput) {
   const pagination = getPagination(input.page, input.pageSize);
-  const companyId = resolveCompanyId(actor, input.companyId);
+  const companyId = resolveActorCompanyScope(actor, input.companyId);
+  const roleScopeWhere = getUserRoleScopeWhere(actor, 'users');
 
   const where = {
     deletedAt: null,
     ...(companyId ? { companyId } : {}),
+    ...roleScopeWhere,
     ...(input.q
       ? {
           OR: [
@@ -84,12 +92,25 @@ export async function getUserById(actor: AuthActor, userId: string) {
     throw notFound('Usuário não encontrado');
   }
 
-  assertScope(actor, user.companyId);
+  assertActorCompanyScope(actor, user.companyId);
+  if (
+    !canReadUserForContext(
+      actor,
+      {
+        id: user.id,
+        role: user.role,
+        companyId: user.companyId,
+      },
+      'users',
+    )
+  ) {
+    throw forbidden('Voce nao tem permissao para visualizar este cargo');
+  }
   return mapPublicUser(user);
 }
 
 export async function createUser(actor: AuthActor, input: CreateUserInput) {
-  const companyId = resolveCompanyId(actor, input.companyId);
+  const companyId = resolveActorCompanyScope(actor, input.companyId);
   validateCreatePermissions(actor, input.role);
   validateCompanyForRole(input.role, companyId);
   validateCredentialsForRole(input.role, input.email, input.password);
@@ -143,7 +164,7 @@ export async function updateUser(actor: AuthActor, userId: string, input: Update
     throw notFound('Usuário não encontrado');
   }
 
-  assertScope(actor, existing.companyId);
+  assertActorCompanyScope(actor, existing.companyId);
   validateUpdatePermissions(actor, existing.role, input.role);
 
   const nextRole = input.role ?? existing.role;
@@ -162,7 +183,7 @@ export async function updateUser(actor: AuthActor, userId: string, input: Update
     throw badRequest('Senha obrigatória para admin');
   }
 
-  const companyId = resolveCompanyId(actor, input.companyId ?? existing.companyId ?? undefined);
+  const companyId = resolveActorCompanyScope(actor, input.companyId ?? existing.companyId ?? undefined);
   validateCompanyForRole(nextRole, companyId);
   await assertCompanyExistsIfRequired(companyId);
 
@@ -173,7 +194,8 @@ export async function updateUser(actor: AuthActor, userId: string, input: Update
       role: nextRole,
       fullName: input.fullName?.trim(),
       cpf: input.cpf ? normalizeCpf(input.cpf) : undefined,
-      email: input.email === undefined ? undefined : input.email ? normalizeEmail(input.email) : null,
+      email:
+        input.email === undefined ? undefined : input.email ? normalizeEmail(input.email) : null,
       phone: input.phone ? normalizePhone(input.phone) : undefined,
       passwordHash:
         nextRole === UserRole.VENDEDOR
@@ -213,7 +235,7 @@ export async function deleteUser(actor: AuthActor, userId: string) {
     throw notFound('Usuário não encontrado');
   }
 
-  assertScope(actor, existing.companyId);
+  assertActorCompanyScope(actor, existing.companyId);
 
   if (!canManageRole(actor.role, existing.role)) {
     throw forbidden('Você não tem permissão para excluir este cargo');
@@ -221,15 +243,14 @@ export async function deleteUser(actor: AuthActor, userId: string) {
 
   const now = new Date();
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: {
-      deletedAt: now,
-      isActive: false,
-    },
-  });
-
-  await Promise.all([
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: userId },
+      data: {
+        deletedAt: now,
+        isActive: false,
+      },
+    }),
     prisma.session.updateMany({
       where: {
         userId,
@@ -248,29 +269,16 @@ export async function deleteUser(actor: AuthActor, userId: string) {
         usedAt: now,
       },
     }),
+    prisma.userDeletionAudit.create({
+      data: {
+        targetUserId: userId,
+        targetCompanyId: existing.companyId,
+        actorUserId: actor.userId,
+        actorRole: actor.role,
+        deletedAt: now,
+      },
+    }),
   ]);
-}
-
-function resolveCompanyId(actor: AuthActor, requestedCompanyId?: string) {
-  if (actor.role === UserRole.ADMIN) {
-    return requestedCompanyId ?? null;
-  }
-
-  if (!actor.companyId) {
-    throw forbidden('Usuário não está vinculado a uma empresa');
-  }
-
-  return actor.companyId;
-}
-
-function assertScope(actor: AuthActor, targetCompanyId: string | null) {
-  if (actor.role === UserRole.ADMIN) {
-    return;
-  }
-
-  if (!actor.companyId || actor.companyId !== targetCompanyId) {
-    throw forbidden('Você não tem acesso ao escopo desta empresa');
-  }
 }
 
 function validateCreatePermissions(actor: AuthActor, role: UserRole) {
