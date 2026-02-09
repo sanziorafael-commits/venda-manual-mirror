@@ -6,6 +6,8 @@ import {
   deleteUserHandler,
   getUserByIdHandler,
   listUsersHandler,
+  reassignManagerTeamHandler,
+  reassignSupervisorHandler,
   updateUserHandler,
 } from '../controllers/user.controller.js';
 import { authenticate, authorize } from '../middlewares/auth.middleware.js';
@@ -14,6 +16,9 @@ const router = Router();
 
 router.use(authenticate);
 router.use(authorize(UserRole.ADMIN, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR));
+
+router.post('/reassign-supervisor', authorize(UserRole.ADMIN, UserRole.GERENTE_COMERCIAL), reassignSupervisorHandler);
+router.post('/reassign-manager-team', authorize(UserRole.ADMIN), reassignManagerTeamHandler);
 
 router.get('/', listUsersHandler);
 router.get('/:userId', getUserByIdHandler);

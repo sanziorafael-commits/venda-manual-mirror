@@ -1,12 +1,20 @@
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 
-import { createUserSchema, updateUserSchema, userQuerySchema } from '../schemas/user.schema.js';
+import {
+  createUserSchema,
+  reassignManagerTeamSchema,
+  reassignSupervisorSchema,
+  updateUserSchema,
+  userQuerySchema,
+} from '../schemas/user.schema.js';
 import {
   createUser,
   deleteUser,
   getUserById,
   listUsers,
+  reassignManagerTeam,
+  reassignSupervisor,
   updateUser,
 } from '../services/user.service.js';
 import { unauthorized } from '../utils/app-error.js';
@@ -75,4 +83,26 @@ export async function deleteUserHandler(req: Request, res: Response) {
   const { userId } = userParamSchema.parse(req.params);
   await deleteUser(authUser, userId);
   res.status(200).json({ data: { ok: true } });
+}
+
+export async function reassignSupervisorHandler(req: Request, res: Response) {
+  const authUser = req.authUser;
+  if (!authUser) {
+    throw unauthorized('Autenticação obrigatória');
+  }
+
+  const payload = reassignSupervisorSchema.parse(req.body);
+  const data = await reassignSupervisor(authUser, payload);
+  res.status(200).json({ data });
+}
+
+export async function reassignManagerTeamHandler(req: Request, res: Response) {
+  const authUser = req.authUser;
+  if (!authUser) {
+    throw unauthorized('Autenticação obrigatória');
+  }
+
+  const payload = reassignManagerTeamSchema.parse(req.body);
+  const data = await reassignManagerTeam(authUser, payload);
+  res.status(200).json({ data });
 }

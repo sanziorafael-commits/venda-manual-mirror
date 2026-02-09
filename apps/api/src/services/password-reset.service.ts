@@ -95,7 +95,7 @@ export async function resetPasswordWithToken(token: string, passwordHash: string
     });
 
     if (!resetToken) {
-      throw badRequest('Token de redefinicao invalido ou expirado');
+      throw badRequest('Token de redefinição inválido ou expirado');
     }
 
     const user = resetToken.user;
@@ -104,7 +104,7 @@ export async function resetPasswordWithToken(token: string, passwordHash: string
     }
 
     if (user.role === UserRole.VENDEDOR) {
-      throw forbidden('Este cargo nao possui acesso ao dashboard');
+      throw forbidden('Este cargo não possui acesso ao dashboard');
     }
 
     if (user.role !== UserRole.ADMIN && user.companyId) {
@@ -137,7 +137,7 @@ export async function resetPasswordWithToken(token: string, passwordHash: string
     });
 
     if (consumedToken.count === 0) {
-      throw badRequest('Token de redefinicao invalido ou expirado');
+      throw badRequest('Token de redefinição inválido ou expirado');
     }
 
     const updated = await tx.user.updateMany({

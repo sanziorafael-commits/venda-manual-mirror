@@ -1,4 +1,4 @@
-import { UserRole } from '@prisma/client';
+import { UserRole, type Prisma } from '@prisma/client';
 
 import type { AuthActor } from '../types/auth.types.js';
 
@@ -6,39 +6,49 @@ import { forbidden } from './app-error.js';
 
 export type RbacScopeContext = 'users' | 'dashboard' | 'conversations' | 'locatedClients';
 
-type RoleReadScope = UserRole[] | null;
-type ScopedUserTarget = {
-  id: string;
-  role: UserRole;
-  companyId: string | null;
-};
+function buildSupervisorScopedWhere(
+  context: RbacScopeContext,
+  actorUserId: string,
+): Prisma.UserWhereInput {
+  if (context === 'users') {
+    return {
+      role: UserRole.VENDEDOR,
+      supervisorId: actorUserId,
+    };
+  }
 
-const RBAC_READ_SCOPE_BY_CONTEXT: Record<RbacScopeContext, Record<UserRole, RoleReadScope>> = {
-  users: {
-    [UserRole.ADMIN]: null,
-    [UserRole.GERENTE_COMERCIAL]: [UserRole.SUPERVISOR, UserRole.VENDEDOR],
-    [UserRole.SUPERVISOR]: [UserRole.VENDEDOR],
-    [UserRole.VENDEDOR]: [],
-  },
-  dashboard: {
-    [UserRole.ADMIN]: null,
-    [UserRole.GERENTE_COMERCIAL]: [UserRole.SUPERVISOR, UserRole.VENDEDOR],
-    [UserRole.SUPERVISOR]: [UserRole.SUPERVISOR, UserRole.VENDEDOR],
-    [UserRole.VENDEDOR]: [],
-  },
-  conversations: {
-    [UserRole.ADMIN]: null,
-    [UserRole.GERENTE_COMERCIAL]: [UserRole.SUPERVISOR, UserRole.VENDEDOR],
-    [UserRole.SUPERVISOR]: [UserRole.SUPERVISOR, UserRole.VENDEDOR],
-    [UserRole.VENDEDOR]: [],
-  },
-  locatedClients: {
-    [UserRole.ADMIN]: null,
-    [UserRole.GERENTE_COMERCIAL]: [UserRole.SUPERVISOR, UserRole.VENDEDOR],
-    [UserRole.SUPERVISOR]: [UserRole.SUPERVISOR, UserRole.VENDEDOR],
-    [UserRole.VENDEDOR]: [],
-  },
-};
+  return {
+    OR: [
+      {
+        role: UserRole.SUPERVISOR,
+        id: actorUserId,
+      },
+      {
+        role: UserRole.VENDEDOR,
+        supervisorId: actorUserId,
+      },
+    ],
+  };
+}
+
+function buildManagerScopedWhere(actorUserId: string): Prisma.UserWhereInput {
+  return {
+    OR: [
+      {
+        role: UserRole.SUPERVISOR,
+        managerId: actorUserId,
+      },
+      {
+        role: UserRole.VENDEDOR,
+        supervisor: {
+          is: {
+            managerId: actorUserId,
+          },
+        },
+      },
+    ],
+  };
+}
 
 export function resolveActorCompanyScope(actor: AuthActor, requestedCompanyId?: string) {
   if (actor.role === UserRole.ADMIN) {
@@ -46,7 +56,7 @@ export function resolveActorCompanyScope(actor: AuthActor, requestedCompanyId?: 
   }
 
   if (!actor.companyId) {
-    throw forbidden('Usuario nao esta vinculado a uma empresa');
+    throw forbidden('Usuário não está vinculado a uma empresa');
   }
 
   return actor.companyId;
@@ -58,63 +68,27 @@ export function assertActorCompanyScope(actor: AuthActor, targetCompanyId: strin
   }
 
   if (!actor.companyId || actor.companyId !== targetCompanyId) {
-    throw forbidden('Voce nao tem acesso ao escopo desta empresa');
+    throw forbidden('Você não tem acesso ao escopo desta empresa');
   }
 }
 
-export function getReadableRolesForContext(actorRole: UserRole, context: RbacScopeContext) {
-  return RBAC_READ_SCOPE_BY_CONTEXT[context][actorRole];
-}
-
-export function getUserRoleScopeWhere(actor: AuthActor, context: RbacScopeContext) {
-  const readableRoles = getReadableRolesForContext(actor.role, context);
-  if (readableRoles === null) {
+export function getUserReadScopeWhere(
+  actor: AuthActor,
+  context: RbacScopeContext,
+): Prisma.UserWhereInput {
+  if (actor.role === UserRole.ADMIN) {
     return {};
   }
 
-  if (
-    actor.role === UserRole.SUPERVISOR &&
-    (context === 'dashboard' || context === 'conversations' || context === 'locatedClients')
-  ) {
-    return {
-      OR: [{ role: UserRole.VENDEDOR }, { role: UserRole.SUPERVISOR, id: actor.userId }],
-    };
+  if (actor.role === UserRole.GERENTE_COMERCIAL) {
+    return buildManagerScopedWhere(actor.userId);
   }
 
-  return { role: { in: readableRoles } };
-}
-
-export function canReadRoleForContext(
-  actorRole: UserRole,
-  targetRole: UserRole,
-  context: RbacScopeContext,
-) {
-  const readableRoles = getReadableRolesForContext(actorRole, context);
-  if (readableRoles === null) {
-    return true;
+  if (actor.role === UserRole.SUPERVISOR) {
+    return buildSupervisorScopedWhere(context, actor.userId);
   }
 
-  return readableRoles.includes(targetRole);
-}
-
-export function canReadUserForContext(
-  actor: AuthActor,
-  targetUser: ScopedUserTarget,
-  context: RbacScopeContext,
-) {
-  assertActorCompanyScope(actor, targetUser.companyId);
-
-  if (!canReadRoleForContext(actor.role, targetUser.role, context)) {
-    return false;
-  }
-
-  if (
-    actor.role === UserRole.SUPERVISOR &&
-    targetUser.role === UserRole.SUPERVISOR &&
-    (context === 'dashboard' || context === 'conversations' || context === 'locatedClients')
-  ) {
-    return targetUser.id === actor.userId;
-  }
-
-  return true;
+  return {
+    id: '__forbidden__',
+  };
 }

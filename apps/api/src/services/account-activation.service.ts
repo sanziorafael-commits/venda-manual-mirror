@@ -88,6 +88,7 @@ export async function resendActivationInvite(actor: AuthActor, userId: string) {
       id: true,
       companyId: true,
       role: true,
+      managerId: true,
       email: true,
       passwordHash: true,
     },
@@ -97,7 +98,7 @@ export async function resendActivationInvite(actor: AuthActor, userId: string) {
     throw notFound('Usuário não encontrado');
   }
 
-  assertResendScope(actor, user.companyId, user.role);
+  assertResendScope(actor, user);
   assertUserCanReceiveActivationInvite(user.role, user.email, user.passwordHash);
 
   return createActivationInviteForUser(user.id);
@@ -207,17 +208,30 @@ export async function activateAccountWithToken(token: string, passwordHash: stri
   return updatedUser;
 }
 
-function assertResendScope(actor: AuthActor, targetCompanyId: string | null, targetRole: UserRole) {
+function assertResendScope(
+  actor: AuthActor,
+  target: {
+    companyId: string | null;
+    role: UserRole;
+    managerId: string | null;
+  },
+) {
   if (actor.role === UserRole.ADMIN) {
     return;
   }
 
-  if (!actor.companyId || actor.companyId !== targetCompanyId) {
+  if (!actor.companyId || actor.companyId !== target.companyId) {
     throw forbidden('Você não tem acesso ao escopo desta empresa');
   }
 
-  if (!canManageRole(actor.role, targetRole)) {
+  if (!canManageRole(actor.role, target.role)) {
     throw forbidden('Você não tem permissão para reenviar convite deste cargo');
+  }
+
+  if (actor.role === UserRole.GERENTE_COMERCIAL && target.role === UserRole.SUPERVISOR) {
+    if (target.managerId !== actor.userId) {
+      throw forbidden('Você não tem permissão para reenviar convite deste supervisor');
+    }
   }
 }
 

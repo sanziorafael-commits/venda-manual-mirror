@@ -1,5 +1,9 @@
 import { prisma } from '../lib/prisma.js';
-import type { CompanyListInput, CreateCompanyInput, UpdateCompanyInput } from '../types/company.types.js';
+import type {
+  CompanyListInput,
+  CreateCompanyInput,
+  UpdateCompanyInput,
+} from '../types/company.types.js';
 import { conflict, notFound } from '../utils/app-error.js';
 import { normalizeCnpj } from '../utils/normalizers.js';
 import { getPagination } from '../utils/pagination.js';
@@ -67,7 +71,7 @@ export async function getCompanyById(companyId: string) {
   });
 
   if (!company) {
-    throw notFound('Empresa nao encontrada');
+    throw notFound('Empresa não encontrada');
   }
 
   return {
@@ -120,7 +124,7 @@ export async function deleteCompany(companyId: string) {
   });
 
   if (activeUsersCount > 0) {
-    throw conflict('Nao e possivel excluir empresa com usuarios ativos vinculados', {
+    throw conflict('Não é possível excluir empresa com usuários ativos vinculados', {
       activeUsersCount,
     });
   }

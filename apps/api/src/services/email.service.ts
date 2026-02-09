@@ -86,7 +86,7 @@ async function sendEmail(to: string, subject: string, html: string, text: string
 
 function getResendClient() {
   if (!env.RESEND_API_KEY) {
-    throw new Error('RESEND_API_KEY nao configurada');
+    throw new Error('RESEND_API_KEY não configurada');
   }
 
   return new Resend(env.RESEND_API_KEY);
@@ -94,7 +94,7 @@ function getResendClient() {
 
 function getMailFrom() {
   if (!env.MAIL_FROM) {
-    throw new Error('MAIL_FROM nao configurado');
+    throw new Error('MAIL_FROM não configurado');
   }
 
   return env.MAIL_FROM;
@@ -102,7 +102,7 @@ function getMailFrom() {
 
 function createAppLink(path: string, token: string) {
   if (!env.APP_WEB_URL) {
-    throw new Error('APP_WEB_URL nao configurada');
+    throw new Error('APP_WEB_URL não configurada');
   }
 
   const baseUrl = env.APP_WEB_URL.endsWith('/') ? env.APP_WEB_URL.slice(0, -1) : env.APP_WEB_URL;

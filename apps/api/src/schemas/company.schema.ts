@@ -30,4 +30,6 @@ export const createCompanyUserSchema = z.object({
   email: z.string().email().optional(),
   phone: z.string().min(8),
   password: z.string().min(6).optional(),
+  managerId: z.string().cuid().nullable().optional(),
+  supervisorId: z.string().cuid().nullable().optional(),
 });

@@ -30,6 +30,12 @@ model User {
   id           String    @id @default(cuid())
   companyId    String?
   company      Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  managerId    String?
+  manager      User?     @relation("ManagerToSupervisor", fields: [managerId], references: [id], onDelete: SetNull)
+  managedSupervisors User[] @relation("ManagerToSupervisor")
+  supervisorId String?
+  supervisor   User?     @relation("SupervisorToVendor", fields: [supervisorId], references: [id], onDelete: SetNull)
+  managedVendors User[]  @relation("SupervisorToVendor")
   role         UserRole
   fullName     String
   cpf          String    @unique
@@ -48,6 +54,8 @@ model User {
 
   @@unique([companyId, phone], map: "users_company_phone_key")
   @@index([companyId, role], map: "users_company_role_idx")
+  @@index([companyId, managerId], map: "users_company_manager_idx")
+  @@index([companyId, supervisorId], map: "users_company_supervisor_idx")
 }
 
 model UserDeletionAudit {
