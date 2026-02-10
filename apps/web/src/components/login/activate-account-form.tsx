@@ -1,43 +1,28 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
-
-import React from "react";
-import Link from "next/link";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "../ui/input-group";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
-import { Spinner } from "../ui/spinner";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import React from "react";
+import { useForm } from "react-hook-form";
+
 import {
   activateAccountSchema,
   loginResponseSchema,
   type ActivateAccountSchema,
 } from "@/schemas/auth";
 import { tryApiPostDataParsed } from "@/lib/try-api";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Field, FieldDescription, FieldGroup } from "@/components/ui/field";
+import { PasswordField } from "@/components/ui/password-field";
+import { Spinner } from "@/components/ui/spinner";
 
-export function ActivateAccountForm({
-  className,
-  ...props
-}: React.ComponentProps<"form">) {
+export function ActivateAccountForm({ className, ...props }: React.ComponentProps<"form">) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tokenFromUrl = searchParams.get("token")?.trim() ?? "";
 
-  const [showPassword, setShowPassword] = React.useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
 
   const {
@@ -61,7 +46,6 @@ export function ActivateAccountForm({
 
   const password = watch("password", "");
   const confirmPassword = watch("confirmPassword", "");
-
   const isSubmitEnabled =
     tokenFromUrl.length > 0 &&
     password.trim().length > 0 &&
@@ -82,7 +66,7 @@ export function ActivateAccountForm({
           return parsed.success ? parsed.data : null;
         },
         "Conta ativada com sucesso!",
-        "Nao foi possivel ativar a conta.",
+        "Não foi possível ativar a conta.",
       );
 
       if (!session) {
@@ -102,81 +86,38 @@ export function ActivateAccountForm({
       onSubmit={handleSubmit(onSubmit)}
     >
       <FieldGroup className="gap-0">
-        <div className="flex gap-6 flex-col items-center text-center mb-16">
+        <div className="mb-16 flex flex-col items-center gap-6 text-center">
           <h1 className="text-3xl font-bold">Ative sua conta</h1>
           <p className="text-muted-foreground text-sm text-balance">
             Digite sua senha e confirme para ativar sua conta
           </p>
-          {!tokenFromUrl && (
+          {!tokenFromUrl ? (
             <p className="text-sm text-red-500">
-              Link invalido ou expirado. Solicite um novo convite.
+              Link inválido ou expirado. Solicite um novo convite.
             </p>
-          )}
+          ) : null}
         </div>
 
-        <Field className="gap-2 mb-6">
-          <FieldLabel htmlFor="password" className="font-bold">
-            Senha
-          </FieldLabel>
-          <InputGroup>
-            <InputGroupInput
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="*********"
-              autoComplete="new-password"
-              {...register("password")}
-              required
-            />
-            <InputGroupAddon align="inline-end">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="hover:bg-transparent"
-                onClick={() => setShowPassword((prev) => !prev)}
-              >
-                {showPassword ? <EyeIcon /> : <EyeOffIcon />}
-              </Button>
-            </InputGroupAddon>
-          </InputGroup>
-          {errors.password && (
-            <p className="text-sm text-red-500">{errors.password.message}</p>
-          )}
-        </Field>
+        <PasswordField
+          className="mb-6"
+          id="password"
+          label="Senha"
+          registration={register("password")}
+          autoComplete="new-password"
+          required
+          error={errors.password?.message}
+        />
 
-        <Field className="gap-2">
-          <FieldLabel htmlFor="confirmPassword" className="font-bold">
-            Confirmar senha
-          </FieldLabel>
-          <InputGroup>
-            <InputGroupInput
-              id="confirmPassword"
-              type={showConfirmPassword ? "text" : "password"}
-              placeholder="*********"
-              autoComplete="new-password"
-              {...register("confirmPassword")}
-              required
-            />
-            <InputGroupAddon align="inline-end">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="hover:bg-transparent"
-                onClick={() => setShowConfirmPassword((prev) => !prev)}
-              >
-                {showConfirmPassword ? <EyeIcon /> : <EyeOffIcon />}
-              </Button>
-            </InputGroupAddon>
-          </InputGroup>
-          {errors.confirmPassword && (
-            <p className="text-sm text-red-500">
-              {errors.confirmPassword.message}
-            </p>
-          )}
-        </Field>
+        <PasswordField
+          id="confirmPassword"
+          label="Confirmar senha"
+          registration={register("confirmPassword")}
+          autoComplete="new-password"
+          required
+          error={errors.confirmPassword?.message}
+        />
 
-        <Field className="gap-2 mt-6 mb-6">
+        <Field className="mb-6 mt-6 gap-2">
           <Button
             type="submit"
             disabled={!isSubmitEnabled || loading}
@@ -184,7 +125,7 @@ export function ActivateAccountForm({
           >
             {loading ? (
               <span className="inline-flex items-center">
-                <Spinner className="w-4 h-4 mr-2 animate-spin" />
+                <Spinner className="mr-2 h-4 w-4 animate-spin" />
                 Ativando
               </span>
             ) : (
@@ -194,8 +135,7 @@ export function ActivateAccountForm({
         </Field>
 
         <FieldDescription className="text-center [&>a]:no-underline">
-          Lembrou sua senha?{" "}
-          <Link href="/login">Voltar ao login</Link>
+          Lembrou sua senha? <Link href="/login">Voltar ao login</Link>
         </FieldDescription>
       </FieldGroup>
     </form>

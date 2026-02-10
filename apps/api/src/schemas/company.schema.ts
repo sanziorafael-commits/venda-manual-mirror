@@ -7,6 +7,10 @@ export const companyQuerySchema = z.object({
   pageSize: z.coerce.number().int().positive().max(100).default(10),
 });
 
+export const companyParamSchema = z.object({
+  companyId: z.string().cuid(),
+});
+
 export const createCompanySchema = z.object({
   name: z.string().min(2),
   cnpj: z.string().min(14),

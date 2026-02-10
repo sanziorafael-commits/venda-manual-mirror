@@ -7,13 +7,10 @@ import {
 import {
   SidebarMenu,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import Image from "next/image";
 
 export function TeamSwitcher() {
-  const { isMobile } = useSidebar();
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>

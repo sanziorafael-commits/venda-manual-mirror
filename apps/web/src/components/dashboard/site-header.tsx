@@ -2,24 +2,15 @@
 
 import { usePathname } from "next/navigation";
 
+import { getPageTitleByPath } from "@/config/nav";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 import { ThemeToggleSlider } from "./theme-toggle-slider";
 
-const routeTitles: Record<string, string> = {
-  "/dashboard": "Dashboard",
-  "/dashboard/companies": "Empresas",
-  "/dashboard/users": "Usuarios",
-  "/dashboard/conversations": "Historico de Conversas",
-  "/dashboard/located-clients": "Clientes Localizados",
-  "/dashboard/products": "Cadastro de Produtos",
-  "/dashboard/profile": "Perfil",
-};
-
 export function SiteHeader() {
   const pathname = usePathname();
-  const title = routeTitles[pathname] || "Dashboard";
+  const title = getPageTitleByPath(pathname);
 
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">

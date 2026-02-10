@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import type { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
 
+import { logger } from '../lib/logger.js';
 import { AppError } from '../utils/app-error.js';
 
 export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction) {
@@ -39,7 +40,7 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
     });
   }
 
-  console.error(err);
+  logger.error({ err }, 'unhandled error');
 
   return res.status(500).json({
     error: {

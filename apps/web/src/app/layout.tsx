@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   },
   description: "Handsell - Portal do Cliente",
   openGraph: {
-    images: "/og-image.png",
+    images: "/login-bg.jpg",
   },
 };
 

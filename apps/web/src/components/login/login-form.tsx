@@ -1,35 +1,22 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group";
-import { Input } from "@/components/ui/input";
-import Link from "next/link";
-import { EyeIcon, EyeOffIcon } from "lucide-react";
-import React from "react";
-import { Spinner } from "../ui/spinner";
-import { useRouter } from "next/navigation";
-import { loginResponseSchema, loginSchema, type LoginSchema } from "@/schemas/auth";
-import { tryApiPostDataParsed } from "@/lib/try-api";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import React from "react";
+import { useForm } from "react-hook-form";
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentProps<"form">) {
+import { tryApiPostDataParsed } from "@/lib/try-api";
+import { cn } from "@/lib/utils";
+import { loginResponseSchema, loginSchema, type LoginSchema } from "@/schemas/auth";
+import { Button } from "@/components/ui/button";
+import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { PasswordField } from "@/components/ui/password-field";
+import { Spinner } from "@/components/ui/spinner";
+
+export function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
   const router = useRouter();
-  const [showPassword, setShowPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
 
   const {
@@ -47,7 +34,6 @@ export function LoginForm({
 
   const email = watch("email", "");
   const password = watch("password", "");
-
   const isSubmitEnabled = email.trim().length > 0 && password.trim().length > 0;
 
   const onSubmit = async (data: LoginSchema) => {
@@ -62,7 +48,7 @@ export function LoginForm({
           return parsed.success ? parsed.data : null;
         },
         "Login realizado com sucesso!",
-        "Nao foi possivel concluir o login. Tente novamente.",
+        "Não foi possível concluir o login. Tente novamente.",
       );
 
       if (!session) {
@@ -82,10 +68,11 @@ export function LoginForm({
       onSubmit={handleSubmit(onSubmit)}
     >
       <FieldGroup className="gap-0">
-        <div className="flex flex-col items-center text-center mb-16">
+        <div className="mb-16 flex flex-col items-center text-center">
           <h1 className="text-3xl font-bold">Portal do Cliente</h1>
         </div>
-        <Field className="gap-2 mb-6">
+
+        <Field className="mb-6 gap-2">
           <FieldLabel htmlFor="email" className="font-bold">
             E-mail
           </FieldLabel>
@@ -97,47 +84,26 @@ export function LoginForm({
             {...register("email")}
             required
           />
-          {errors.email && (
-            <p className="text-sm text-red-500">{errors.email.message}</p>
-          )}
+          {errors.email ? <p className="text-sm text-red-500">{errors.email.message}</p> : null}
         </Field>
 
-        <Field className="gap-2 mb-3">
-          <FieldLabel htmlFor="password" className="font-bold">
-            Senha
-          </FieldLabel>
-          <InputGroup>
-            <InputGroupInput
-              id="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="*********"
-              autoComplete="current-password"
-              {...register("password")}
-              required
-            />
-            <InputGroupAddon align="inline-end">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="hover:bg-transparent"
-                onClick={() => setShowPassword((prev) => !prev)}
-              >
-                {showPassword ? <EyeIcon /> : <EyeOffIcon />}
-              </Button>
-            </InputGroupAddon>
-          </InputGroup>
+        <PasswordField
+          className="mb-3"
+          id="password"
+          label="Senha"
+          registration={register("password")}
+          autoComplete="current-password"
+          required
+          error={errors.password?.message}
+        />
 
-          {errors.password && (
-            <p className="text-sm text-red-500">{errors.password.message}</p>
-          )}
-        </Field>
         <FieldDescription className="text-right [&>a]:no-underline">
           <Link href="/login/forgot-password" className="text-xs">
             Esqueceu sua senha?
           </Link>
         </FieldDescription>
-        <Field className="gap-2 mt-6">
+
+        <Field className="mt-6 gap-2">
           <Button
             type="submit"
             disabled={!isSubmitEnabled || loading}
@@ -145,7 +111,7 @@ export function LoginForm({
           >
             {loading ? (
               <span className="inline-flex items-center">
-                <Spinner className="w-4 h-4 mr-2 animate-spin" />
+                <Spinner className="mr-2 h-4 w-4 animate-spin" />
                 Carregando
               </span>
             ) : (

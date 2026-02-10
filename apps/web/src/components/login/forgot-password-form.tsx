@@ -11,7 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import React from "react";
 import Link from "next/link";
-import { Spinner } from "../ui/spinner";
+import { Spinner } from "@/components/ui/spinner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authOkSchema, forgotSchema, type ForgotSchema } from "@/schemas/auth";
@@ -51,7 +51,7 @@ export function ForgotPasswordForm({
           return parsed.success ? parsed.data : null;
         },
         "Se o e-mail existir, enviaremos as instruções de recuperação.",
-        "Não foi possivel processar a solicitação.",
+        "Não foi possível processar a solicitação.",
       );
 
       if (!result?.ok) {

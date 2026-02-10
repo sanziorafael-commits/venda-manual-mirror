@@ -5,37 +5,37 @@ import { z } from "zod";
 // -----------------------------------------------------------------------------
 
 export const loginFormSchema = z.object({
-  email: z.string().email({ message: "E-mail invalido" }),
-  password: z.string().min(1, { message: "Senha obrigatoria" }),
+  email: z.string().email({ message: "E-mail inválido" }),
+  password: z.string().min(1, { message: "Senha obrigatória" }),
 });
 
 export const forgotPasswordFormSchema = z.object({
-  email: z.string().email({ message: "E-mail invalido" }),
+  email: z.string().email({ message: "E-mail inválido" }),
 });
 
 export const resetPasswordFormSchema = z
   .object({
-    token: z.string().min(1, { message: "Token obrigatorio" }),
+    token: z.string().min(1, { message: "Token obrigatório" }),
     newPassword: z
       .string()
       .min(6, { message: "A nova senha deve ter pelo menos 6 caracteres" }),
     confirmPassword: z.string().min(1, { message: "Confirme sua nova senha" }),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "As senhas nao coincidem",
+    message: "As senhas não coincidem",
     path: ["confirmPassword"],
   });
 
 export const activateAccountFormSchema = z
   .object({
-    token: z.string().min(1, { message: "Token obrigatorio" }),
+    token: z.string().min(1, { message: "Token obrigatório" }),
     password: z
       .string()
       .min(6, { message: "A senha deve ter pelo menos 6 caracteres" }),
     confirmPassword: z.string().min(1, { message: "Confirme sua senha" }),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "As senhas nao coincidem",
+    message: "As senhas não coincidem",
     path: ["confirmPassword"],
   });
 
@@ -45,7 +45,7 @@ export const profileFormSchema = z
       .string()
       .trim()
       .min(2, { message: "Nome deve ter pelo menos 2 caracteres" }),
-    email: z.string().trim().email({ message: "E-mail invalido" }),
+    email: z.string().trim().email({ message: "E-mail inválido" }),
     newPassword: z.string(),
     confirmPassword: z.string(),
   })
@@ -67,7 +67,7 @@ export const profileFormSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["confirmPassword"],
-        message: "As senhas nao coincidem",
+        message: "As senhas não coincidem",
       });
     }
   });

@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { redirect } from "next/navigation";
 import { AuthStoreHydrator } from "@/components/auth/auth-store-hydrator";
 import { getAuthUserFromServerCookies } from "@/lib/auth-cookie";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -11,6 +12,10 @@ export default async function DashboardLayout({
   children: ReactNode;
 }) {
   const authUser = await getAuthUserFromServerCookies();
+
+  if (!authUser) {
+    redirect("/login");
+  }
 
   return (
     <SidebarProvider>

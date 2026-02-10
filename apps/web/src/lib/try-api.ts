@@ -8,7 +8,7 @@ type ApiSuccessEnvelope<T = unknown> = {
 };
 
 /**
- * Envolve chamadas a apiFetch com toast automatico em caso de erro.
+ * Envolve chamadas a apiFetch com toast automático em caso de erro.
  */
 export async function tryApiFetch<T = unknown>(
   ...args: Parameters<typeof apiFetch<T>>
@@ -42,12 +42,12 @@ export async function tryApiFetchServer<T = unknown>(
 }
 
 /**
- * Faz uma requisicao POST com feedback via toast para sucesso e erro.
+ * Faz uma requisição POST com feedback via toast para sucesso e erro.
  */
 export async function tryApiPost<T = unknown>(
   path: string,
   body: BodyInit | Record<string, unknown>,
-  successMessage = "Operacao realizada com sucesso",
+  successMessage = "Operação realizada com sucesso",
 ): Promise<T | null> {
   try {
     const result = await apiFetch<T>(path, {
@@ -69,7 +69,7 @@ export async function tryApiPost<T = unknown>(
 export async function tryApiPostData<T = unknown>(
   path: string,
   body: BodyInit | Record<string, unknown>,
-  successMessage = "Operacao realizada com sucesso",
+  successMessage = "Operação realizada com sucesso",
   invalidMessage = "Resposta inesperada da API.",
 ): Promise<T | null> {
   const response = await tryApiPost<unknown>(path, body, successMessage);
@@ -93,7 +93,7 @@ export async function tryApiPostDataParsed<T>(
   path: string,
   body: BodyInit | Record<string, unknown>,
   parseData: (data: unknown) => T | null,
-  successMessage = "Operacao realizada com sucesso",
+  successMessage = "Operação realizada com sucesso",
   invalidMessage = "Resposta inesperada da API.",
 ): Promise<T | null> {
   const payload = await tryApiPostData<unknown>(
@@ -138,7 +138,7 @@ export async function tryApiPatch<T = unknown>(
 export async function tryApiPut<T = unknown>(
   path: string,
   body: BodyInit | Record<string, unknown>,
-  successMessage = "Alteracoes salvas com sucesso",
+  successMessage = "Alterações salvas com sucesso",
 ): Promise<T | null> {
   try {
     const result = await apiFetch<T>(path, {

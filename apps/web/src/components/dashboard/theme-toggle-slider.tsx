@@ -1,19 +1,20 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 import { Switch } from "@/components/ui/switch";
 import { Moon, Sun } from "lucide-react";
 
 export function ThemeToggleSlider() {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  if (!mounted) return null;
-
-  const isDark = theme === "dark";
+  if (!mounted || !resolvedTheme) return null;
+  const isDark = resolvedTheme === "dark";
 
   return (
     <div className="flex items-center gap-2">

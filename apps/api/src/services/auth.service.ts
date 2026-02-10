@@ -224,7 +224,7 @@ export async function logout(refreshToken: string) {
   });
 
   if (!session) {
-    throw notFound('Sessão não encontrada');
+    return;
   }
 
   await prisma.session.update({

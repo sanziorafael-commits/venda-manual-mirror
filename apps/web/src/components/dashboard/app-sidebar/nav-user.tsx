@@ -52,6 +52,7 @@ export function NavUser({ user }: NavUserProps) {
     if (isLoggingOut) return;
 
     setIsLoggingOut(true);
+    let logoutFailed = false;
 
     try {
       await apiFetch("/auth/logout", {
@@ -59,11 +60,14 @@ export function NavUser({ user }: NavUserProps) {
         body: {},
       });
     } catch {
-      // O logout local acontece mesmo se a revogacao no backend falhar.
+      logoutFailed = true;
+      toast.error("Não foi possível sair, tente novamente.");
     }
 
     clearAuthStore();
-    toast.success("Logout realizado com sucesso!");
+    if (!logoutFailed) {
+      toast.success("Logout realizado com sucesso!");
+    }
     router.replace("/login");
   };
 

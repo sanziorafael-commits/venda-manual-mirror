@@ -128,10 +128,7 @@ export async function activateAccountHandler(req: Request, res: Response) {
 }
 
 export async function resendActivationHandler(req: Request, res: Response) {
-  const authUser = req.authUser;
-  if (!authUser) {
-    throw unauthorized('Autenticação obrigatória');
-  }
+  const authUser = req.authUser!;
 
   const payload = resendActivationSchema.parse(req.body);
   const data = await resendActivation(authUser, payload);

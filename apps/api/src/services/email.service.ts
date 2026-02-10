@@ -1,14 +1,12 @@
 import { Resend } from 'resend';
 
 import { env } from '../config/env.js';
+import { logger } from '../lib/logger.js';
 import { ActivationInviteEmailInput, ResetPasswordEmailInput } from '../types/email.types.js';
 
 export async function sendActivationInviteEmail(input: ActivationInviteEmailInput) {
   if (env.MAIL_PROVIDER === 'disabled') {
-    console.warn('[mail] envio ignorado: MAIL_PROVIDER=disabled', {
-      to: input.to,
-      type: 'activation',
-    });
+    logger.warn({ to: input.to, type: 'activation' }, '[mail] envio ignorado: MAIL_PROVIDER=disabled');
     return;
   }
 
@@ -35,10 +33,7 @@ export async function sendActivationInviteEmail(input: ActivationInviteEmailInpu
 
 export async function sendResetPasswordEmail(input: ResetPasswordEmailInput) {
   if (env.MAIL_PROVIDER === 'disabled') {
-    console.warn('[mail] envio ignorado: MAIL_PROVIDER=disabled', {
-      to: input.to,
-      type: 'reset-password',
-    });
+    logger.warn({ to: input.to, type: 'reset-password' }, '[mail] envio ignorado: MAIL_PROVIDER=disabled');
     return;
   }
 
@@ -77,11 +72,7 @@ async function sendEmail(to: string, subject: string, html: string, text: string
     throw new Error(`Falha ao enviar e-mail via Resend: ${result.error.message}`);
   }
 
-  console.info('[mail] e-mail enviado com sucesso', {
-    to,
-    subject,
-    id: result.data?.id,
-  });
+  logger.info({ to, subject, id: result.data?.id }, '[mail] e-mail enviado com sucesso');
 }
 
 function getResendClient() {

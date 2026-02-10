@@ -139,7 +139,7 @@ async function refreshAccessToken(): Promise<RefreshResult> {
       return {
         kind: "temporary_error",
         message:
-          parseApiError(payload) || "Nao foi possivel renovar a sessao.",
+          parseApiError(payload) || "Não foi possível renovar a sessão.",
       };
     }
 
@@ -147,7 +147,7 @@ async function refreshAccessToken(): Promise<RefreshResult> {
     if (!parsed.success) {
       return {
         kind: "temporary_error",
-        message: "Resposta invalida ao renovar a sessao.",
+        message: "Resposta inválida ao renovar a sessão.",
       };
     }
 
@@ -155,7 +155,7 @@ async function refreshAccessToken(): Promise<RefreshResult> {
   } catch {
     return {
       kind: "temporary_error",
-      message: "Falha temporaria ao renovar a sessao. Tente novamente.",
+      message: "Falha temporária ao renovar a sessão. Tente novamente.",
     };
   }
 }
@@ -224,7 +224,7 @@ async function apiFetchInternal<T = unknown>(
     if (refreshResult.kind === "invalid_session") {
       clearAuthStore();
       redirectToLogin();
-      throw new ApiError("Sessao expirada. Faca login novamente.", 401);
+      throw new ApiError("Sessão expirada. Faça login novamente.", 401);
     }
 
     throw new ApiError(refreshResult.message, 401);

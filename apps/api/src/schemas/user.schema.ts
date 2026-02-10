@@ -28,6 +28,10 @@ export const userQuerySchema = z.object({
   pageSize: z.coerce.number().int().positive().max(100).default(10),
 });
 
+export const userParamSchema = z.object({
+  userId: z.string().cuid(),
+});
+
 export const createUserSchema = z.object({
   companyId: z.string().cuid().optional(),
   role: z.nativeEnum(UserRole),

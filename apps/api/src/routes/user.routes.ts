@@ -17,6 +17,14 @@ const router = Router();
 router.use(authenticate);
 router.use(authorize(UserRole.ADMIN, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR));
 
+router.post(
+  '/actions/reassign-supervisor',
+  authorize(UserRole.ADMIN, UserRole.GERENTE_COMERCIAL),
+  reassignSupervisorHandler,
+);
+router.post('/actions/reassign-manager-team', authorize(UserRole.ADMIN), reassignManagerTeamHandler);
+
+// Compatibilidade temporaria para clientes legados.
 router.post('/reassign-supervisor', authorize(UserRole.ADMIN, UserRole.GERENTE_COMERCIAL), reassignSupervisorHandler);
 router.post('/reassign-manager-team', authorize(UserRole.ADMIN), reassignManagerTeamHandler);
 

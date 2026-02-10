@@ -13,7 +13,7 @@ export class ApiError extends Error {
 }
 
 /**
- * Tenta extrair a melhor mensagem possivel de um erro retornado pela API.
+ * Tenta extrair a melhor mensagem possível de um erro retornado pela API.
  */
 export function parseApiError(data: unknown): string {
   if (data instanceof Error) {

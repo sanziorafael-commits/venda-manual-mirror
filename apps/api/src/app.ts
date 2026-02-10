@@ -8,6 +8,7 @@ import { env } from './config/env.js';
 import { openApiDocument } from './docs/openapi.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { notFound } from './middlewares/not-found.middleware.js';
+import { requestLog } from './middlewares/request-log.middleware.js';
 import routes from './routes.js';
 
 const app = express();
@@ -38,6 +39,11 @@ const allowedOrigins = new Set<string>([
   ...(env.APP_WEB_URL ? [new URL(env.APP_WEB_URL).origin] : []),
   ...(env.NODE_ENV === 'production' ? [] : DEV_DEFAULT_ORIGINS),
 ]);
+const isProduction = env.NODE_ENV === 'production';
+
+if (isProduction && allowedOrigins.size === 0) {
+  throw new Error('CORS em produção exige ao menos uma origem válida em APP_CORS_ORIGINS ou APP_WEB_URL');
+}
 
 app.use(
   cors({
@@ -47,7 +53,12 @@ app.use(
         return;
       }
 
-      if (allowedOrigins.size === 0 || allowedOrigins.has(origin)) {
+      if (allowedOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      if (!isProduction && allowedOrigins.size === 0) {
         callback(null, true);
         return;
       }
@@ -59,6 +70,7 @@ app.use(
 );
 app.use(helmet());
 app.use(compression());
+app.use(requestLog);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
