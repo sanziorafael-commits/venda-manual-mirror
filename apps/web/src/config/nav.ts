@@ -48,14 +48,11 @@ const DASHBOARD_ROUTES: NavRouteConfig[] = [
     url: "/dashboard/products",
     icon: PackageSearch,
   },
-  {
-    title: "Perfil",
-    url: "/dashboard/profile",
-    icon: User,
-  },
 ];
 
-const ROUTE_LOOKUP = new Map(DASHBOARD_ROUTES.map((route) => [route.url, route.title]));
+const ROUTE_LOOKUP = new Map(
+  DASHBOARD_ROUTES.map((route) => [route.url, route.title]),
+);
 
 const NAV_BY_ROLE: Record<AuthUser["role"], string[]> = {
   ADMIN: [
@@ -63,7 +60,6 @@ const NAV_BY_ROLE: Record<AuthUser["role"], string[]> = {
     "/dashboard/companies",
     "/dashboard/users",
     "/dashboard/conversations",
-    "/dashboard/profile",
   ],
   GERENTE_COMERCIAL: [
     "/dashboard",
@@ -71,7 +67,6 @@ const NAV_BY_ROLE: Record<AuthUser["role"], string[]> = {
     "/dashboard/located-clients",
     "/dashboard/products",
     "/dashboard/users",
-    "/dashboard/profile",
   ],
   SUPERVISOR: [
     "/dashboard",
@@ -79,18 +74,19 @@ const NAV_BY_ROLE: Record<AuthUser["role"], string[]> = {
     "/dashboard/located-clients",
     "/dashboard/products",
     "/dashboard/users",
-    "/dashboard/profile",
   ],
 };
 
 export function getMainNavByRole(role: AuthUser["role"]): NavItem[] {
   const allowedRoutes = new Set(NAV_BY_ROLE[role]);
 
-  return DASHBOARD_ROUTES.filter((route) => allowedRoutes.has(route.url)).map((route) => ({
-    title: route.title,
-    url: route.url,
-    icon: route.icon,
-  }));
+  return DASHBOARD_ROUTES.filter((route) => allowedRoutes.has(route.url)).map(
+    (route) => ({
+      title: route.title,
+      url: route.url,
+      icon: route.icon,
+    }),
+  );
 }
 
 export function getPageTitleByPath(pathname: string) {

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { BadgeCheck, ChevronsUpDown, LogOut } from "lucide-react";
+import { ChevronsUpDown, LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -82,11 +82,15 @@ export function NavUser({ user }: NavUserProps) {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.avatar ?? undefined} alt={user.name} />
-                <AvatarFallback className="rounded-lg">{fallbackInitials}</AvatarFallback>
+                <AvatarFallback className="rounded-lg">
+                  {fallbackInitials}
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-xs">{user.email || "Sem e-mail"}</span>
+                <span className="truncate text-xs">
+                  {user.email || "Sem e-mail"}
+                </span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -102,11 +106,15 @@ export function NavUser({ user }: NavUserProps) {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={user.avatar ?? undefined} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">{fallbackInitials}</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">
+                    {fallbackInitials}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
-                  <span className="truncate text-xs">{user.email || "Sem e-mail"}</span>
+                  <span className="truncate text-xs">
+                    {user.email || "Sem e-mail"}
+                  </span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -114,8 +122,10 @@ export function NavUser({ user }: NavUserProps) {
             <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => router.push("/dashboard/profile")}>
-                <BadgeCheck />
+              <DropdownMenuItem
+                onClick={() => router.push("/dashboard/profile")}
+              >
+                <User />
                 Perfil
               </DropdownMenuItem>
             </DropdownMenuGroup>
