@@ -15,6 +15,7 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
   MAIL_FROM: z.string().email().optional(),
   APP_WEB_URL: z.string().url().optional(),
+  APP_CORS_ORIGINS: z.string().optional(),
   APP_ACTIVATION_PATH: z.string().default('/ativar-conta'),
   APP_RESET_PASSWORD_PATH: z.string().default('/recuperar-senha'),
 });

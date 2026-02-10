@@ -1,4 +1,4 @@
-import { badRequest } from './app-error.js';
+﻿import { badRequest } from './app-error.js';
 
 const UNIT_MS: Record<string, number> = {
   s: 1000,
@@ -7,7 +7,7 @@ const UNIT_MS: Record<string, number> = {
   d: 24 * 60 * 60 * 1000,
 };
 
-export function ttlToDate(ttl: string) {
+export function ttlToMs(ttl: string) {
   const match = ttl.match(/^(\d+)([smhd])$/);
 
   if (!match) {
@@ -17,5 +17,9 @@ export function ttlToDate(ttl: string) {
   const amount = Number(match[1]);
   const unit = match[2];
 
-  return new Date(Date.now() + amount * UNIT_MS[unit]);
+  return amount * UNIT_MS[unit];
+}
+
+export function ttlToDate(ttl: string) {
+  return new Date(Date.now() + ttlToMs(ttl));
 }

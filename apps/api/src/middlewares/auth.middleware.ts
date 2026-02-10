@@ -1,15 +1,17 @@
 import { UserRole } from '@prisma/client';
 import type { NextFunction, Request, Response } from 'express';
 
+import { getAccessTokenFromRequest } from '../utils/auth-cookies.js';
 import { forbidden, unauthorized } from '../utils/app-error.js';
 import { assertTokenType, verifyToken } from '../utils/jwt.js';
 
 export function authenticate(req: Request, _res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
-  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const token = bearerToken?.trim() || getAccessTokenFromRequest(req) || null;
 
   if (!token) {
-    throw unauthorized('Token Bearer ausente');
+    throw unauthorized('Token de acesso ausente');
   }
 
   const payload = verifyToken(token);

@@ -4,6 +4,7 @@ import express from 'express';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
 
+import { env } from './config/env.js';
 import { openApiDocument } from './docs/openapi.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { notFound } from './middlewares/not-found.middleware.js';
@@ -11,7 +12,51 @@ import routes from './routes.js';
 
 const app = express();
 
-app.use(cors());
+const DEV_DEFAULT_ORIGINS = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+
+function normalizeOrigin(urlValue: string) {
+  try {
+    return new URL(urlValue).origin;
+  } catch {
+    return null;
+  }
+}
+
+function parseOrigins(raw?: string) {
+  if (!raw) return [];
+
+  return raw
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .map(normalizeOrigin)
+    .filter((origin): origin is string => Boolean(origin));
+}
+
+const allowedOrigins = new Set<string>([
+  ...parseOrigins(env.APP_CORS_ORIGINS),
+  ...(env.APP_WEB_URL ? [new URL(env.APP_WEB_URL).origin] : []),
+  ...(env.NODE_ENV === 'production' ? [] : DEV_DEFAULT_ORIGINS),
+]);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      if (allowedOrigins.size === 0 || allowedOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error('Origin não permitida pelo CORS'));
+    },
+    credentials: true,
+  }),
+);
 app.use(helmet());
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));

@@ -1,11 +1,10 @@
-import type { Request, Response } from 'express';
+﻿import type { Request, Response } from 'express';
 
 import {
   activateAccountSchema,
   bootstrapAdminSchema,
   forgotPasswordSchema,
   loginSchema,
-  refreshTokenSchema,
   resetPasswordSchema,
   resendActivationSchema,
 } from '../schemas/auth.schema.js';
@@ -20,6 +19,11 @@ import {
   resendActivation,
 } from '../services/auth.service.js';
 import { unauthorized } from '../utils/app-error.js';
+import {
+  clearAuthCookies,
+  getRefreshTokenFromRequest,
+  setAuthCookies,
+} from '../utils/auth-cookies.js';
 
 export async function bootstrapAdminHandler(req: Request, res: Response) {
   const payload = bootstrapAdminSchema.parse(req.body);
@@ -36,24 +40,66 @@ export async function loginHandler(req: Request, res: Response) {
     ipAddress: req.ip,
   });
 
-  res.status(200).json({ data });
-}
-
-export async function refreshHandler(req: Request, res: Response) {
-  const payload = refreshTokenSchema.parse(req.body);
-
-  const data = await refreshSession(payload.refreshToken, {
-    userAgent: req.get('user-agent'),
-    ipAddress: req.ip,
+  setAuthCookies(res, {
+    accessToken: data.tokens.accessToken,
+    refreshToken: data.tokens.refreshToken,
+    user: {
+      id: data.user.id,
+      companyId: data.user.companyId,
+      role: data.user.role,
+      fullName: data.user.fullName,
+      email: data.user.email,
+    },
   });
 
   res.status(200).json({ data });
 }
 
-export async function logoutHandler(req: Request, res: Response) {
-  const payload = refreshTokenSchema.parse(req.body);
+export async function refreshHandler(req: Request, res: Response) {
+  const refreshToken = getRefreshTokenFromRequest(req);
 
-  await logout(payload.refreshToken);
+  if (!refreshToken) {
+    clearAuthCookies(res);
+    throw unauthorized('Refresh token inválido');
+  }
+
+  try {
+    const data = await refreshSession(refreshToken, {
+      userAgent: req.get('user-agent'),
+      ipAddress: req.ip,
+    });
+
+    setAuthCookies(res, {
+      accessToken: data.tokens.accessToken,
+      refreshToken: data.tokens.refreshToken,
+      user: {
+        id: data.user.id,
+        companyId: data.user.companyId,
+        role: data.user.role,
+        fullName: data.user.fullName,
+        email: data.user.email,
+      },
+    });
+
+    res.status(200).json({ data });
+  } catch (error) {
+    clearAuthCookies(res);
+    throw error;
+  }
+}
+
+export async function logoutHandler(req: Request, res: Response) {
+  const refreshToken = getRefreshTokenFromRequest(req);
+
+  if (refreshToken) {
+    try {
+      await logout(refreshToken);
+    } catch {
+      // Logout deve ser idempotente para o frontend.
+    }
+  }
+
+  clearAuthCookies(res);
   res.status(200).json({ data: { ok: true } });
 }
 
@@ -64,6 +110,18 @@ export async function activateAccountHandler(req: Request, res: Response) {
     ...payload,
     userAgent: req.get('user-agent'),
     ipAddress: req.ip,
+  });
+
+  setAuthCookies(res, {
+    accessToken: data.tokens.accessToken,
+    refreshToken: data.tokens.refreshToken,
+    user: {
+      id: data.user.id,
+      companyId: data.user.companyId,
+      role: data.user.role,
+      fullName: data.user.fullName,
+      email: data.user.email,
+    },
   });
 
   res.status(200).json({ data });
