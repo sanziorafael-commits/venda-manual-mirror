@@ -16,13 +16,25 @@ export class ApiError extends Error {
  * Tenta extrair a melhor mensagem possivel de um erro retornado pela API.
  */
 export function parseApiError(data: unknown): string {
+  if (data instanceof Error) {
+    if (isNetworkFetchMessage(data.message)) {
+      return "Não foi possível conectar ao servidor. Verifique a API e as configurações de CORS.";
+    }
+    return data.message || "Erro inesperado. Tente novamente.";
+  }
+
   if (!data || typeof data !== "object") {
     return "Erro inesperado. Verifique seus dados.";
   }
 
   const err = data as Record<string, unknown>;
 
-  if (typeof err.message === "string") return err.message;
+  if (typeof err.message === "string") {
+    if (isNetworkFetchMessage(err.message)) {
+      return "Não foi possível conectar ao servidor. Verifique a API e as configurações de CORS.";
+    }
+    return err.message;
+  }
   if (typeof err.error === "string") return err.error;
 
   if (typeof err.error === "object" && err.error !== null) {
@@ -54,5 +66,15 @@ function isArrayOfObjectsWithMessage(
       item !== null &&
       "message" in item &&
       typeof (item as Record<string, unknown>).message === "string"
+  );
+}
+
+function isNetworkFetchMessage(message: string) {
+  const normalized = message.trim().toLowerCase();
+
+  return (
+    normalized.includes("failed to fetch") ||
+    normalized.includes("networkerror") ||
+    normalized.includes("load failed")
   );
 }

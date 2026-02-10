@@ -1,0 +1,25 @@
+import { ReactNode } from "react";
+import { AuthStoreHydrator } from "@/components/auth/auth-store-hydrator";
+import { getAuthUserFromServerCookies } from "@/lib/auth-cookie";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SiteHeader } from "@/components/dashboard/site-header";
+import { AppSidebarServer } from "@/components/dashboard/app-sidebar/app-sidebar-server";
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const authUser = await getAuthUserFromServerCookies();
+
+  return (
+    <SidebarProvider>
+      <AuthStoreHydrator initialUser={authUser} />
+      <AppSidebarServer initialUser={authUser} />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
+      </SidebarInset>
+    </SidebarProvider>
+  );
+}

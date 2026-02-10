@@ -27,7 +27,6 @@ import {
   type ActivateAccountSchema,
 } from "@/schemas/auth";
 import { tryApiPostDataParsed } from "@/lib/try-api";
-import { saveAuthSession } from "@/lib/auth-session";
 
 export function ActivateAccountForm({
   className,
@@ -90,7 +89,6 @@ export function ActivateAccountForm({
         return;
       }
 
-      saveAuthSession(session);
       router.push("/dashboard");
     } finally {
       setLoading(false);

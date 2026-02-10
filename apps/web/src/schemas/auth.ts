@@ -39,11 +39,45 @@ export const activateAccountFormSchema = z
     path: ["confirmPassword"],
   });
 
+export const profileFormSchema = z
+  .object({
+    fullName: z
+      .string()
+      .trim()
+      .min(2, { message: "Nome deve ter pelo menos 2 caracteres" }),
+    email: z.string().trim().email({ message: "E-mail invalido" }),
+    newPassword: z.string(),
+    confirmPassword: z.string(),
+  })
+  .superRefine((data, ctx) => {
+    const password = data.newPassword.trim();
+    const confirmation = data.confirmPassword.trim();
+
+    if (!password && !confirmation) return;
+
+    if (password.length < 6) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["newPassword"],
+        message: "A nova senha deve ter pelo menos 6 caracteres",
+      });
+    }
+
+    if (password !== confirmation) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["confirmPassword"],
+        message: "As senhas nao coincidem",
+      });
+    }
+  });
+
 // Compat names
 export const loginSchema = loginFormSchema;
 export const forgotSchema = forgotPasswordFormSchema;
 export const resetPasswordSchema = resetPasswordFormSchema;
 export const activateAccountSchema = activateAccountFormSchema;
+export const profileSchema = profileFormSchema;
 
 // -----------------------------------------------------------------------------
 // Auth API + Session schemas
@@ -61,6 +95,16 @@ export const authSessionUserSchema = z.object({
   role: dashboardUserRoleSchema,
   fullName: z.string().min(1),
   email: z.string().email().nullable(),
+});
+
+export const passwordStatusSchema = z.enum([
+  "NOT_APPLICABLE",
+  "PENDING",
+  "SET",
+]);
+
+export const meUserSchema = authSessionUserSchema.extend({
+  passwordStatus: passwordStatusSchema,
 });
 
 export const authTokenSchema = z.object({
@@ -86,6 +130,7 @@ export const apiSuccessSchema = <T extends z.ZodTypeAny>(dataSchema: T) =>
 
 export const loginResponseSchema = authSessionSchema;
 export const loginApiResponseSchema = apiSuccessSchema(loginResponseSchema);
+export const meApiResponseSchema = apiSuccessSchema(meUserSchema);
 
 // -----------------------------------------------------------------------------
 // Types
@@ -95,14 +140,19 @@ export type LoginFormInput = z.infer<typeof loginFormSchema>;
 export type ForgotPasswordFormInput = z.infer<typeof forgotPasswordFormSchema>;
 export type ResetPasswordFormInput = z.infer<typeof resetPasswordFormSchema>;
 export type ActivateAccountFormInput = z.infer<typeof activateAccountFormSchema>;
+export type ProfileFormInput = z.infer<typeof profileFormSchema>;
 
 export type LoginSchema = LoginFormInput;
 export type ForgotSchema = ForgotPasswordFormInput;
 export type ResetPasswordSchema = ResetPasswordFormInput;
 export type ActivateAccountSchema = ActivateAccountFormInput;
+export type ProfileSchema = ProfileFormInput;
 
 export type AuthUser = z.infer<typeof authSessionUserSchema>;
 export type AuthToken = z.infer<typeof authTokenSchema>;
 export type AuthSession = z.infer<typeof authSessionSchema>;
 export type LoginResponse = z.infer<typeof loginResponseSchema>;
 export type LoginApiResponse = z.infer<typeof loginApiResponseSchema>;
+export type PasswordStatus = z.infer<typeof passwordStatusSchema>;
+export type MeUser = z.infer<typeof meUserSchema>;
+export type MeApiResponse = z.infer<typeof meApiResponseSchema>;

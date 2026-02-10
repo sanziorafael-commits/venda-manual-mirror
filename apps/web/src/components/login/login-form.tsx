@@ -23,7 +23,6 @@ import { loginResponseSchema, loginSchema, type LoginSchema } from "@/schemas/au
 import { tryApiPostDataParsed } from "@/lib/try-api";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { saveAuthSession } from "@/lib/auth-session";
 
 export function LoginForm({
   className,
@@ -70,7 +69,6 @@ export function LoginForm({
         return;
       }
 
-      saveAuthSession(session);
       router.push("/dashboard");
     } finally {
       setLoading(false);

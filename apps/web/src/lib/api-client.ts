@@ -1,11 +1,6 @@
-import { loginApiResponseSchema } from "../schemas/auth";
-import {
-  clearAuthSession,
-  getAccessTokenFromStorage,
-  getRefreshTokenFromStorage,
-  saveAuthSession,
-} from "./auth-session";
-import { parseApiError, ApiError } from "./api-error";
+import { loginApiResponseSchema } from "@/schemas/auth";
+import { ApiError, parseApiError } from "./api-error";
+import { clearAuthStore } from "@/stores/auth-store";
 
 export interface ApiOptions {
   method?: string;
@@ -20,7 +15,7 @@ type InternalApiOptions = ApiOptions & {
 };
 
 type RefreshResult =
-  | { kind: "success"; accessToken: string }
+  | { kind: "success" }
   | { kind: "invalid_session" }
   | { kind: "temporary_error"; message: string };
 
@@ -47,11 +42,13 @@ export const getBaseURL = () => {
 const ABS_URL = /^https?:\/\//i;
 
 const joinUrl = (base: string | undefined | null, path: string) => {
-  if (ABS_URL.test(path)) return path; // ja e absoluta
-  if (!base) return path; // fallback relativo (origem do front)
-  const b = base.endsWith("/") ? base : `${base}/`;
-  const p = path.startsWith("/") ? path.slice(1) : path;
-  return b + p;
+  if (ABS_URL.test(path)) return path;
+  if (!base) return path;
+
+  const baseWithSlash = base.endsWith("/") ? base : `${base}/`;
+  const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
+
+  return baseWithSlash + normalizedPath;
 };
 
 const isBrowser = () => typeof window !== "undefined";
@@ -66,15 +63,39 @@ const isNonRefreshablePath = (path: string) => {
 const shouldHandleUnauthorized = (
   path: string,
   options: InternalApiOptions,
-  hasToken: boolean,
 ) => {
-  if (!hasToken) return false;
   if (!isBrowser()) return false;
   if (options.token) return false;
   if (!options.retryOnUnauthorized) return false;
   if (isNonRefreshablePath(path)) return false;
 
   return true;
+};
+
+const resolveCredentialsMode = (
+  path: string,
+  options: InternalApiOptions,
+): RequestCredentials => {
+  if (!options.fullUrl) {
+    return "include";
+  }
+
+  if (!ABS_URL.test(path)) {
+    return "include";
+  }
+
+  const base = getBaseURL();
+  if (!base) {
+    return "same-origin";
+  }
+
+  try {
+    const baseOrigin = new URL(base).origin;
+    const targetOrigin = new URL(path).origin;
+    return baseOrigin === targetOrigin ? "include" : "same-origin";
+  } catch {
+    return "same-origin";
+  }
 };
 
 const redirectToLogin = () => {
@@ -95,12 +116,6 @@ const parseResponseBody = async (res: Response) => {
 };
 
 async function refreshAccessToken(): Promise<RefreshResult> {
-  const refreshToken = getRefreshTokenFromStorage();
-
-  if (!refreshToken) {
-    return { kind: "invalid_session" };
-  }
-
   const url = joinUrl(getBaseURL(), AUTH_REFRESH_PATH);
 
   try {
@@ -109,8 +124,9 @@ async function refreshAccessToken(): Promise<RefreshResult> {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ refreshToken }),
+      body: JSON.stringify({}),
       cache: "no-store",
+      credentials: "include",
     });
 
     const payload = await parseResponseBody(res);
@@ -128,7 +144,6 @@ async function refreshAccessToken(): Promise<RefreshResult> {
     }
 
     const parsed = loginApiResponseSchema.safeParse(payload);
-
     if (!parsed.success) {
       return {
         kind: "temporary_error",
@@ -136,12 +151,7 @@ async function refreshAccessToken(): Promise<RefreshResult> {
       };
     }
 
-    saveAuthSession(parsed.data.data);
-
-    return {
-      kind: "success",
-      accessToken: parsed.data.data.tokens.accessToken,
-    };
+    return { kind: "success" };
   } catch {
     return {
       kind: "temporary_error",
@@ -166,15 +176,14 @@ async function apiFetchInternal<T = unknown>(
   path: string,
   options: InternalApiOptions,
 ): Promise<T> {
-  const token = options.token ?? getAccessTokenFromStorage();
-  const hasToken = Boolean(token);
+  const explicitToken = options.token?.trim() || undefined;
   const url = options.fullUrl ? path : joinUrl(getBaseURL(), path);
 
   const headers: HeadersInit = {
     ...(options.body instanceof FormData
       ? {}
       : { "Content-Type": "application/json" }),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(explicitToken ? { Authorization: `Bearer ${explicitToken}` } : {}),
     ...options.headers,
   };
 
@@ -188,26 +197,23 @@ async function apiFetchInternal<T = unknown>(
           ? JSON.stringify(options.body)
           : undefined,
     cache: "no-store",
+    credentials: resolveCredentialsMode(path, options),
   });
 
   const data = await parseResponseBody(res);
 
-  if (
-    res.status === 401 &&
-    shouldHandleUnauthorized(path, options, hasToken)
-  ) {
+  if (res.status === 401 && shouldHandleUnauthorized(path, options)) {
     const refreshResult = await refreshAccessTokenSingleFlight();
 
     if (refreshResult.kind === "success") {
       try {
         return await apiFetchInternal<T>(path, {
           ...options,
-          token: refreshResult.accessToken,
           retryOnUnauthorized: false,
         });
       } catch (error) {
         if (error instanceof ApiError && error.status === 401) {
-          clearAuthSession();
+          clearAuthStore();
           redirectToLogin();
         }
 
@@ -216,7 +222,7 @@ async function apiFetchInternal<T = unknown>(
     }
 
     if (refreshResult.kind === "invalid_session") {
-      clearAuthSession();
+      clearAuthStore();
       redirectToLogin();
       throw new ApiError("Sessao expirada. Faca login novamente.", 401);
     }
