@@ -1,4 +1,4 @@
-import 'dotenv/config';
+﻿import 'dotenv/config';
 
 import { z } from 'zod';
 
@@ -43,11 +43,11 @@ const envSchema = z.object({
   STORAGE_PROVIDER: z.enum(['disabled', 'gcs']).default('disabled'),
   STORAGE_UPLOAD_URL_TTL: z
     .string()
-    .regex(ttlPattern, 'TTL invÃ¡lido. Use formatos como 15m, 12h, 7d.')
+    .regex(ttlPattern, 'TTL inválido. Use formatos como 15m, 12h, 7d.')
     .default('15m'),
   STORAGE_READ_URL_TTL: z
     .string()
-    .regex(ttlPattern, 'TTL invÃ¡lido. Use formatos como 15m, 12h, 7d.')
+    .regex(ttlPattern, 'TTL inválido. Use formatos como 15m, 12h, 7d.')
     .default('1h'),
   GCS_BUCKET_NAME: z.string().optional(),
   GCS_PROJECT_ID: z.string().optional(),
@@ -104,7 +104,7 @@ const envSchema = z.object({
       context.addIssue({
         code: 'custom',
         path: ['GCS_BUCKET_NAME'],
-        message: 'GCS_BUCKET_NAME Ã© obrigatÃ³rio quando STORAGE_PROVIDER=gcs',
+        message: 'GCS_BUCKET_NAME é obrigatório quando STORAGE_PROVIDER=gcs',
       });
     }
   }
@@ -122,4 +122,5 @@ const envSchema = z.object({
 });
 
 export const env = envSchema.parse(process.env);
+
 
