@@ -40,6 +40,23 @@ const envSchema = z.object({
   APP_CORS_ORIGINS: z.string().optional(),
   APP_ACTIVATION_PATH: z.string().default('/ativar-conta'),
   APP_RESET_PASSWORD_PATH: z.string().default('/recuperar-senha'),
+  STORAGE_PROVIDER: z.enum(['disabled', 'gcs']).default('disabled'),
+  STORAGE_UPLOAD_URL_TTL: z
+    .string()
+    .regex(ttlPattern, 'TTL invÃ¡lido. Use formatos como 15m, 12h, 7d.')
+    .default('15m'),
+  STORAGE_READ_URL_TTL: z
+    .string()
+    .regex(ttlPattern, 'TTL invÃ¡lido. Use formatos como 15m, 12h, 7d.')
+    .default('1h'),
+  GCS_BUCKET_NAME: z.string().optional(),
+  GCS_PROJECT_ID: z.string().optional(),
+  GCS_CLIENT_EMAIL: z.string().email().optional(),
+  GCS_PRIVATE_KEY: z.string().optional(),
+  GCS_CREDENTIALS_FILE: z.string().optional(),
+  GCS_CREDENTIALS_JSON: z.string().optional(),
+  GCS_CREDENTIALS_BASE64: z.string().optional(),
+  GCS_PUBLIC_BASE_URL: z.string().url().optional(),
 }).superRefine((values, context) => {
   if (values.MAIL_PROVIDER === 'resend') {
     if (!values.RESEND_API_KEY?.trim()) {
@@ -81,6 +98,28 @@ const envSchema = z.object({
       });
     }
   }
+
+  if (values.STORAGE_PROVIDER === 'gcs') {
+    if (!values.GCS_BUCKET_NAME?.trim()) {
+      context.addIssue({
+        code: 'custom',
+        path: ['GCS_BUCKET_NAME'],
+        message: 'GCS_BUCKET_NAME Ã© obrigatÃ³rio quando STORAGE_PROVIDER=gcs',
+      });
+    }
+  }
+
+  const hasClientEmail = Boolean(values.GCS_CLIENT_EMAIL?.trim());
+  const hasPrivateKey = Boolean(values.GCS_PRIVATE_KEY?.trim());
+
+  if (hasClientEmail !== hasPrivateKey) {
+    context.addIssue({
+      code: 'custom',
+      path: ['GCS_PRIVATE_KEY'],
+      message: 'GCS_CLIENT_EMAIL e GCS_PRIVATE_KEY devem ser informados juntos',
+    });
+  }
 });
 
 export const env = envSchema.parse(process.env);
+

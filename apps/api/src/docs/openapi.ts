@@ -11,6 +11,7 @@ export const openApiDocument = {
     { name: 'me' },
     { name: 'companies' },
     { name: 'users' },
+    { name: 'uploads' },
   ],
   components: {
     securitySchemes: {
@@ -93,7 +94,7 @@ export const openApiDocument = {
     '/api/companies/{companyId}': {
       get: {
         tags: ['companies'],
-        summary: 'Busca empresa por id',
+        summary: 'Busca empresa por id (inclui logoSignedUrl para leitura privada)',
         security: [{ bearerAuth: [] }],
         parameters: [{ in: 'path', name: 'companyId', required: true, schema: { type: 'string' } }],
         responses: { '200': { description: 'OK' } },
@@ -189,6 +190,14 @@ export const openApiDocument = {
         tags: ['users'],
         summary: 'Reatribui equipe de gerente (legado)',
         deprecated: true,
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'OK' } },
+      },
+    },
+    '/api/uploads/signed-url': {
+      post: {
+        tags: ['uploads'],
+        summary: 'Gera URL assinada para upload direto no GCS (bucket privado)',
         security: [{ bearerAuth: [] }],
         responses: { '200': { description: 'OK' } },
       },

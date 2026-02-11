@@ -45,7 +45,7 @@ export async function listUsers(actor: AuthActor, input: UserListInput) {
   const companyId = resolveActorCompanyScope(actor, input.companyId);
   const roleScopeWhere = getUserReadScopeWhere(actor, 'users');
 
-  const andFilters: Prisma.UserWhereInput[] = [{ deletedAt: null }];
+  const andFilters: Prisma.UserWhereInput[] = [];
 
   if (companyId) {
     andFilters.push({ companyId });
@@ -122,7 +122,6 @@ export async function getUserById(actor: AuthActor, userId: string) {
   const user = await prisma.user.findFirst({
     where: {
       id: userId,
-      deletedAt: null,
     },
     include: {
       company: {
@@ -211,7 +210,6 @@ export async function updateUser(actor: AuthActor, userId: string, input: Update
   const existing = await prisma.user.findFirst({
     where: {
       id: userId,
-      deletedAt: null,
     },
     include: {
       supervisor: {
@@ -278,6 +276,7 @@ export async function updateUser(actor: AuthActor, userId: string, input: Update
             ? await hashPassword(input.password!)
             : undefined,
       isActive: input.isActive,
+      deletedAt: input.isActive === true ? null : undefined,
     },
     include: {
       company: {
@@ -514,9 +513,11 @@ function mapPublicUser(user: PublicUserViewInput) {
     email: user.email,
     phone: user.phone,
     isActive: user.isActive,
+    deletedAt: user.deletedAt ?? null,
     passwordStatus:
       user.role === UserRole.VENDEDOR ? 'NOT_APPLICABLE' : user.passwordHash ? 'SET' : 'PENDING',
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
 }
+

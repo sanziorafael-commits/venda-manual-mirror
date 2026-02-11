@@ -60,6 +60,7 @@ export type PublicUserViewInput = {
   phone: string;
   passwordHash?: string | null;
   isActive: boolean;
+  deletedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   company?: { id: string; name: string } | null;

@@ -1,3 +1,4 @@
+import { logger } from '../lib/logger.js';
 import { prisma } from '../lib/prisma.js';
 import type {
   CompanyListInput,
@@ -7,6 +8,11 @@ import type {
 import { conflict, notFound } from '../utils/app-error.js';
 import { normalizeCnpj } from '../utils/normalizers.js';
 import { getPagination } from '../utils/pagination.js';
+
+import {
+  createStorageSignedReadUrlByPublicUrl,
+  deleteStorageObjectByPublicUrl,
+} from './storage.service.js';
 
 export async function listCompanies(input: CompanyListInput) {
   const pagination = getPagination(input.page, input.pageSize);
@@ -74,11 +80,25 @@ export async function getCompanyById(companyId: string) {
     throw notFound('Empresa não encontrada');
   }
 
+  let logoSignedUrl: string | null = null;
+  if (company.logoUrl) {
+    try {
+      const signedReadUrl = await createStorageSignedReadUrlByPublicUrl(company.logoUrl);
+      logoSignedUrl = signedReadUrl?.readUrl ?? null;
+    } catch (error) {
+      logger.warn(
+        { err: error, companyId, logoUrl: company.logoUrl },
+        'failed to create signed read url for company logo',
+      );
+    }
+  }
+
   return {
     id: company.id,
     name: company.name,
     cnpj: company.cnpj,
     logoUrl: company.logoUrl,
+    logoSignedUrl,
     usersCount: company._count.users,
     createdAt: company.createdAt,
     updatedAt: company.updatedAt,
@@ -98,7 +118,7 @@ export async function createCompany(input: CreateCompanyInput) {
 }
 
 export async function updateCompany(companyId: string, input: UpdateCompanyInput) {
-  await getCompanyById(companyId);
+  const existing = await getCompanyById(companyId);
 
   const company = await prisma.company.update({
     where: { id: companyId },
@@ -109,11 +129,26 @@ export async function updateCompany(companyId: string, input: UpdateCompanyInput
     },
   });
 
+  if (
+    input.logoUrl !== undefined &&
+    existing.logoUrl &&
+    existing.logoUrl !== company.logoUrl
+  ) {
+    try {
+      await deleteStorageObjectByPublicUrl(existing.logoUrl);
+    } catch (error) {
+      logger.warn(
+        { err: error, companyId, previousLogoUrl: existing.logoUrl },
+        'failed to delete previous company logo from storage',
+      );
+    }
+  }
+
   return company;
 }
 
 export async function deleteCompany(companyId: string) {
-  await getCompanyById(companyId);
+  const company = await getCompanyById(companyId);
 
   const activeUsersCount = await prisma.user.count({
     where: {
@@ -135,4 +170,15 @@ export async function deleteCompany(companyId: string) {
       deletedAt: new Date(),
     },
   });
+
+  if (company.logoUrl) {
+    try {
+      await deleteStorageObjectByPublicUrl(company.logoUrl);
+    } catch (error) {
+      logger.warn(
+        { err: error, companyId, previousLogoUrl: company.logoUrl },
+        'failed to delete company logo from storage after company deletion',
+      );
+    }
+  }
 }
