@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { apiFetch } from "@/lib/api-client";
@@ -24,6 +25,7 @@ const EMPTY_META: CompanyListMeta = {
 };
 
 export function CompanyFormWrapper() {
+  const router = useRouter();
   const [searchDraft, setSearchDraft] = React.useState("");
   const [query, setQuery] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(true);
@@ -109,12 +111,12 @@ export function CompanyFormWrapper() {
   }, []);
 
   const handleAddCompany = React.useCallback(() => {
-    toast.info("Cadastro de empresa sera implementado na proxima etapa.");
-  }, []);
+    router.push("/dashboard/companies/new");
+  }, [router]);
 
   const handleViewDetails = React.useCallback((company: CompanyListItem) => {
-    toast.info(`Detalhes da empresa "${company.name}" sera implementado na proxima etapa.`);
-  }, []);
+    router.push(`/dashboard/companies/${company.id}`);
+  }, [router]);
 
   return (
     <section className="flex flex-col gap-5">
@@ -142,3 +144,4 @@ export function CompanyFormWrapper() {
     </section>
   );
 }
+

@@ -1,29 +1,27 @@
-﻿import { Plus, Search } from "lucide-react";
+﻿import { Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-type CompanyFilterFormProps = {
+type CompanyUsersFilterFormProps = {
   searchValue: string;
   pageSize: number;
   isLoading: boolean;
   onSearchValueChange: (value: string) => void;
   onPageSizeChange: (pageSize: number) => void;
   onSubmit: () => void;
-  onAddCompany: () => void;
 };
 
 const PAGE_SIZE_OPTIONS = [10, 20, 30, 50];
 
-export function CompanyFilterForm({
+export function CompanyUsersFilterForm({
   searchValue,
   pageSize,
   isLoading,
   onSearchValueChange,
   onPageSizeChange,
   onSubmit,
-  onAddCompany,
-}: CompanyFilterFormProps) {
+}: CompanyUsersFilterFormProps) {
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <form
@@ -33,14 +31,14 @@ export function CompanyFilterForm({
           onSubmit();
         }}
       >
-        <label htmlFor="company-search" className="text-sm font-medium">
-          Buscar empresa
+        <label htmlFor="company-users-search" className="text-sm font-medium">
+          Buscar por usuário
         </label>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input
-            id="company-search"
+            id="company-users-search"
             value={searchValue}
-            placeholder="Digite o nome da empresa"
+            placeholder="Digite aqui sua busca"
             onChange={(event) => onSearchValueChange(event.target.value)}
           />
           <Button
@@ -55,21 +53,11 @@ export function CompanyFilterForm({
       </form>
 
       <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          className="min-w-[170px]"
-          onClick={onAddCompany}
-          disabled={isLoading}
-        >
-          Adicionar empresa
-          <Plus className="size-4" />
-        </Button>
-
-        <label htmlFor="company-page-size" className="sr-only">
+        <label htmlFor="company-users-page-size" className="sr-only">
           Itens por página
         </label>
         <select
-          id="company-page-size"
+          id="company-users-page-size"
           className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
           value={String(pageSize)}
           onChange={(event) => onPageSizeChange(Number(event.target.value))}

@@ -10,6 +10,7 @@ pnpm-debug.log*
 .env.*.local
 .env.prod
 firebase-service-account.json
+apps/api/storage-account.json
 
 # dependencies
 /node_modules

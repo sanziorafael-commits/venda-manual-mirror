@@ -18,7 +18,10 @@ import { Field, FieldDescription, FieldGroup } from "@/components/ui/field";
 import { PasswordField } from "@/components/ui/password-field";
 import { Spinner } from "@/components/ui/spinner";
 
-export function ActivateAccountForm({ className, ...props }: React.ComponentProps<"form">) {
+export function ActivateAccountForm({
+  className,
+  ...props
+}: React.ComponentProps<"form">) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tokenFromUrl = searchParams.get("token")?.trim() ?? "";
@@ -88,7 +91,7 @@ export function ActivateAccountForm({ className, ...props }: React.ComponentProp
       <FieldGroup className="gap-0">
         <div className="mb-16 flex flex-col items-center gap-6 text-center">
           <h1 className="text-3xl font-bold">Ative sua conta</h1>
-          <p className="text-muted-foreground text-sm text-balance">
+          <p className="text-[#798E99] text-sm text-balance">
             Digite sua senha e confirme para ativar sua conta
           </p>
           {!tokenFromUrl ? (

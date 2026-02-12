@@ -5,8 +5,8 @@ const nextConfig: NextConfig = {
   output: "standalone",
   images: {
     remotePatterns: [
-      // Fundo de páginas públicas
-      // { protocol: "https", hostname: "picsum.photos" },
+      // Imagens
+      { protocol: "https", hostname: "storage.googleapis.com" },
     ],
   },
 };

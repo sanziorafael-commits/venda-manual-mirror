@@ -8,14 +8,26 @@ import { useForm } from "react-hook-form";
 
 import { tryApiPostDataParsed } from "@/lib/try-api";
 import { cn } from "@/lib/utils";
-import { loginResponseSchema, loginSchema, type LoginSchema } from "@/schemas/auth";
+import {
+  loginResponseSchema,
+  loginSchema,
+  type LoginSchema,
+} from "@/schemas/auth";
 import { Button } from "@/components/ui/button";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PasswordField } from "@/components/ui/password-field";
 import { Spinner } from "@/components/ui/spinner";
 
-export function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
+export function LoginForm({
+  className,
+  ...props
+}: React.ComponentProps<"form">) {
   const router = useRouter();
   const [loading, setLoading] = React.useState(false);
 
@@ -68,9 +80,9 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
       onSubmit={handleSubmit(onSubmit)}
     >
       <FieldGroup className="gap-0">
-        <div className="mb-16 flex flex-col items-center text-center">
+        {/* <div className="mb-16 flex flex-col items-center text-center">
           <h1 className="text-3xl font-bold">Portal do Cliente</h1>
-        </div>
+        </div> */}
 
         <Field className="mb-6 gap-2">
           <FieldLabel htmlFor="email" className="font-bold">
@@ -84,7 +96,9 @@ export function LoginForm({ className, ...props }: React.ComponentProps<"form">)
             {...register("email")}
             required
           />
-          {errors.email ? <p className="text-sm text-red-500">{errors.email.message}</p> : null}
+          {errors.email ? (
+            <p className="text-sm text-red-500">{errors.email.message}</p>
+          ) : null}
         </Field>
 
         <PasswordField

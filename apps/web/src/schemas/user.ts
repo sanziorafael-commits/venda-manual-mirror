@@ -1,20 +1,189 @@
-export type UserRole =
-  | "ADMIN"
-  | "GERENTE_COMERCIAL"
-  | "SUPERVISOR"
-  | "VENDEDOR";
+import { z } from "zod";
 
-export type User = {
-  id: string;
-  companyId: string | null;
-  role: UserRole;
-  fullName: string;
-  cpf: string;
-  email: string | null;
-  phone: string;
-  passwordHash?: string | null;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  company?: { id: string; name: string } | null;
-};
+export const userRoleSchema = z.enum([
+  "ADMIN",
+  "GERENTE_COMERCIAL",
+  "SUPERVISOR",
+  "VENDEDOR",
+]);
+
+export const userCompanySchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+});
+
+export const userListItemSchema = z.object({
+  id: z.string().min(1),
+  companyId: z.string().nullable(),
+  company: userCompanySchema.nullable().optional(),
+  managerId: z.string().nullable().optional(),
+  manager: z
+    .object({
+      id: z.string().min(1),
+      fullName: z.string().min(1),
+    })
+    .nullable()
+    .optional(),
+  supervisorId: z.string().nullable().optional(),
+  supervisor: z
+    .object({
+      id: z.string().min(1),
+      fullName: z.string().min(1),
+    })
+    .nullable()
+    .optional(),
+  role: userRoleSchema,
+  fullName: z.string().min(1),
+  cpf: z.string().min(1),
+  email: z.string().nullable(),
+  phone: z.string().min(1),
+  isActive: z.boolean(),
+  deletedAt: z.string().nullable().optional(),
+  passwordStatus: z.enum(["NOT_APPLICABLE", "PENDING", "SET"]),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const userListMetaSchema = z.object({
+  page: z.number().int().positive(),
+  pageSize: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+  totalPages: z.number().int().positive(),
+});
+
+export const usersApiResponseSchema = z.object({
+  data: z.array(userListItemSchema),
+  meta: userListMetaSchema,
+});
+
+export const createUserFormSchema = z
+  .object({
+    fullName: z
+      .string()
+      .trim()
+      .min(2, { message: "Nome completo deve ter pelo menos 2 caracteres." }),
+    cpf: z
+      .string()
+      .trim()
+      .min(1, { message: "CPF obrigatório." })
+      .refine((value) => value.replace(/\D/g, "").length === 11, {
+        message: "CPF deve conter 11 dígitos.",
+      }),
+    email: z.string().trim().optional(),
+    phone: z
+      .string()
+      .trim()
+      .min(1, { message: "Celular obrigatório." })
+      .refine((value) => {
+        const digits = value.replace(/\D/g, "");
+        return digits.length === 10 || digits.length === 11;
+      }, {
+        message: "Celular deve conter 10 ou 11 dígitos.",
+      }),
+    role: userRoleSchema,
+    companyId: z.string().trim().optional(),
+    password: z.string().optional(),
+    managerId: z.string().trim().optional(),
+    supervisorId: z.string().trim().optional(),
+  })
+  .superRefine((value, context) => {
+    if (value.role !== "VENDEDOR") {
+      if (!value.email?.trim()) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["email"],
+          message: "E-mail obrigatório para cargos com acesso ao painel.",
+        });
+      } else if (!z.string().email().safeParse(value.email.trim()).success) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["email"],
+          message: "E-mail inválido.",
+        });
+      }
+    }
+
+    if (value.role === "ADMIN") {
+      const password = value.password?.trim() ?? "";
+      if (password.length < 6) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["password"],
+          message: "Senha deve ter no minimo 6 caracteres.",
+        });
+      }
+    }
+  });
+
+export const createdUserApiResponseSchema = z.object({
+  data: userListItemSchema,
+});
+
+export const userDetailsApiResponseSchema = z.object({
+  data: userListItemSchema,
+});
+
+export const updateUserFormSchema = z
+  .object({
+    fullName: z
+      .string()
+      .trim()
+      .min(2, { message: "Nome completo deve ter pelo menos 2 caracteres." }),
+    cpf: z
+      .string()
+      .trim()
+      .min(1, { message: "CPF obrigatório." })
+      .refine((value) => value.replace(/\D/g, "").length === 11, {
+        message: "CPF deve conter 11 dígitos.",
+      }),
+    email: z.string().trim().optional(),
+    phone: z
+      .string()
+      .trim()
+      .min(1, { message: "Celular obrigatório." })
+      .refine((value) => {
+        const digits = value.replace(/\D/g, "");
+        return digits.length === 10 || digits.length === 11;
+      }, {
+        message: "Celular deve conter 10 ou 11 dígitos.",
+      }),
+    role: userRoleSchema,
+    companyId: z.string().trim().optional(),
+    password: z.string().optional(),
+    managerId: z.string().trim().optional(),
+    supervisorId: z.string().trim().optional(),
+  })
+  .superRefine((value, context) => {
+    if (value.role !== "VENDEDOR") {
+      if (!value.email?.trim()) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["email"],
+          message: "E-mail obrigatório para cargos com acesso ao painel.",
+        });
+      } else if (!z.string().email().safeParse(value.email.trim()).success) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["email"],
+          message: "E-mail inválido.",
+        });
+      }
+    }
+
+    if (value.password?.trim()) {
+      if (value.password.trim().length < 6) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["password"],
+          message: "Senha deve ter no minimo 6 caracteres.",
+        });
+      }
+    }
+  });
+
+export type UserRole = z.infer<typeof userRoleSchema>;
+export type UserCompany = z.infer<typeof userCompanySchema>;
+export type UserListItem = z.infer<typeof userListItemSchema>;
+export type UserListMeta = z.infer<typeof userListMetaSchema>;
+export type CreateUserFormInput = z.infer<typeof createUserFormSchema>;
+export type UpdateUserFormInput = z.infer<typeof updateUserFormSchema>;

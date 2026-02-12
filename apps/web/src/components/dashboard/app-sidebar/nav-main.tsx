@@ -25,6 +25,10 @@ export function NavMain({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
 
   const isRouteActive = (url: string) => {
+    if (url === "/dashboard") {
+      return pathname === url;
+    }
+
     return pathname === url || pathname.startsWith(`${url}/`);
   };
 

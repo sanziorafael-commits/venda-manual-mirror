@@ -73,7 +73,7 @@ export function ForgotPasswordForm({
       <FieldGroup className="gap-0">
         <div className="flex gap-6 flex-col items-center text-center mb-16">
           <h1 className="text-3xl font-bold">Esqueceu sua senha?</h1>
-          <p className="text-muted-foreground text-sm text-balance">
+          <p className="text-[#798E99] text-sm text-balance">
             Entre com seu e-mail e enviaremos um link para redefinir sua senha
           </p>
         </div>

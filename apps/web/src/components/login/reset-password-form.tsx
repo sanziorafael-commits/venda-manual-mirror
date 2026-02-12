@@ -6,7 +6,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
 
-import { authOkSchema, resetPasswordSchema, type ResetPasswordSchema } from "@/schemas/auth";
+import {
+  authOkSchema,
+  resetPasswordSchema,
+  type ResetPasswordSchema,
+} from "@/schemas/auth";
 import { tryApiPostDataParsed } from "@/lib/try-api";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -14,7 +18,10 @@ import { Field, FieldDescription, FieldGroup } from "@/components/ui/field";
 import { PasswordField } from "@/components/ui/password-field";
 import { Spinner } from "@/components/ui/spinner";
 
-export function ResetPasswordForm({ className, ...props }: React.ComponentProps<"form">) {
+export function ResetPasswordForm({
+  className,
+  ...props
+}: React.ComponentProps<"form">) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tokenFromUrl = searchParams.get("token")?.trim() ?? "";
@@ -84,7 +91,7 @@ export function ResetPasswordForm({ className, ...props }: React.ComponentProps<
       <FieldGroup className="gap-0">
         <div className="mb-16 flex flex-col items-center gap-6 text-center">
           <h1 className="text-3xl font-bold">Criar nova senha</h1>
-          <p className="text-muted-foreground text-sm text-balance">
+          <p className="text-[#798E99] text-sm text-balance">
             Digite sua nova senha e confirme para redefinir sua conta
           </p>
           {!tokenFromUrl ? (

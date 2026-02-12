@@ -95,9 +95,9 @@ export function getPageTitleByPath(pathname: string) {
     return exactMatch;
   }
 
-  const matchedRoute = DASHBOARD_ROUTES.find(
-    (route) => pathname.startsWith(`${route.url}/`) || pathname === route.url,
-  );
+  const matchedRoute = DASHBOARD_ROUTES
+    .filter((route) => pathname === route.url || pathname.startsWith(`${route.url}/`))
+    .sort((routeA, routeB) => routeB.url.length - routeA.url.length)[0];
 
   return matchedRoute?.title ?? "Dashboard";
 }
