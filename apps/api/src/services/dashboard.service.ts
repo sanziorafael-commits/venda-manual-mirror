@@ -372,7 +372,7 @@ function resolveScopedCompanyId(actor: AuthActor, requestedCompanyId?: string) {
   }
 
   if (!actor.companyId) {
-    throw forbidden('Usuario nao vinculado a empresa');
+    throw forbidden('Usuário não vinculado à empresa');
   }
 
   return actor.companyId;

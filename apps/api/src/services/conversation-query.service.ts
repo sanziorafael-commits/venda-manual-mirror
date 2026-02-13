@@ -175,16 +175,16 @@ export async function getConversationById(
   });
 
   if (!baseConversation) {
-    throw notFound('Conversa nao encontrada');
+    throw notFound('Conversa não encontrada');
   }
 
   if (actor.role !== UserRole.ADMIN) {
     if (!actor.companyId) {
-      throw forbidden('Usuario nao vinculado a empresa');
+      throw forbidden('Usuário não vinculado à empresa');
     }
 
     if (!baseConversation.company_id || baseConversation.company_id !== actor.companyId) {
-      throw forbidden('Voce nao tem acesso a esta conversa');
+      throw forbidden('Você não tem acesso a esta conversa');
     }
   }
 
@@ -192,7 +192,7 @@ export async function getConversationById(
   const vendedorNome = sanitizeDisplayText(baseConversation.vendedor_nome);
 
   if (!vendedorTelefone && !vendedorNome) {
-    throw notFound('Nao foi possivel identificar o vendedor desta conversa');
+    throw notFound('Não foi possível identificar o vendedor desta conversa');
   }
 
   const selectedDate = resolveSelectedDate(input);
@@ -319,7 +319,7 @@ function resolveScopedCompanyId(actor: AuthActor, requestedCompanyId?: string) {
   }
 
   if (!actor.companyId) {
-    throw forbidden('Usuario nao vinculado a empresa');
+    throw forbidden('Usuário não vinculado à empresa');
   }
 
   return actor.companyId;
@@ -379,7 +379,7 @@ function buildConversationListWhere(input: {
   if (vendedorTelefone) {
     const normalizedPhone = normalizePhone(vendedorTelefone);
     if (!normalizedPhone) {
-      throw badRequest('Filtro de telefone invalido');
+      throw badRequest('Filtro de telefone inválido');
     }
 
     andFilters.push({
@@ -462,11 +462,11 @@ function parseDateRange(startDate?: string, endDate?: string): DateRange | null 
     : new Date(`${startDate}T23:59:59.999Z`);
 
   if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
-    throw badRequest('Periodo de data invalido');
+    throw badRequest('Período de data inválido');
   }
 
   if (startAt > endAt) {
-    throw badRequest('A data inicial nao pode ser maior que a data final');
+    throw badRequest('A data inicial não pode ser maior que a data final');
   }
 
   return {
