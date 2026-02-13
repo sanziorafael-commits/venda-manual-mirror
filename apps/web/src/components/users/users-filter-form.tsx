@@ -67,114 +67,118 @@ export function UsersFilterForm({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid gap-4 md:grid-cols-3">
-        {isAdmin ? (
-          <>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="users-company-filter" className="text-sm font-medium">
-                Empresa
-              </label>
-              <select
-                id="users-company-filter"
-                className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                value={companyFilterValue}
-                onChange={(event) => onCompanyFilterChange(event.target.value)}
-                disabled={isLoading}
-              >
-                <option value="__ALL__">Todas as empresas e admins</option>
-                <option value="__PLATFORM__">Handsell (admins da plataforma)</option>
-                {companyOptions.map((company) => (
-                  <option key={company.id} value={company.id}>
-                    {company.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+      {isAdmin || showAdminFiltersSkeleton ? (
+        <div className="grid gap-4 md:grid-cols-2">
+          {isAdmin ? (
+            <>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="users-company-filter" className="text-sm font-medium">
+                  Empresa
+                </label>
+                <select
+                  id="users-company-filter"
+                  className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                  value={companyFilterValue}
+                  onChange={(event) => onCompanyFilterChange(event.target.value)}
+                  disabled={isLoading}
+                >
+                  <option value="__ALL__">Todas as empresas e admins</option>
+                  <option value="__PLATFORM__">Handsell (admins da plataforma)</option>
+                  {companyOptions.map((company) => (
+                    <option key={company.id} value={company.id}>
+                      {company.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div className="flex flex-col gap-2">
-              <label htmlFor="users-role-filter" className="text-sm font-medium">
-                Cargo
-              </label>
-              <select
-                id="users-role-filter"
-                className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                value={roleFilterValue}
-                onChange={(event) =>
-                  onRoleFilterChange(event.target.value as "ALL" | UserRole)
-                }
-                disabled={isLoading || companyFilterIsPlatform}
-              >
-                {ROLE_OPTIONS.map((roleOption) => (
-                  <option key={roleOption.value} value={roleOption.value}>
-                    {roleOption.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </>
-        ) : showAdminFiltersSkeleton ? (
-          <>
-            <div className="flex flex-col gap-2">
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-9 w-full" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-9 w-full" />
-            </div>
-          </>
-        ) : null}
-
-        <div className="flex flex-col gap-2">
-          <label htmlFor="users-status-filter" className="text-sm font-medium">
-            Status
-          </label>
-          <select
-            id="users-status-filter"
-            className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-            value={statusFilterValue}
-            onChange={(event) =>
-              onStatusFilterChange(event.target.value as UserStatusFilter)
-            }
-            disabled={isLoading}
-          >
-            {STATUS_OPTIONS.map((statusOption) => (
-              <option key={statusOption.value} value={statusOption.value}>
-                {statusOption.label}
-              </option>
-            ))}
-          </select>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="users-role-filter" className="text-sm font-medium">
+                  Cargo
+                </label>
+                <select
+                  id="users-role-filter"
+                  className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                  value={roleFilterValue}
+                  onChange={(event) =>
+                    onRoleFilterChange(event.target.value as "ALL" | UserRole)
+                  }
+                  disabled={isLoading || companyFilterIsPlatform}
+                >
+                  {ROLE_OPTIONS.map((roleOption) => (
+                    <option key={roleOption.value} value={roleOption.value}>
+                      {roleOption.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-9 w-full" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-9 w-full" />
+              </div>
+            </>
+          )}
         </div>
-      </div>
+      ) : null}
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <form
-          className="flex w-full max-w-2xl flex-col gap-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            onSubmit();
-          }}
-        >
-          <label htmlFor="users-search" className="text-sm font-medium">
-            Buscar por usuário
-          </label>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <Input
-              id="users-search"
-              value={searchValue}
-              placeholder="Digite aqui sua busca"
-              onChange={(event) => onSearchValueChange(event.target.value)}
-            />
-            <Button
-              type="submit"
-              className="bg-[#212a38] text-white hover:bg-[#182130]"
+        <div className="flex w-full max-w-4xl flex-col gap-3 lg:flex-row lg:items-end">
+          <form
+            className="flex w-full flex-col gap-2"
+            onSubmit={(event) => {
+              event.preventDefault();
+              onSubmit();
+            }}
+          >
+            <label htmlFor="users-search" className="text-sm font-medium">
+              Buscar por usuário
+            </label>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Input
+                id="users-search"
+                value={searchValue}
+                placeholder="Digite aqui sua busca"
+                onChange={(event) => onSearchValueChange(event.target.value)}
+              />
+              <Button
+                type="submit"
+                className="bg-[#212a38] text-white hover:bg-[#182130]"
+                disabled={isLoading}
+              >
+                <Search className="size-4" />
+                Buscar
+              </Button>
+            </div>
+          </form>
+
+          <div className="flex w-full flex-col gap-2 lg:w-[220px] lg:shrink-0">
+            <label htmlFor="users-status-filter" className="text-sm font-medium">
+              Status
+            </label>
+            <select
+              id="users-status-filter"
+              className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+              value={statusFilterValue}
+              onChange={(event) =>
+                onStatusFilterChange(event.target.value as UserStatusFilter)
+              }
               disabled={isLoading}
             >
-              <Search className="size-4" />
-              Buscar
-            </Button>
+              {STATUS_OPTIONS.map((statusOption) => (
+                <option key={statusOption.value} value={statusOption.value}>
+                  {statusOption.label}
+                </option>
+              ))}
+            </select>
           </div>
-        </form>
+        </div>
 
         <div className="flex items-center gap-2">
           <Button
