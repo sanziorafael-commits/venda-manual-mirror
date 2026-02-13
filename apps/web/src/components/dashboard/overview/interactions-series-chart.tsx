@@ -31,7 +31,7 @@ export function OverviewInteractionsSeriesChart({
   if (!points.length) {
     return (
       <div className="rounded-lg border border-dashed p-6 text-sm text-muted-foreground">
-        Sem dados de serie temporal para este periodo.
+        Sem dados de série temporal para este período.
       </div>
     );
   }
@@ -109,7 +109,7 @@ export function OverviewInteractionsSeriesChart({
                       className="text-sm font-semibold"
                       style={{ color: CHART_TOOLTIP_TEXT }}
                     >
-                      {numberFormatter.format(value)} interacoes
+                      {numberFormatter.format(value)} interações
                     </p>
                   </div>
                 );
@@ -169,7 +169,7 @@ export function OverviewInteractionsSeriesChart({
       </div>
 
       <p className="text-muted-foreground mt-3 text-xs">
-        {numberFormatter.format(total)} interacoes no periodo selecionado.
+        {numberFormatter.format(total)} interações no período selecionado.
       </p>
     </div>
   );

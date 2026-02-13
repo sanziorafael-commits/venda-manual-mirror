@@ -19,7 +19,7 @@ export function OverviewAdoptionCard({
       <div className="flex items-start justify-between gap-4">
         <div>
           <h4 className="text-foreground text-[1.15rem] font-semibold leading-none md:text-[1.2rem]">
-            Taxa de adocao
+            Taxa de adoção
           </h4>
           <p className="text-muted-foreground mt-1.5 text-sm">
             {capitalize(entityLabel)} ativos

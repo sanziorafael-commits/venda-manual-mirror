@@ -5,6 +5,7 @@ import "./globals.css";
 
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme/theme-provider";
+import { BRAND_NAME } from "@/lib/metadata";
 
 const fustat = Fustat({
   variable: "--font-fustat",
@@ -18,12 +19,27 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
   ),
   title: {
-    template: "%s | Handsell",
-    default: "Handsell - Orienta",
+    template: `%s | ${BRAND_NAME}`,
+    default: BRAND_NAME,
   },
-  description: "Handsell - Orienta",
+  description: BRAND_NAME,
   openGraph: {
-    images: "/login-bg-handsell.jpg",
+    title: BRAND_NAME,
+    description: BRAND_NAME,
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: BRAND_NAME,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: BRAND_NAME,
+    description: BRAND_NAME,
+    images: ["/og-image.png"],
   },
 };
 

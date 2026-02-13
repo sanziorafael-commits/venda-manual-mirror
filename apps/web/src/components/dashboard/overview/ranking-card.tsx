@@ -37,7 +37,7 @@ export function OverviewRankingCard({
             {isHighest ? "maior " : "menor "}
           </span>
           <span className="text-foreground font-bold">volume</span>
-          <span className="text-muted-foreground"> de interacoes</span>
+          <span className="text-muted-foreground"> de interações</span>
         </h4>
 
         {isHighest ? (

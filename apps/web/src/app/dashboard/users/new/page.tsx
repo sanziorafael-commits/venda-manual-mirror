@@ -2,6 +2,9 @@ import Link from "next/link";
 import { ArrowLeft, UserRound } from "lucide-react";
 
 import { UserCreateForm } from "@/components/users/user-create-form";
+import { createPageMetadata } from "@/lib/metadata";
+
+export const metadata = createPageMetadata("Adicionar Usuário");
 
 export default function DashboardUserCreatePage() {
   return (
@@ -15,15 +18,15 @@ export default function DashboardUserCreatePage() {
           Voltar
         </Link>
 
-        <span className="text-muted-foreground">Usuarios / Adicionar usuario</span>
+        <span className="text-muted-foreground">Usuários / Adicionar usuário</span>
       </div>
 
       <h2 className="flex items-center gap-2 text-2xl font-semibold">
         <UserRound className="size-6" />
-        Usuarios
+        Usuários
       </h2>
 
-      <h3 className="text-2xl font-semibold">Adicionar usuario</h3>
+      <h3 className="text-2xl font-semibold">Adicionar usuário</h3>
 
       <UserCreateForm />
     </div>

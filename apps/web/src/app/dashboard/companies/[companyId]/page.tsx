@@ -2,6 +2,9 @@ import Link from "next/link";
 import { ArrowLeft, Building2 } from "lucide-react";
 
 import { CompanyDetailsWrapper } from "@/components/company/company-details-wrapper";
+import { createPageMetadata } from "@/lib/metadata";
+
+export const metadata = createPageMetadata("Detalhes da Empresa");
 
 type DashboardCompanyDetailsPageProps = {
   params: Promise<{

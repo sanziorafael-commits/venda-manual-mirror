@@ -2,31 +2,32 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
 
+import { AuthSubmitButton } from "@/components/auth/auth-submit-button";
+import { Field, FieldDescription, FieldGroup } from "@/components/ui/field";
+import { PasswordField } from "@/components/ui/password-field";
+import { useAuthSubmit } from "@/hooks/use-auth-submit";
+import { useUrlToken } from "@/hooks/use-url-token";
 import {
   authOkSchema,
   resetPasswordSchema,
   type ResetPasswordSchema,
 } from "@/schemas/auth";
-import { tryApiPostDataParsed } from "@/lib/try-api";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Field, FieldDescription, FieldGroup } from "@/components/ui/field";
-import { PasswordField } from "@/components/ui/password-field";
-import { Spinner } from "@/components/ui/spinner";
+
+type AuthOkResult = {
+  ok: boolean;
+};
 
 export function ResetPasswordForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const tokenFromUrl = searchParams.get("token")?.trim() ?? "";
-
-  const [loading, setLoading] = React.useState(false);
+  const tokenFromUrl = useUrlToken();
 
   const {
     register,
@@ -54,33 +55,31 @@ export function ResetPasswordForm({
     password.trim().length > 0 &&
     confirmPassword.trim().length > 0;
 
-  const onSubmit = async (data: ResetPasswordSchema) => {
-    setLoading(true);
-
-    try {
-      const result = await tryApiPostDataParsed(
-        "/auth/reset-password",
-        {
-          token: data.token,
-          password: data.newPassword,
-        },
-        (payload) => {
-          const parsed = authOkSchema.safeParse(payload);
-          return parsed.success ? parsed.data : null;
-        },
-        "Senha redefinida com sucesso!",
-        "Não foi possível redefinir a senha.",
-      );
-
-      if (!result?.ok) {
-        return;
+  const { loading, submit } = useAuthSubmit<ResetPasswordSchema, AuthOkResult>({
+    path: "/auth/reset-password",
+    buildBody: (data) => ({
+      token: data.token,
+      password: data.newPassword,
+    }),
+    parseData: (payload) => {
+      const parsed = authOkSchema.safeParse(payload);
+      return parsed.success ? parsed.data : null;
+    },
+    successMessage: "Senha redefinida com sucesso!",
+    invalidMessage: "Não foi possível redefinir a senha.",
+    onSuccess: (result) => {
+      if (result.ok) {
+        router.push("/login");
       }
+    },
+  });
 
-      router.push("/login");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const onSubmit = React.useCallback(
+    async (data: ResetPasswordSchema) => {
+      await submit(data);
+    },
+    [submit],
+  );
 
   return (
     <form
@@ -121,20 +120,12 @@ export function ResetPasswordForm({
         />
 
         <Field className="mb-6 mt-6 gap-2">
-          <Button
-            type="submit"
-            disabled={!isSubmitEnabled || loading}
-            className="disabled:bg-zinc-400 disabled:text-white disabled:opacity-100"
-          >
-            {loading ? (
-              <span className="inline-flex items-center">
-                <Spinner className="mr-2 h-4 w-4 animate-spin" />
-                Enviando
-              </span>
-            ) : (
-              "Enviar"
-            )}
-          </Button>
+          <AuthSubmitButton
+            loading={loading}
+            idleLabel="Enviar"
+            loadingLabel="Enviando"
+            disabled={!isSubmitEnabled}
+          />
         </Field>
 
         <FieldDescription className="text-center [&>a]:no-underline">

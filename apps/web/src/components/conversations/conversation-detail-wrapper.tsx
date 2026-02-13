@@ -105,17 +105,17 @@ export function ConversationDetailWrapper({
         <div>
           <h3 className="flex items-center gap-2 text-xl font-semibold">
             {conversationDetail
-              ? `Historico de ${conversationDetail.vendedorNome}`
-              : "Historico da conversa"}
+              ? `Histórico de ${conversationDetail.vendedorNome}`
+              : "Histórico da conversa"}
           </h3>
           {conversationDetail ? (
             <p className="mt-1 text-sm text-muted-foreground">
               {conversationDetail.companyName
-                ? `${conversationDetail.companyName} - `
+                ? `${conversationDetail.companyName} `
                 : ""}
-              {conversationDetail.clienteNome
+              {/* {conversationDetail.clienteNome
                 ? `Cliente: ${conversationDetail.clienteNome}`
-                : "Cliente nao identificado"}
+                : "Cliente não identificado"} */}
             </p>
           ) : null}
         </div>
@@ -150,41 +150,60 @@ export function ConversationDetailWrapper({
             </div>
           ))
         ) : conversationDetail?.mensagens.length ? (
-          conversationDetail.mensagens.map((message) => (
-            <div
-              key={message.id}
-              className={
-                message.sender === "vendedor"
-                  ? "flex justify-end"
-                  : "flex justify-start"
-              }
-            >
-              <article
-                className={
-                  message.sender === "vendedor"
-                    ? "relative max-w-[80%] rounded-xl bg-[#BCF9DA] px-4 py-3 text-[#515151] shadow-xs"
-                    : "relative max-w-[80%] rounded-xl bg-[#f6f6f6] px-4 py-3 text-[#515151] shadow-xs"
-                }
-              >
-                <span
+          conversationDetail.mensagens.map((message, index, messages) => {
+            const messageDateKey = getDateGroupKey(message.timestamp);
+            const previousDateKey =
+              index > 0 ? getDateGroupKey(messages[index - 1].timestamp) : null;
+            const shouldRenderDateSeparator =
+              messageDateKey !== previousDateKey;
+
+            return (
+              <React.Fragment key={message.id}>
+                {shouldRenderDateSeparator ? (
+                  <div className="sticky top-2 z-10 flex justify-center py-2">
+                    <span className="rounded-full border border-border bg-background px-3 py-1 text-xs text-muted-foreground">
+                      {formatDatePillLabel(message.timestamp)}
+                    </span>
+                  </div>
+                ) : null}
+
+                <div
                   className={
                     message.sender === "vendedor"
-                      ? "absolute h-4 w-4 -right-2 top-4 bg-[#BCF9DA] rotate-45"
-                      : "absolute h-4 w-4 -left-2 top-4 bg-[#f6f6f6] rotate-45"
+                      ? "flex justify-end"
+                      : "flex justify-start"
                   }
-                ></span>
-                <p className="mb-1 text-sm font-bold text-[#212A38]">
-                  {message.sender === "vendedor"
-                    ? conversationDetail.vendedorNome
-                    : "HandSell"}
-                </p>
-                <p className="whitespace-pre-wrap text-sm">{message.text}</p>
-                <p className="mt-2 text-right text-[11px] text-muted-foreground">
-                  {formatTime(message.timestamp)}
-                </p>
-              </article>
-            </div>
-          ))
+                >
+                  <article
+                    className={
+                      message.sender === "vendedor"
+                        ? "relative max-w-[80%] rounded-xl bg-[#BCF9DA] px-4 py-3 text-[#515151] shadow-xs"
+                        : "relative max-w-[80%] rounded-xl bg-[#f6f6f6] px-4 py-3 text-[#515151] shadow-xs"
+                    }
+                  >
+                    <span
+                      className={
+                        message.sender === "vendedor"
+                          ? "absolute h-4 w-4 -right-2 top-4 bg-[#BCF9DA] rotate-45"
+                          : "absolute h-4 w-4 -left-2 top-4 bg-[#f6f6f6] rotate-45"
+                      }
+                    ></span>
+                    <p className="mb-1 text-sm font-bold text-[#212A38]">
+                      {message.sender === "vendedor"
+                        ? conversationDetail.vendedorNome
+                        : "HandSell"}
+                    </p>
+                    <p className="whitespace-pre-wrap text-sm">
+                      {message.text}
+                    </p>
+                    <p className="mt-2 text-right text-[11px] text-muted-foreground">
+                      {formatTime(message.timestamp)}
+                    </p>
+                  </article>
+                </div>
+              </React.Fragment>
+            );
+          })
         ) : (
           <div className="py-8 text-center text-sm text-muted-foreground">
             Sem mensagens para os filtros selecionados.
@@ -204,5 +223,31 @@ function formatTime(value: string) {
   return parsed.toLocaleTimeString("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
+  });
+}
+
+function getDateGroupKey(value: string) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return `invalid-${value}`;
+  }
+
+  return parsed.toLocaleDateString("pt-BR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+}
+
+function formatDatePillLabel(value: string) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return "Data indisponível";
+  }
+
+  return parsed.toLocaleDateString("pt-BR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
   });
 }

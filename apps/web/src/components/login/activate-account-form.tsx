@@ -2,31 +2,29 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
 
+import { AuthSubmitButton } from "@/components/auth/auth-submit-button";
+import { Field, FieldDescription, FieldGroup } from "@/components/ui/field";
+import { PasswordField } from "@/components/ui/password-field";
+import { useAuthSubmit } from "@/hooks/use-auth-submit";
+import { useUrlToken } from "@/hooks/use-url-token";
 import {
   activateAccountSchema,
   loginResponseSchema,
   type ActivateAccountSchema,
+  type LoginResponse,
 } from "@/schemas/auth";
-import { tryApiPostDataParsed } from "@/lib/try-api";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Field, FieldDescription, FieldGroup } from "@/components/ui/field";
-import { PasswordField } from "@/components/ui/password-field";
-import { Spinner } from "@/components/ui/spinner";
 
 export function ActivateAccountForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const tokenFromUrl = searchParams.get("token")?.trim() ?? "";
-
-  const [loading, setLoading] = React.useState(false);
+  const tokenFromUrl = useUrlToken();
 
   const {
     register,
@@ -54,33 +52,29 @@ export function ActivateAccountForm({
     password.trim().length > 0 &&
     confirmPassword.trim().length > 0;
 
-  const onSubmit = async (data: ActivateAccountSchema) => {
-    setLoading(true);
-
-    try {
-      const session = await tryApiPostDataParsed(
-        "/auth/activate-account",
-        {
-          token: data.token,
-          password: data.password,
-        },
-        (payload) => {
-          const parsed = loginResponseSchema.safeParse(payload);
-          return parsed.success ? parsed.data : null;
-        },
-        "Conta ativada com sucesso!",
-        "Não foi possível ativar a conta.",
-      );
-
-      if (!session) {
-        return;
-      }
-
+  const { loading, submit } = useAuthSubmit<ActivateAccountSchema, LoginResponse>({
+    path: "/auth/activate-account",
+    buildBody: (data) => ({
+      token: data.token,
+      password: data.password,
+    }),
+    parseData: (payload) => {
+      const parsed = loginResponseSchema.safeParse(payload);
+      return parsed.success ? parsed.data : null;
+    },
+    successMessage: "Conta ativada com sucesso!",
+    invalidMessage: "Não foi possível ativar a conta.",
+    onSuccess: () => {
       router.push("/dashboard");
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
+
+  const onSubmit = React.useCallback(
+    async (data: ActivateAccountSchema) => {
+      await submit(data);
+    },
+    [submit],
+  );
 
   return (
     <form
@@ -121,20 +115,12 @@ export function ActivateAccountForm({
         />
 
         <Field className="mb-6 mt-6 gap-2">
-          <Button
-            type="submit"
-            disabled={!isSubmitEnabled || loading}
-            className="disabled:bg-zinc-400 disabled:text-white disabled:opacity-100"
-          >
-            {loading ? (
-              <span className="inline-flex items-center">
-                <Spinner className="mr-2 h-4 w-4 animate-spin" />
-                Ativando
-              </span>
-            ) : (
-              "Ativar"
-            )}
-          </Button>
+          <AuthSubmitButton
+            loading={loading}
+            idleLabel="Ativar"
+            loadingLabel="Ativando"
+            disabled={!isSubmitEnabled}
+          />
         </Field>
 
         <FieldDescription className="text-center [&>a]:no-underline">

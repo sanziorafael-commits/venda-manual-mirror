@@ -6,14 +6,7 @@ import { useRouter } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
 
-import { tryApiPostDataParsed } from "@/lib/try-api";
-import { cn } from "@/lib/utils";
-import {
-  loginResponseSchema,
-  loginSchema,
-  type LoginSchema,
-} from "@/schemas/auth";
-import { Button } from "@/components/ui/button";
+import { AuthSubmitButton } from "@/components/auth/auth-submit-button";
 import {
   Field,
   FieldDescription,
@@ -22,14 +15,20 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PasswordField } from "@/components/ui/password-field";
-import { Spinner } from "@/components/ui/spinner";
+import { useAuthSubmit } from "@/hooks/use-auth-submit";
+import { cn } from "@/lib/utils";
+import {
+  loginResponseSchema,
+  loginSchema,
+  type LoginResponse,
+  type LoginSchema,
+} from "@/schemas/auth";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
   const router = useRouter();
-  const [loading, setLoading] = React.useState(false);
 
   const {
     register,
@@ -48,30 +47,25 @@ export function LoginForm({
   const password = watch("password", "");
   const isSubmitEnabled = email.trim().length > 0 && password.trim().length > 0;
 
-  const onSubmit = async (data: LoginSchema) => {
-    setLoading(true);
-
-    try {
-      const session = await tryApiPostDataParsed(
-        "/auth/login",
-        data,
-        (payload) => {
-          const parsed = loginResponseSchema.safeParse(payload);
-          return parsed.success ? parsed.data : null;
-        },
-        "Login realizado com sucesso!",
-        "Não foi possível concluir o login. Tente novamente.",
-      );
-
-      if (!session) {
-        return;
-      }
-
+  const { loading, submit } = useAuthSubmit<LoginSchema, LoginResponse>({
+    path: "/auth/login",
+    parseData: (payload) => {
+      const parsed = loginResponseSchema.safeParse(payload);
+      return parsed.success ? parsed.data : null;
+    },
+    successMessage: "Login realizado com sucesso!",
+    invalidMessage: "Não foi possível concluir o login. Tente novamente.",
+    onSuccess: () => {
       router.push("/dashboard");
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
+
+  const onSubmit = React.useCallback(
+    async (data: LoginSchema) => {
+      await submit(data);
+    },
+    [submit],
+  );
 
   return (
     <form
@@ -80,10 +74,6 @@ export function LoginForm({
       onSubmit={handleSubmit(onSubmit)}
     >
       <FieldGroup className="gap-0">
-        {/* <div className="mb-16 flex flex-col items-center text-center">
-          <h1 className="text-3xl font-bold">Portal do Cliente</h1>
-        </div> */}
-
         <Field className="mb-6 gap-2">
           <FieldLabel htmlFor="email" className="font-bold">
             E-mail
@@ -118,20 +108,12 @@ export function LoginForm({
         </FieldDescription>
 
         <Field className="mt-6 gap-2">
-          <Button
-            type="submit"
-            disabled={!isSubmitEnabled || loading}
-            className="disabled:bg-zinc-400 disabled:text-white disabled:opacity-100"
-          >
-            {loading ? (
-              <span className="inline-flex items-center">
-                <Spinner className="mr-2 h-4 w-4 animate-spin" />
-                Carregando
-              </span>
-            ) : (
-              "Entrar"
-            )}
-          </Button>
+          <AuthSubmitButton
+            loading={loading}
+            idleLabel="Entrar"
+            loadingLabel="Carregando"
+            disabled={!isSubmitEnabled}
+          />
         </Field>
       </FieldGroup>
     </form>

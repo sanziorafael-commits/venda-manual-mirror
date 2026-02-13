@@ -1,4 +1,7 @@
 import { DashboardOverviewPanel } from "@/components/dashboard/dashboard-overview";
+import { createPageMetadata } from "@/lib/metadata";
+
+export const metadata = createPageMetadata("Dashboard");
 
 export default function DashboardPage() {
   return (

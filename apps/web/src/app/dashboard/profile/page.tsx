@@ -1,5 +1,8 @@
 import { ProfileForm } from "@/components/dashboard/profile/profile-form";
 import { CircleUser } from "lucide-react";
+import { createPageMetadata } from "@/lib/metadata";
+
+export const metadata = createPageMetadata("Meu Perfil");
 
 export default function ProfilePage() {
   return (

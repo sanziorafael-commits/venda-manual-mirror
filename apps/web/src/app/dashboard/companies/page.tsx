@@ -1,6 +1,9 @@
 import { Building2 } from "lucide-react";
 
 import { CompanyFormWrapper } from "@/components/company/company-form-wrapper";
+import { createPageMetadata } from "@/lib/metadata";
+
+export const metadata = createPageMetadata("Empresas");
 
 export default function DashboardCompaniesPage() {
   return (

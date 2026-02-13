@@ -1,6 +1,9 @@
 import { MessageSquareMore } from "lucide-react";
 
 import { ConversationsHistoryWrapper } from "@/components/conversations/conversations-history-wrapper";
+import { createPageMetadata } from "@/lib/metadata";
+
+export const metadata = createPageMetadata("Histórico de Conversas");
 
 export default function DashboardConversationsPage() {
   return (

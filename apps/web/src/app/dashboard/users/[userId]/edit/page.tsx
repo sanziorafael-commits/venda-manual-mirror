@@ -2,6 +2,9 @@ import Link from "next/link";
 import { ArrowLeft, UserRound } from "lucide-react";
 
 import { UserEditForm } from "@/components/users/user-edit-form";
+import { createPageMetadata } from "@/lib/metadata";
+
+export const metadata = createPageMetadata("Editar Usuário");
 
 type DashboardUserEditPageProps = {
   params: Promise<{

@@ -14,9 +14,9 @@ export function OverviewTotalInteractionsCard({
 }) {
   return (
     <section className="rounded-xl border bg-card p-4 shadow-xs md:p-5">
-      <p className="text-muted-foreground text-sm font-medium">Total de interacoes</p>
+      <p className="text-muted-foreground text-sm font-medium">Total de interações</p>
       <h3 className="text-foreground mt-1 text-4xl font-semibold md:text-5xl">
-        {numberFormatter.format(totalInteractions)} interacoes
+        {numberFormatter.format(totalInteractions)} interações
       </h3>
       <div className="mt-4">
         <OverviewInteractionsSeriesChart points={points} total={seriesTotal} />

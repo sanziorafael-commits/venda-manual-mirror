@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 
 import { fetchAuthenticatedUser } from "@/lib/auth-me";
 import type { AuthUser } from "@/schemas/auth";
@@ -11,6 +12,7 @@ type AuthStoreHydratorProps = {
 };
 
 export function AuthStoreHydrator({ initialUser }: AuthStoreHydratorProps) {
+  const router = useRouter();
   const hydrate = useAuthStore((state) => state.hydrate);
   const setUser = useAuthStore((state) => state.setUser);
   const clear = useAuthStore((state) => state.clear);
@@ -33,6 +35,7 @@ export function AuthStoreHydrator({ initialUser }: AuthStoreHydratorProps) {
 
       if (result.kind === "invalid_session") {
         clear();
+        router.replace("/login");
       }
     };
 
@@ -41,7 +44,7 @@ export function AuthStoreHydrator({ initialUser }: AuthStoreHydratorProps) {
     return () => {
       mounted = false;
     };
-  }, [setUser, clear]);
+  }, [setUser, clear, router]);
 
   return null;
 }

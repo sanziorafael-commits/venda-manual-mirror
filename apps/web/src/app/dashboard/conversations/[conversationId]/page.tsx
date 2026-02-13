@@ -2,6 +2,9 @@ import Link from "next/link";
 import { ArrowLeft, MessageSquareMore } from "lucide-react";
 
 import { ConversationDetailWrapper } from "@/components/conversations/conversation-detail-wrapper";
+import { createPageMetadata } from "@/lib/metadata";
+
+export const metadata = createPageMetadata("Detalhes da Conversa");
 
 type DashboardConversationDetailsPageProps = {
   params: Promise<{
@@ -26,13 +29,13 @@ export default async function DashboardConversationDetailsPage({
         </Link>
 
         <span className="text-muted-foreground">
-          Historico de Conversas / Ver conversa
+          Histórico de Conversas / Ver conversa
         </span>
       </div>
 
       <h2 className="flex items-center gap-2 text-2xl font-semibold">
         <MessageSquareMore className="size-6" />
-        Historico de Conversas
+        Histórico de Conversas
       </h2>
 
       <ConversationDetailWrapper conversationId={conversationId} />

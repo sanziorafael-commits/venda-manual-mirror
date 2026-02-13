@@ -1,7 +1,11 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import React from "react";
+import { useForm } from "react-hook-form";
+
+import { AuthSubmitButton } from "@/components/auth/auth-submit-button";
 import {
   Field,
   FieldDescription,
@@ -9,20 +13,18 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import React from "react";
-import Link from "next/link";
-import { Spinner } from "@/components/ui/spinner";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuthSubmit } from "@/hooks/use-auth-submit";
+import { cn } from "@/lib/utils";
 import { authOkSchema, forgotSchema, type ForgotSchema } from "@/schemas/auth";
-import { tryApiPostDataParsed } from "@/lib/try-api";
+
+type AuthOkResult = {
+  ok: boolean;
+};
 
 export function ForgotPasswordForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
-  const [loading, setLoading] = React.useState(false);
-
   const {
     register,
     handleSubmit,
@@ -39,30 +41,28 @@ export function ForgotPasswordForm({
   const email = watch("email", "");
   const isSubmitEnabled = email.trim().length > 0;
 
-  const onSubmit = async (data: ForgotSchema) => {
-    setLoading(true);
-
-    try {
-      const result = await tryApiPostDataParsed(
-        "/auth/forgot-password",
-        data,
-        (payload) => {
-          const parsed = authOkSchema.safeParse(payload);
-          return parsed.success ? parsed.data : null;
-        },
-        "Se o e-mail existir, enviaremos as instruções de recuperação.",
-        "Não foi possível processar a solicitação.",
-      );
-
-      if (!result?.ok) {
-        return;
+  const { loading, submit } = useAuthSubmit<ForgotSchema, AuthOkResult>({
+    path: "/auth/forgot-password",
+    parseData: (payload) => {
+      const parsed = authOkSchema.safeParse(payload);
+      return parsed.success ? parsed.data : null;
+    },
+    successMessage:
+      "Se o e-mail existir, enviaremos as instruções de recuperação.",
+    invalidMessage: "Não foi possível processar a solicitação.",
+    onSuccess: (result) => {
+      if (result.ok) {
+        reset();
       }
+    },
+  });
 
-      reset();
-    } finally {
-      setLoading(false);
-    }
-  };
+  const onSubmit = React.useCallback(
+    async (data: ForgotSchema) => {
+      await submit(data);
+    },
+    [submit],
+  );
 
   return (
     <form
@@ -94,20 +94,12 @@ export function ForgotPasswordForm({
           )}
         </Field>
         <Field className="gap-2 mt-6 mb-6">
-          <Button
-            type="submit"
-            disabled={!isSubmitEnabled || loading}
-            className="disabled:bg-zinc-400 disabled:text-white disabled:opacity-100"
-          >
-            {loading ? (
-              <span className="inline-flex items-center">
-                <Spinner className="w-4 h-4 mr-2 animate-spin" />
-                Enviando
-              </span>
-            ) : (
-              "Enviar"
-            )}
-          </Button>
+          <AuthSubmitButton
+            loading={loading}
+            idleLabel="Enviar"
+            loadingLabel="Enviando"
+            disabled={!isSubmitEnabled}
+          />
         </Field>
         <FieldDescription className="text-center [&>a]:no-underline">
           Lembrou sua senha? <Link href="/login">Voltar ao login</Link>

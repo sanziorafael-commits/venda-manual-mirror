@@ -1,6 +1,9 @@
 import { UserRound } from "lucide-react";
 
 import { UsersFormWrapper } from "@/components/users/users-form-wrapper";
+import { createPageMetadata } from "@/lib/metadata";
+
+export const metadata = createPageMetadata("Usuários");
 
 export default function DashboardUsersPage() {
   return (

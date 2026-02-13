@@ -2,6 +2,9 @@ import Link from "next/link";
 import { ArrowLeft, Building2 } from "lucide-react";
 
 import { CompanyEditForm } from "@/components/company/company-edit-form";
+import { createPageMetadata } from "@/lib/metadata";
+
+export const metadata = createPageMetadata("Editar Empresa");
 
 type DashboardCompanyEditPageProps = {
   params: Promise<{

@@ -249,7 +249,7 @@ export function DashboardOverviewPanel() {
                     </option>
                   ))
                 ) : (
-                  <option value="">Nenhuma empresa disponivel</option>
+                  <option value="">Nenhuma empresa disponível</option>
                 )}
               </select>
             </label>
@@ -330,7 +330,7 @@ export function DashboardOverviewPanel() {
             <OverviewRankingCard
               variant="highest"
               items={selectedHighestRanking}
-              emptyMessage="Sem dados para o periodo."
+              emptyMessage="Sem dados para o período."
               supplemental={
                 showSupervisorSupplementalRanking &&
                 overview.rankingsByScope.supervisors
@@ -346,7 +346,7 @@ export function DashboardOverviewPanel() {
             <OverviewRankingCard
               variant="lowest"
               items={selectedLowestRanking}
-              emptyMessage="Sem dados para o periodo."
+              emptyMessage="Sem dados para o período."
               supplemental={
                 showSupervisorSupplementalRanking &&
                 overview.rankingsByScope.supervisors
@@ -364,19 +364,19 @@ export function DashboardOverviewPanel() {
             <OverviewProductsCard
               variant="most"
               items={overview.productRanking.mostCited}
-              emptyMessage="Sem citacoes registradas."
+              emptyMessage="Sem citações registradas."
             />
 
             <OverviewProductsCard
               variant="least"
               items={overview.productRanking.leastCited}
-              emptyMessage="Sem citacoes registradas."
+              emptyMessage="Sem citações registradas."
             />
           </section>
         </>
       ) : (
         <div className="rounded-xl border border-dashed bg-card p-6 text-sm text-muted-foreground">
-          Nao foi possivel carregar os dados do dashboard.
+          Não foi possível carregar os dados do dashboard.
         </div>
       )}
     </section>

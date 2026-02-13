@@ -29,7 +29,7 @@ export function OverviewProductsCard({
             {isMost ? "mais " : "menos "}
           </span>
           <span className="text-foreground font-bold">citados</span>
-          <span className="text-muted-foreground"> nas interacoes</span>
+          <span className="text-muted-foreground"> nas interações</span>
         </h4>
 
         {isMost ? (

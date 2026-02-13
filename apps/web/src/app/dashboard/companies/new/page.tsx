@@ -2,6 +2,9 @@ import Link from "next/link";
 import { ArrowLeft, Building2 } from "lucide-react";
 
 import { CompanyCreateForm } from "@/components/company/company-create-form";
+import { createPageMetadata } from "@/lib/metadata";
+
+export const metadata = createPageMetadata("Adicionar Empresa");
 
 export default function DashboardCompanyCreatePage() {
   return (
