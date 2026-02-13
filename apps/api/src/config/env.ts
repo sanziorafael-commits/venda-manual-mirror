@@ -40,6 +40,12 @@ const envSchema = z.object({
   APP_CORS_ORIGINS: z.string().optional(),
   APP_ACTIVATION_PATH: z.string().default('/ativar-conta'),
   APP_RESET_PASSWORD_PATH: z.string().default('/recuperar-senha'),
+  AUTH_LOGIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+  AUTH_LOGIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(10),
+  AUTH_FORGOT_PASSWORD_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(900_000),
+  AUTH_FORGOT_PASSWORD_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(5),
+  AUTH_BOOTSTRAP_ADMIN_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(3_600_000),
+  AUTH_BOOTSTRAP_ADMIN_RATE_LIMIT_MAX: z.coerce.number().int().positive().default(3),
   STORAGE_PROVIDER: z.enum(['disabled', 'gcs']).default('disabled'),
   STORAGE_UPLOAD_URL_TTL: z
     .string()

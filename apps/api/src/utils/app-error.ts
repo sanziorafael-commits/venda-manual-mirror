@@ -40,3 +40,7 @@ export function conflict(message: string, details?: unknown) {
 export function notFound(message: string) {
   return new AppError(404, 'not_found', message);
 }
+
+export function tooManyRequests(message = 'Muitas tentativas. Tente novamente mais tarde.', details?: unknown) {
+  return new AppError(429, 'too_many_requests', message, details);
+}
