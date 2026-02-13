@@ -1,0 +1,110 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_documents_2025_10_29 {
+  id        BigInt?
+  content   String?
+  metadata  Json?
+  embedding Unsupported("vector")?
+
+  @@ignore
+}
+
+model documents_3072 {
+  id        BigInt                @id @default(autoincrement())
+  content   String?
+  metadata  Json                  @default("{}")
+  embedding Unsupported("vector")
+
+  @@index([metadata], map: "documents_3072_metadata_gin", type: Gin)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model historico_conversas {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at        DateTime? @default(now()) @db.Timestamptz(6)
+  timestamp_iso     DateTime? @db.Timestamptz(6)
+  sender_id         String?
+  data              DateTime? @db.Date
+  msg_type          String?
+  flow_name         String?
+  execution_id      String?
+  message_id        String?
+  mensagem          String?
+  resposta          String?
+  vendedor_nome     String?
+  vendedor_telefone String?
+  supervisor        String?
+  cliente_nome      String?
+  leads_encontrados String?
+
+  @@index([cliente_nome], map: "idx_historico_cliente")
+  @@index([data], map: "idx_historico_data")
+  @@index([sender_id], map: "idx_historico_sender")
+  @@index([timestamp_iso], map: "idx_historico_timestamp")
+  @@index([vendedor_nome], map: "idx_historico_vendedor")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model produtos {
+  id                                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at                          DateTime @default(now()) @db.Timestamptz(6)
+  updated_at                          DateTime @default(now()) @db.Timestamptz(6)
+  nome                                String
+  descricao_comercial                 String?
+  codigo_interno_sku                  String?
+  marca                               String?
+  categorias                          String[] @default([])
+  categoria_outro                     String?
+  tipologias_clientes                 String[] @default([])
+  tipologia_cliente_outro             String?
+  sugestoes_receitas                  String?
+  codigo_barras_ean                   String?
+  codigo_barras_dun                   String?
+  codigo_fiscal_ncm                   String?
+  tipo_conservacao                    String?
+  tipo_conservacao_outro              String?
+  validade_embalagem_fechada          String?
+  validade_apos_abertura              String?
+  validade_apos_preparo               String?
+  instrucoes_conservacao_produto      String?
+  restricoes_produto                  String?
+  unidade_venda                       String?
+  unidade_venda_outro                 String?
+  peso_liquido_volume                 String?
+  peso_bruto                          String?
+  qtd_unidades_por_caixa              String?
+  instrucoes_conservacao_embalagem    String?
+  restricoes_embalagem                String?
+  possui_ingredientes                 Boolean?
+  ingredientes                        String?
+  alergenos                           String?
+  produto_pronto_uso                  String?
+  produto_pronto_uso_outro            String?
+  modo_preparo                        String?
+  observacoes_uso                     String?
+  objecoes_argumentacoes              Json?    @default("[]")
+  fotos_produto                       String[] @default([])
+  videos_material                     String[] @default([])
+  observacoes_imagens                 String?
+  informacoes_tecnicas_complementares String?
+  certificacoes_registros             String?
+  observacoes_comerciais              String?
+  diferenciais_produto                String?
+  observacoes_gerais                  String?
+
+  @@index([codigo_interno_sku], map: "idx_produtos_codigo_interno")
+  @@index([created_at(sort: Desc)], map: "idx_produtos_created_at")
+  @@index([marca], map: "idx_produtos_marca")
+  @@index([nome], map: "idx_produtos_nome")
+  @@index([objecoes_argumentacoes], map: "idx_produtos_objecoes", type: Gin)
+}

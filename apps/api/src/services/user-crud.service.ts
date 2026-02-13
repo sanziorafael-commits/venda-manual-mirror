@@ -23,6 +23,7 @@ import {
 import { isInvitableRole, isRoleWithDashboardAccess } from '../utils/user-role-policy.js';
 
 import { createActivationInviteForUser } from './account-activation.service.js';
+import { linkConversationHistoryByPhone } from './historico-conversas-link.service.js';
 import {
   assertCompanyExistsIfRequired,
   getManagerForReassign,
@@ -192,6 +193,14 @@ export async function createUser(actor: AuthActor, input: CreateUserInput) {
     await createActivationInviteForUser(user.id);
   }
 
+  if (user.role === UserRole.VENDEDOR) {
+    await linkConversationHistoryByPhone({
+      userId: user.id,
+      companyId: user.companyId,
+      phone: user.phone,
+    });
+  }
+
   return mapPublicUser(user);
 }
 
@@ -293,6 +302,14 @@ export async function updateUser(actor: AuthActor, userId: string, input: Update
 
   if (shouldResendActivationInvite(existing, user)) {
     await createActivationInviteForUser(user.id);
+  }
+
+  if (user.role === UserRole.VENDEDOR) {
+    await linkConversationHistoryByPhone({
+      userId: user.id,
+      companyId: user.companyId,
+      phone: user.phone,
+    });
   }
 
   return mapPublicUser(user);

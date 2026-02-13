@@ -12,6 +12,8 @@ export const openApiDocument = {
     { name: 'companies' },
     { name: 'users' },
     { name: 'uploads' },
+    { name: 'dashboard' },
+    { name: 'conversations' },
   ],
   components: {
     securitySchemes: {
@@ -200,6 +202,56 @@ export const openApiDocument = {
         summary: 'Gera URL assinada para upload direto no GCS (bucket privado)',
         security: [{ bearerAuth: [] }],
         responses: { '200': { description: 'OK' } },
+      },
+    },
+    '/api/dashboard/overview': {
+      get: {
+        tags: ['dashboard'],
+        summary: 'Visao geral de metricas do dashboard',
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'OK' } },
+      },
+    },
+    '/api/dashboard/interactions-series': {
+      get: {
+        tags: ['dashboard'],
+        summary: 'Serie temporal de interacoes para o dashboard',
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'OK' } },
+      },
+    },
+    '/api/dashboard/filter-options': {
+      get: {
+        tags: ['dashboard'],
+        summary: 'Opcoes de filtros do dashboard (periodo, visao e empresas)',
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'OK' } },
+      },
+    },
+    '/api/conversations': {
+      get: {
+        tags: ['conversations'],
+        summary: 'Lista historico de conversas com filtros e paginacao',
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'OK' } },
+      },
+    },
+    '/api/conversations/{conversationId}': {
+      get: {
+        tags: ['conversations'],
+        summary: 'Detalhe de uma conversa no formato timeline',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { in: 'path', name: 'conversationId', required: true, schema: { type: 'string' } },
+        ],
+        responses: { '200': { description: 'OK' } },
+      },
+    },
+    '/api/conversations/webhook': {
+      post: {
+        tags: ['conversations'],
+        summary: 'Recebe mensagens de histórico e detecta produtos citados por texto',
+        responses: { '201': { description: 'Criado' } },
       },
     },
   },
