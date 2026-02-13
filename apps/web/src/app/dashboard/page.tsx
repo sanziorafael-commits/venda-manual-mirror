@@ -1,5 +1,13 @@
-import { ComingSoonCard } from "@/components/dashboard/coming-soon-card";
+import { DashboardOverviewPanel } from "@/components/dashboard/dashboard-overview";
 
 export default function DashboardPage() {
-  return <ComingSoonCard title="Dashboard" />;
+  return (
+    <div className="flex w-full max-w-full flex-col gap-5 p-5 md:p-6">
+      <h2 className="text-foreground text-[2.05rem] font-semibold leading-none">
+        Dashboard
+      </h2>
+
+      <DashboardOverviewPanel />
+    </div>
+  );
 }

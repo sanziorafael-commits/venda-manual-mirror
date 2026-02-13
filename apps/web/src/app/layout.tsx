@@ -19,11 +19,11 @@ export const metadata: Metadata = {
   ),
   title: {
     template: "%s | Handsell",
-    default: "Handsell - Portal do Cliente",
+    default: "Handsell - Orienta",
   },
-  description: "Handsell - Portal do Cliente",
+  description: "Handsell - Orienta",
   openGraph: {
-    images: "/login-bg.jpg",
+    images: "/login-bg-handsell.jpg",
   },
 };
 
