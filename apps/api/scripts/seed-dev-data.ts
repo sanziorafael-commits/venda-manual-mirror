@@ -325,6 +325,10 @@ async function seedUsers() {
   );
 
   const vendorConversations: SeedVendorConversation[] = [
+    { user: supervisorNorteA, supervisorName: supervisorNorteA.fullName },
+    { user: supervisorNorteB, supervisorName: supervisorNorteB.fullName },
+    { user: supervisorSul, supervisorName: supervisorSul.fullName },
+    { user: supervisorCentro, supervisorName: supervisorCentro.fullName },
     { user: vendorNorteA1, supervisorName: supervisorNorteA.fullName },
     { user: vendorNorteA2, supervisorName: supervisorNorteA.fullName },
     { user: vendorNorteB1, supervisorName: supervisorNorteB.fullName },
@@ -421,49 +425,62 @@ async function seedConversationHistory(vendors: SeedVendorConversation[]) {
       continue;
     }
 
-    for (let interactionIndex = 0; interactionIndex < 8; interactionIndex += 1) {
-      const product = companyProducts[(interactionIndex + vendorIndex) % companyProducts.length];
-      const daysAgo = (interactionIndex * 3 + vendorIndex * 2) % 27;
-      const minutesAgo = vendorIndex * 17 + interactionIndex * 11;
-      const timestamp = new Date(now);
-      timestamp.setDate(timestamp.getDate() - daysAgo);
-      timestamp.setMinutes(timestamp.getMinutes() - minutesAgo);
+    const clientNames = Array.from({ length: 3 }, (_, clientIndex) => `Cliente Seed ${vendorIndex + 1}-${clientIndex + 1}`);
 
-      const created = await prisma.historico_conversas.create({
-        data: {
-          timestamp_iso: timestamp,
-          data: timestamp,
-          msg_type: 'text',
-          flow_name: SEED_FLOW_NAME,
-          execution_id: `seed-exec-${entry.user.id}-${interactionIndex}`,
-          message_id: `seed-msg-${entry.user.id}-${interactionIndex}`,
-          mensagem: `Cliente perguntou sobre ${product.nome} para pedido recorrente.`,
-          resposta: `Recomendado ${product.nome} para o perfil informado. Codigo interno: ${product.codigo_interno_sku ?? 'N/A'}.`,
-          vendedor_nome: entry.user.fullName,
-          vendedor_telefone: entry.user.phone,
-          supervisor: entry.supervisorName,
-          cliente_nome: `Cliente Seed ${vendorIndex + 1}-${interactionIndex + 1}`,
-          user_id: entry.user.id,
-          company_id: entry.user.companyId,
-        },
-        select: {
-          id: true,
-        },
-      });
+    for (let clientIndex = 0; clientIndex < clientNames.length; clientIndex += 1) {
+      const clientName = clientNames[clientIndex];
 
-      insertedHistory += 1;
+      for (let interactionRound = 0; interactionRound < 4; interactionRound += 1) {
+        const interactionIndex = clientIndex * 4 + interactionRound;
+        const product = companyProducts[(interactionIndex + vendorIndex) % companyProducts.length];
+        const daysAgo = (clientIndex * 5 + interactionRound * 2 + vendorIndex) % 28;
+        const minutesAgo = vendorIndex * 23 + clientIndex * 13 + interactionRound * 7;
+        const baseTimestamp = new Date(now);
+        baseTimestamp.setDate(baseTimestamp.getDate() - daysAgo);
+        baseTimestamp.setMinutes(baseTimestamp.getMinutes() - minutesAgo);
 
-      await prisma.historico_conversas_produtos.create({
-        data: {
-          historico_id: created.id,
-          produto_id: product.id,
-          company_id: entry.user.companyId,
-          cited_at: timestamp,
-          source: SEED_FLOW_NAME,
-        },
-      });
+        for (let turnIndex = 0; turnIndex < 3; turnIndex += 1) {
+          const turnProduct = companyProducts[(interactionIndex + vendorIndex + turnIndex) % companyProducts.length];
+          const timestamp = new Date(baseTimestamp);
+          timestamp.setMinutes(timestamp.getMinutes() + turnIndex * 4);
 
-      insertedCitations += 1;
+          const created = await prisma.historico_conversas.create({
+            data: {
+              timestamp_iso: timestamp,
+              data: timestamp,
+              msg_type: 'text',
+              flow_name: SEED_FLOW_NAME,
+              execution_id: `seed-exec-${entry.user.id}-${clientIndex}-${interactionRound}-${turnIndex}`,
+              message_id: `seed-msg-${entry.user.id}-${clientIndex}-${interactionRound}-${turnIndex}`,
+              mensagem: `Interacao ${interactionRound + 1}.${turnIndex + 1}: cliente pediu orientacao sobre ${turnProduct.nome}.`,
+              resposta: `Sugestao enviada para ${turnProduct.nome}. Codigo interno: ${turnProduct.codigo_interno_sku ?? 'N/A'}.`,
+              vendedor_nome: entry.user.fullName,
+              vendedor_telefone: entry.user.phone,
+              supervisor: entry.supervisorName,
+              cliente_nome: clientName,
+              user_id: entry.user.id,
+              company_id: entry.user.companyId,
+            },
+            select: {
+              id: true,
+            },
+          });
+
+          insertedHistory += 1;
+
+          await prisma.historico_conversas_produtos.create({
+            data: {
+              historico_id: created.id,
+              produto_id: turnProduct.id,
+              company_id: entry.user.companyId,
+              cited_at: timestamp,
+              source: SEED_FLOW_NAME,
+            },
+          });
+
+          insertedCitations += 1;
+        }
+      }
     }
   }
 

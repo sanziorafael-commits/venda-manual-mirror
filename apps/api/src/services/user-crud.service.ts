@@ -57,13 +57,23 @@ export async function listUsers(actor: AuthActor, input: UserListInput) {
   }
 
   if (input.q) {
+    const normalizedCpfQuery = normalizeCpf(input.q);
+    const normalizedPhoneQuery = normalizePhone(input.q);
+    const queryFilters: Prisma.UserWhereInput[] = [
+      { fullName: { contains: input.q, mode: 'insensitive' as const } },
+      { email: { contains: input.q, mode: 'insensitive' as const } },
+    ];
+
+    if (normalizedCpfQuery.length > 0) {
+      queryFilters.push({ cpf: { contains: normalizedCpfQuery } });
+    }
+
+    if (normalizedPhoneQuery.length > 0) {
+      queryFilters.push({ phone: { contains: normalizedPhoneQuery } });
+    }
+
     andFilters.push({
-      OR: [
-        { fullName: { contains: input.q, mode: 'insensitive' as const } },
-        { email: { contains: input.q, mode: 'insensitive' as const } },
-        { cpf: { contains: normalizeCpf(input.q) } },
-        { phone: { contains: normalizePhone(input.q) } },
-      ],
+      OR: queryFilters,
     });
   }
 

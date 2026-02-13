@@ -54,6 +54,8 @@ type DashboardActorScopeContext = {
   isRestricted: boolean;
   vendorIds: string[];
   vendorPhones: string[];
+  supervisorIds: string[];
+  supervisorPhones: string[];
   supervisorNames: string[];
   supervisorNameKeys: string[];
 };
@@ -433,6 +435,8 @@ async function buildActorScopeContext(
       isRestricted: false,
       vendorIds: [],
       vendorPhones: [],
+      supervisorIds: [],
+      supervisorPhones: [],
       supervisorNames: [],
       supervisorNameKeys: [],
     };
@@ -443,6 +447,8 @@ async function buildActorScopeContext(
       isRestricted: true,
       vendorIds: [],
       vendorPhones: [],
+      supervisorIds: [],
+      supervisorPhones: [],
       supervisorNames: [],
       supervisorNameKeys: [],
     };
@@ -458,7 +464,9 @@ async function buildActorScopeContext(
           deletedAt: null,
         },
         select: {
+          id: true,
           fullName: true,
+          phone: true,
         },
       }),
       prisma.user.findMany({
@@ -504,6 +512,14 @@ async function buildActorScopeContext(
             .filter((phone) => phone.length > 0),
         ),
       ),
+      supervisorIds: Array.from(new Set(supervisors.map((supervisor) => supervisor.id))),
+      supervisorPhones: Array.from(
+        new Set(
+          supervisors
+            .map((supervisor) => normalizePhone(supervisor.phone))
+            .filter((phone) => phone.length > 0),
+        ),
+      ),
       supervisorNames,
       supervisorNameKeys,
     };
@@ -530,6 +546,8 @@ async function buildActorScopeContext(
         vendors.map((vendor) => normalizePhone(vendor.phone)).filter((phone) => phone.length > 0),
       ),
     ),
+    supervisorIds: [],
+    supervisorPhones: [],
     supervisorNames: [],
     supervisorNameKeys: [],
   };
@@ -543,8 +561,8 @@ function buildHistoryActorScopePrismaWhere(
     return EMPTY_HISTORY_SCOPE_WHERE;
   }
 
-  const includeVendorFilters = scope === 'all' || scope === 'vendors' || scope === 'supervisors';
-  const includeSupervisorFilters = scope === 'all' || scope === 'supervisors';
+  const includeVendorFilters = scope === 'all' || scope === 'vendors';
+  const includeSupervisorInteractionFilters = scope === 'all' || scope === 'supervisors';
   const orFilters: PrismaType.historico_conversasWhereInput[] = [];
 
   if (includeVendorFilters && scopeContext.vendorIds.length > 0) {
@@ -563,7 +581,23 @@ function buildHistoryActorScopePrismaWhere(
     });
   }
 
-  if (includeSupervisorFilters && scopeContext.supervisorNames.length > 0) {
+  if (includeSupervisorInteractionFilters && scopeContext.supervisorIds.length > 0) {
+    orFilters.push({
+      user_id: {
+        in: scopeContext.supervisorIds,
+      },
+    });
+  }
+
+  if (includeSupervisorInteractionFilters && scopeContext.supervisorPhones.length > 0) {
+    orFilters.push({
+      vendedor_telefone: {
+        in: scopeContext.supervisorPhones,
+      },
+    });
+  }
+
+  if (scope === 'all' && scopeContext.supervisorNames.length > 0) {
     for (const supervisorName of scopeContext.supervisorNames) {
       orFilters.push({
         supervisor: {
@@ -595,8 +629,8 @@ function buildHistoryActorScopeSqlWhere(
   }
 
   const alias = Prisma.raw(tableAlias);
-  const includeVendorFilters = scope === 'all' || scope === 'vendors' || scope === 'supervisors';
-  const includeSupervisorFilters = scope === 'all' || scope === 'supervisors';
+  const includeVendorFilters = scope === 'all' || scope === 'vendors';
+  const includeSupervisorInteractionFilters = scope === 'all' || scope === 'supervisors';
   const conditions: Prisma.Sql[] = [];
 
   if (includeVendorFilters && scopeContext.vendorIds.length > 0) {
@@ -609,7 +643,17 @@ function buildHistoryActorScopeSqlWhere(
     );
   }
 
-  if (includeSupervisorFilters && scopeContext.supervisorNameKeys.length > 0) {
+  if (includeSupervisorInteractionFilters && scopeContext.supervisorIds.length > 0) {
+    conditions.push(Prisma.sql`${alias}.user_id IN (${Prisma.join(scopeContext.supervisorIds)})`);
+  }
+
+  if (includeSupervisorInteractionFilters && scopeContext.supervisorPhones.length > 0) {
+    conditions.push(
+      Prisma.sql`${alias}.vendedor_telefone IN (${Prisma.join(scopeContext.supervisorPhones)})`,
+    );
+  }
+
+  if (scope === 'all' && scopeContext.supervisorNameKeys.length > 0) {
     conditions.push(
       Prisma.sql`LOWER(TRIM(COALESCE(${alias}.supervisor, ''))) IN (${Prisma.join(scopeContext.supervisorNameKeys)})`,
     );

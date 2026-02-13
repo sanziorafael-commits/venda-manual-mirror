@@ -43,9 +43,9 @@ export function ConversationsHistoryWrapper() {
   const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
   const [isLoadingConversations, setIsLoadingConversations] =
     React.useState(true);
-  const [conversations, setConversations] = React.useState<ConversationListItem[]>(
-    [],
-  );
+  const [conversations, setConversations] = React.useState<
+    ConversationListItem[]
+  >([]);
   const [meta, setMeta] = React.useState<ConversationListMeta>(EMPTY_META);
 
   const conversationsRequestRef = React.useRef(0);
@@ -92,7 +92,9 @@ export function ConversationsHistoryWrapper() {
     setIsLoadingConversations(true);
 
     try {
-      const response = await apiFetch<unknown>(`/conversations?${params.toString()}`);
+      const response = await apiFetch<unknown>(
+        `/conversations?${params.toString()}`,
+      );
       if (currentRequestId !== conversationsRequestRef.current) {
         return;
       }
@@ -149,13 +151,6 @@ export function ConversationsHistoryWrapper() {
     setQuery(nextQuery);
   }, [loadConversations, pageIndex, query, searchDraft]);
 
-  const handleClearFilters = React.useCallback(() => {
-    setSearchDraft("");
-    setQuery("");
-    setDateRange(undefined);
-    setPageIndex(0);
-  }, []);
-
   const handlePageSizeChange = React.useCallback((nextPageSize: number) => {
     setPageSize(nextPageSize);
     setPageIndex(0);
@@ -174,73 +169,65 @@ export function ConversationsHistoryWrapper() {
   const pages = buildPageList(pageIndex, meta.totalPages);
 
   return (
-    <section className="flex flex-col gap-5">
-      <div className="rounded-xl border bg-card p-4 shadow-xs">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
-          <form
-            className="flex w-full max-w-2xl flex-col gap-2"
-            onSubmit={(event) => {
-              event.preventDefault();
-              handleSearch();
-            }}
-          >
-            <label htmlFor="conversations-search" className="text-sm font-medium">
-              Buscar por vendedor ou cliente
-            </label>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <input
-                id="conversations-search"
-                value={searchDraft}
-                placeholder="Digite aqui sua busca"
-                onChange={(event) => setSearchDraft(event.target.value)}
-                className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-              />
-              <Button
-                type="submit"
-                className="bg-[#212a38] text-white hover:bg-[#182130]"
-                disabled={isLoadingConversations}
-              >
-                <Search className="size-4" />
-                Buscar
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClearFilters}
-                disabled={isLoadingConversations}
-              >
-                Limpar
-              </Button>
-            </div>
-          </form>
-
-          <div className="flex items-center gap-2">
-            <div className="flex flex-col gap-1 text-sm">
-              <span>Data</span>
-              <DateRangePicker
-                value={dateRange}
-                onChange={handleDateRangeChange}
-                disabled={isLoadingConversations}
-                className="min-w-[230px]"
-              />
-            </div>
-
-            <label className="flex flex-col gap-1 text-sm">
-              Itens
-              <select
-                className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                value={String(pageSize)}
-                onChange={(event) => handlePageSizeChange(Number(event.target.value))}
-                disabled={isLoadingConversations}
-              >
-                {PAGE_SIZE_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </label>
+    <section className="flex flex-col gap-5 max-w-6xl">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+        <form
+          className="flex w-full max-w-2xl flex-col gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            handleSearch();
+          }}
+        >
+          <label htmlFor="conversations-search" className="text-sm font-medium">
+            Buscar por vendedor ou cliente
+          </label>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              id="conversations-search"
+              value={searchDraft}
+              placeholder="Digite aqui sua busca"
+              onChange={(event) => setSearchDraft(event.target.value)}
+              className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+            />
+            <Button
+              type="submit"
+              className="bg-[#212a38] text-white hover:bg-[#182130]"
+              disabled={isLoadingConversations}
+            >
+              <Search className="size-4" />
+              Buscar
+            </Button>
           </div>
+        </form>
+
+        <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-1 text-sm">
+            <span>Data</span>
+            <DateRangePicker
+              value={dateRange}
+              onChange={handleDateRangeChange}
+              disabled={isLoadingConversations}
+              className="min-w-[230px]"
+            />
+          </div>
+
+          <label className="flex flex-col gap-1 text-sm">
+            Itens
+            <select
+              className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+              value={String(pageSize)}
+              onChange={(event) =>
+                handlePageSizeChange(Number(event.target.value))
+              }
+              disabled={isLoadingConversations}
+            >
+              {PAGE_SIZE_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
 
@@ -250,13 +237,13 @@ export function ConversationsHistoryWrapper() {
             <thead className="bg-muted text-muted-foreground">
               <tr>
                 <th className="px-4 py-3 font-semibold">Nome do vendedor</th>
-                <th className="px-4 py-3 font-semibold">Último cliente</th>
+                <th className="px-4 py-3 font-semibold">Cliente</th>
                 {isAdmin ? (
                   <th className="px-4 py-3 font-semibold">Distribuidor</th>
                 ) : null}
-                <th className="px-4 py-3 font-semibold">Interações</th>
+                {/* <th className="px-4 py-3 font-semibold">Interações</th> */}
                 <th className="px-4 py-3 font-semibold">Última interação</th>
-                <th className="px-4 py-3 text-right font-semibold">Conversa</th>
+                <th className="px-4 py-3 font-semibold">Conversa</th>
               </tr>
             </thead>
             <tbody>
@@ -282,7 +269,9 @@ export function ConversationsHistoryWrapper() {
                 : conversations.map((conversation) => (
                     <tr key={conversation.id} className="border-t">
                       <td className="px-4 py-4">
-                        <p className="font-medium">{conversation.vendedorNome}</p>
+                        <p className="font-medium">
+                          {conversation.vendedorNome}
+                        </p>
                         {conversation.vendedorTelefone ? (
                           <p className="text-xs text-muted-foreground">
                             {formatPhone(conversation.vendedorTelefone)}
@@ -297,18 +286,22 @@ export function ConversationsHistoryWrapper() {
                           {conversation.companyName ?? "Sem empresa"}
                         </td>
                       ) : null}
-                      <td className="px-4 py-4">{conversation.totalInteracoes}</td>
+                      {/* <td className="px-4 py-4">
+                        {conversation.totalInteracoes}
+                      </td> */}
                       <td className="px-4 py-4">
                         {formatDateTime(conversation.ultimaInteracaoEm)}
                       </td>
-                      <td className="px-4 py-4 text-right">
+                      <td className="px-4 py-4">
                         <Button
                           type="button"
                           variant="outline"
                           size="sm"
                           className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
                           onClick={() =>
-                            router.push(`/dashboard/conversations/${conversation.id}`)
+                            router.push(
+                              `/dashboard/conversations/${conversation.id}`,
+                            )
                           }
                         >
                           Ver conversa

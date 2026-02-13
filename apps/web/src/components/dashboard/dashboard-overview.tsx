@@ -221,11 +221,6 @@ export function DashboardOverviewPanel() {
     return "vendedores";
   }, [overview]);
 
-  const showSupervisorSupplementalRanking =
-    overview?.scope === "all" &&
-    isManager &&
-    Boolean(overview.rankingsByScope.supervisors);
-
   return (
     <section className="flex flex-col gap-5">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
@@ -331,32 +326,12 @@ export function DashboardOverviewPanel() {
               variant="highest"
               items={selectedHighestRanking}
               emptyMessage="Sem dados para o período."
-              supplemental={
-                showSupervisorSupplementalRanking &&
-                overview.rankingsByScope.supervisors
-                  ? {
-                      title: "Supervisores no escopo total",
-                      items: overview.rankingsByScope.supervisors.highestVolume,
-                      emptyMessage: "Sem dados de supervisores.",
-                    }
-                  : undefined
-              }
             />
 
             <OverviewRankingCard
               variant="lowest"
               items={selectedLowestRanking}
               emptyMessage="Sem dados para o período."
-              supplemental={
-                showSupervisorSupplementalRanking &&
-                overview.rankingsByScope.supervisors
-                  ? {
-                      title: "Supervisores no escopo total",
-                      items: overview.rankingsByScope.supervisors.lowestVolume,
-                      emptyMessage: "Sem dados de supervisores.",
-                    }
-                  : undefined
-              }
             />
 
             <OverviewLocatedClientsCard value={overview.newLocatedClients} />
@@ -407,3 +382,4 @@ function initialFromName(name: string) {
 
   return trimmed[0]!.toUpperCase();
 }
+

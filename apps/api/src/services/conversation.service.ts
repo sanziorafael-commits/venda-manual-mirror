@@ -179,7 +179,9 @@ async function resolveConversationScope(input: ResolveConversationScopeInput) {
     if (resolvedCompanyId) {
       const user = await prisma.user.findFirst({
         where: {
-          role: UserRole.VENDEDOR,
+          role: {
+            in: [UserRole.VENDEDOR, UserRole.SUPERVISOR],
+          },
           phone: input.vendedorTelefone,
           companyId: resolvedCompanyId,
           deletedAt: null,
@@ -200,7 +202,9 @@ async function resolveConversationScope(input: ResolveConversationScopeInput) {
     } else {
       const users = await prisma.user.findMany({
         where: {
-          role: UserRole.VENDEDOR,
+          role: {
+            in: [UserRole.VENDEDOR, UserRole.SUPERVISOR],
+          },
           phone: input.vendedorTelefone,
           deletedAt: null,
         },

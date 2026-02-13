@@ -39,7 +39,7 @@ export async function listConversations(actor: AuthActor, input: ConversationLis
   });
 
   const grouped = await prisma.historico_conversas.groupBy({
-    by: ['company_id', 'vendedor_telefone', 'vendedor_nome'],
+    by: ['company_id', 'vendedor_telefone', 'vendedor_nome', 'cliente_nome'],
     where,
     _count: {
       _all: true,
@@ -63,36 +63,25 @@ export async function listConversations(actor: AuthActor, input: ConversationLis
       const groupKeyWhere = buildGroupKeyWhere(group);
       const scopedGroupWhere = combineWhere(where, groupKeyWhere);
 
-      const [latestRow, distinctClients] = await Promise.all([
-        prisma.historico_conversas.findFirst({
-          where: scopedGroupWhere,
-          select: {
-            id: true,
-            timestamp_iso: true,
-            data: true,
-            created_at: true,
-            vendedor_nome: true,
-            vendedor_telefone: true,
-            cliente_nome: true,
-          },
-          orderBy: [{ timestamp_iso: 'desc' }, { created_at: 'desc' }],
-        }),
-        prisma.historico_conversas.findMany({
-          where: scopedGroupWhere,
-          select: {
-            cliente_nome: true,
-          },
-          distinct: ['cliente_nome'],
-        }),
-      ]);
+      const latestRow = await prisma.historico_conversas.findFirst({
+        where: scopedGroupWhere,
+        select: {
+          id: true,
+          timestamp_iso: true,
+          data: true,
+          created_at: true,
+          vendedor_nome: true,
+          vendedor_telefone: true,
+          cliente_nome: true,
+        },
+        orderBy: [{ timestamp_iso: 'desc' }, { created_at: 'desc' }],
+      });
 
       if (!latestRow) {
         return null;
       }
 
-      const clientesUnicos = distinctClients.reduce((totalCount, row) => {
-        return sanitizeDisplayText(row.cliente_nome) ? totalCount + 1 : totalCount;
-      }, 0);
+      const clientesUnicos = sanitizeDisplayText(group.cliente_nome) ? 1 : 0;
 
       return {
         id: latestRow.id,
@@ -104,7 +93,8 @@ export async function listConversations(actor: AuthActor, input: ConversationLis
           sanitizeDisplayText(latestRow.vendedor_telefone) ??
           'Vendedor sem nome',
         vendedorTelefone: sanitizeDisplayText(latestRow.vendedor_telefone),
-        ultimoClienteNome: sanitizeDisplayText(latestRow.cliente_nome),
+        ultimoClienteNome:
+          sanitizeDisplayText(group.cliente_nome) ?? sanitizeDisplayText(latestRow.cliente_nome),
         totalInteracoes: group._count._all,
         clientesUnicos,
         ultimaInteracaoEm: resolveInteractionDate({
@@ -214,6 +204,10 @@ export async function getConversationById(
       vendedor_nome: baseConversation.vendedor_nome,
     });
   }
+
+  sharedWhereFilters.push({
+    cliente_nome: baseConversation.cliente_nome,
+  });
 
   const whereWithoutDate =
     sharedWhereFilters.length > 0 ? { AND: sharedWhereFilters } : EMPTY_WHERE;
@@ -526,6 +520,7 @@ function buildGroupKeyWhere(group: {
   company_id: string | null;
   vendedor_telefone: string | null;
   vendedor_nome: string | null;
+  cliente_nome: string | null;
 }): Prisma.historico_conversasWhereInput {
   return {
     AND: [
@@ -537,6 +532,9 @@ function buildGroupKeyWhere(group: {
       },
       {
         vendedor_nome: group.vendedor_nome,
+      },
+      {
+        cliente_nome: group.cliente_nome,
       },
     ],
   };

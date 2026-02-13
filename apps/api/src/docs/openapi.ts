@@ -231,7 +231,7 @@ export const openApiDocument = {
     '/api/conversations': {
       get: {
         tags: ['conversations'],
-        summary: 'Lista histórico de conversas com filtros e paginação',
+        summary: 'Lista conversas por vendedor e cliente com filtros e paginação',
         security: [{ bearerAuth: [] }],
         responses: { '200': { description: 'OK' } },
       },
