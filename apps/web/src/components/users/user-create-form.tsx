@@ -48,6 +48,10 @@ function getAllowedRoleOptions(actorRole: UserRole): UserRole[] {
     return ["ADMIN", "DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR", "VENDEDOR"];
   }
 
+  if (actorRole === "DIRETOR") {
+    return ["GERENTE_COMERCIAL", "SUPERVISOR", "VENDEDOR"];
+  }
+
   if (actorRole === "GERENTE_COMERCIAL") {
     return ["SUPERVISOR", "VENDEDOR"];
   }
@@ -57,6 +61,10 @@ function getAllowedRoleOptions(actorRole: UserRole): UserRole[] {
 
 function getDefaultRole(actorRole: UserRole): UserRole {
   if (actorRole === "ADMIN") {
+    return "GERENTE_COMERCIAL";
+  }
+
+  if (actorRole === "DIRETOR") {
     return "GERENTE_COMERCIAL";
   }
 
@@ -201,13 +209,15 @@ export function UserCreateForm() {
   const selectedCompanyId = watch("companyId");
   const actorRole = authUser?.role ?? null;
   const isAdminActor = actorRole === "ADMIN";
+  const isDirectorActor = actorRole === "DIRETOR";
   const isManagerActor = actorRole === "GERENTE_COMERCIAL";
+  const canUseCompanyScopeFilters =
+    (isAdminActor || isDirectorActor) && Boolean(selectedCompanyId);
   const shouldShowCompanyField = isAdminActor && selectedRole !== "ADMIN";
   const shouldShowManagerField =
-    isAdminActor && selectedRole === "SUPERVISOR" && Boolean(selectedCompanyId);
+    selectedRole === "SUPERVISOR" && canUseCompanyScopeFilters;
   const shouldShowSupervisorField =
-    selectedRole === "VENDEDOR" &&
-    ((isAdminActor && Boolean(selectedCompanyId)) || isManagerActor);
+    selectedRole === "VENDEDOR" && (canUseCompanyScopeFilters || isManagerActor);
   const shouldShowPasswordField = selectedRole === "ADMIN";
 
   const roleOptions = React.useMemo<UserRole[]>(() => {
@@ -252,10 +262,10 @@ export function UserCreateForm() {
       setValue("password", "");
     }
 
-    if (!shouldShowCompanyField) {
+    if (isAdminActor && !shouldShowCompanyField) {
       setValue("companyId", "");
     }
-  }, [selectedRole, setValue, shouldShowCompanyField]);
+  }, [isAdminActor, selectedRole, setValue, shouldShowCompanyField]);
 
   React.useEffect(() => {
     if (!isAdminActor) {
@@ -361,7 +371,7 @@ export function UserCreateForm() {
       try {
         const options = await fetchUserOptionsByRole({
           role: "SUPERVISOR",
-          ...(isAdminActor && selectedCompanyId
+          ...((isAdminActor || isDirectorActor) && selectedCompanyId
             ? { companyId: selectedCompanyId }
             : {}),
         });
@@ -394,6 +404,7 @@ export function UserCreateForm() {
   }, [
     authHydrated,
     isAdminActor,
+    isDirectorActor,
     selectedCompanyId,
     shouldShowSupervisorField,
   ]);
@@ -453,11 +464,11 @@ export function UserCreateForm() {
         payload.companyId = companyId;
       }
 
-      if (isAdminActor && input.role === "SUPERVISOR") {
+      if ((isAdminActor || isDirectorActor) && input.role === "SUPERVISOR") {
         payload.managerId = managerId;
       }
 
-      if ((isAdminActor || isManagerActor) && input.role === "VENDEDOR") {
+      if ((isAdminActor || isDirectorActor || isManagerActor) && input.role === "VENDEDOR") {
         payload.supervisorId = supervisorId;
       }
 

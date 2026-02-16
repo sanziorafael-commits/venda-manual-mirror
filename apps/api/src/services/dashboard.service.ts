@@ -64,9 +64,9 @@ const EMPTY_HISTORY_SCOPE_WHERE: PrismaType.historico_conversasWhereInput = {};
 
 const PERIOD_OPTIONS: DashboardFilterOption<DashboardPeriod>[] = [
   { value: 'today', label: 'Hoje' },
-  { value: '7d', label: 'Ultimos 7 dias' },
-  { value: '30d', label: 'Ultimos 30 dias' },
-  { value: '365d', label: 'Ultimos 365 dias' },
+  { value: '7d', label: 'Últimos 7 dias' },
+  { value: '30d', label: 'Últimos 30 dias' },
+  { value: '365d', label: 'Últimos 365 dias' },
 ];
 
 const VIEW_BY_OPTIONS: DashboardFilterOption<DashboardViewBy>[] = [
@@ -356,7 +356,7 @@ export async function getDashboardFilterOptions(actor: AuthActor, input: Dashboa
     periodOptions: PERIOD_OPTIONS,
     scopeOptions,
     viewByOptions:
-      actor.role === UserRole.GERENTE_COMERCIAL
+      actor.role === UserRole.GERENTE_COMERCIAL || actor.role === UserRole.DIRETOR
         ? VIEW_BY_OPTIONS
         : VIEW_BY_OPTIONS.filter((option) => option.value === 'vendedor'),
     companyOptions: companyOptions.map((company) => ({
@@ -403,11 +403,8 @@ function resolveDashboardScope(
 
   const resolvedScope = requestedScope ?? scopeFromLegacy ?? defaultScope;
 
-  if (
-    (actor.role === UserRole.ADMIN || actor.role === UserRole.DIRETOR) &&
-    resolvedScope !== 'all'
-  ) {
-    throw badRequest('Perfil admin/diretor utiliza somente escopo total da empresa selecionada');
+  if (actor.role === UserRole.ADMIN && resolvedScope !== 'all') {
+    throw badRequest('Perfil admin utiliza somente escopo total da empresa selecionada');
   }
 
   if (actor.role === UserRole.SUPERVISOR && resolvedScope !== 'vendors') {
@@ -418,7 +415,7 @@ function resolveDashboardScope(
 }
 
 function resolveScopeOptionsByRole(role: UserRole): DashboardFilterOption<DashboardScope>[] {
-  if (role === UserRole.GERENTE_COMERCIAL) {
+  if (role === UserRole.GERENTE_COMERCIAL || role === UserRole.DIRETOR) {
     return MANAGER_SCOPE_OPTIONS;
   }
 

@@ -91,7 +91,7 @@ export function UsersFilterForm({
             }}
           >
             <label htmlFor="users-search" className="text-sm font-medium">
-              Buscar por usuario
+              Buscar por usuário
             </label>
             <div className="flex flex-col gap-2 sm:flex-row">
               <Input
@@ -140,12 +140,12 @@ export function UsersFilterForm({
             onClick={onAddUser}
             disabled={isLoading || !canAddUser}
           >
-            Adicionar usuario
+            Adicionar usuário
             <Plus className="size-4" />
           </Button>
 
           <label htmlFor="users-page-size" className="sr-only">
-            Itens por pagina
+            Itens por página
           </label>
           <select
             id="users-page-size"

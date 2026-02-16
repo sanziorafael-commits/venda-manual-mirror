@@ -286,7 +286,7 @@ export function CompanyCreateForm() {
           </div>
 
           <p className="text-sm font-medium">
-            Arraste para ca a logo da empresa ou{" "}
+            Arraste para cá a logo da empresa ou{" "}
             <button
               type="button"
               className="cursor-pointer underline underline-offset-2"

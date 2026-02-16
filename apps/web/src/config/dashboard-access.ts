@@ -26,26 +26,26 @@ const DASHBOARD_ROUTE_RULES: DashboardRouteRule[] = [
   },
   {
     path: "/dashboard/users",
-    title: "Usuarios",
+    title: "Usuários",
     roles: ["ADMIN", "DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR"],
     showInNav: true,
   },
   {
     path: "/dashboard/conversations",
-    title: "Historico de Conversas",
+    title: "Histórico de Conversas",
     roles: ["ADMIN", "DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR"],
     showInNav: true,
   },
   {
     path: "/dashboard/located-clients",
     title: "Clientes Localizados",
-    roles: ["GERENTE_COMERCIAL", "SUPERVISOR"],
+    roles: ["ADMIN", "DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR"],
     showInNav: true,
   },
   {
     path: "/dashboard/products",
     title: "Cadastro de Produtos",
-    roles: ["DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR"],
+    roles: ["ADMIN", "DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR"],
     showInNav: true,
   },
   {

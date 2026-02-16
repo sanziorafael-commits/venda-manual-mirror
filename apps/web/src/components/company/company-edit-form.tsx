@@ -196,7 +196,7 @@ export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
 
   const onSubmit = async (input: CreateCompanyFormInput) => {
     if (!company) {
-      toast.error("Não foi possível carregar a empresa para edicao.");
+      toast.error("Não foi possível carregar a empresa para edição.");
       return;
     }
 
@@ -231,7 +231,7 @@ export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
       }
 
       if (Object.keys(payload).length === 0) {
-        toast.info("Nenhuma alteracao para salvar.");
+        toast.info("Nenhuma alteração para salvar.");
         return;
       }
 
@@ -390,7 +390,7 @@ export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
           </div>
 
           <p className="text-sm font-medium border-separate">
-            Arraste para ca a nova logo da empresa ou{" "}
+            Arraste para cá a nova logo da empresa ou{" "}
             <button
               type="button"
               className="cursor-pointer underline underline-offset-2"

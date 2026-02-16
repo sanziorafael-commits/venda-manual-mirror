@@ -1,9 +1,7 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ArrowLeft, UserRound } from "lucide-react";
 
 import { UserEditForm } from "@/components/users/user-edit-form";
-import { getAuthUserFromServerCookies } from "@/lib/auth-cookie";
 import { createPageMetadata } from "@/lib/metadata";
 
 export const metadata = createPageMetadata("Editar Usuário");
@@ -21,11 +19,6 @@ export default async function DashboardUserEditPage({
   params,
   searchParams,
 }: DashboardUserEditPageProps) {
-  const authUser = await getAuthUserFromServerCookies();
-  if (authUser?.role === "DIRETOR") {
-    redirect("/dashboard/users");
-  }
-
   const { userId } = await params;
   const { companyId } = await searchParams;
   const backHref = companyId

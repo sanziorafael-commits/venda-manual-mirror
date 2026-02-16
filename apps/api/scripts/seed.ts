@@ -4,6 +4,32 @@ import { UserRole } from '@prisma/client';
 import { prisma } from '../src/lib/prisma.js';
 import { normalizePhone } from '../src/utils/normalizers.js';
 
+type SeedCompanyKey = 'a' | 'b' | 'c';
+
+type SeedCompanyConfig = {
+  key: SeedCompanyKey;
+  id: string;
+  name: string;
+  cnpj: string;
+};
+
+type SeedProductConfig = {
+  id: string;
+  companyKey: SeedCompanyKey;
+  name: string;
+  sku: string;
+  brand: string;
+};
+
+type SeedCompanyMap = Record<
+  SeedCompanyKey,
+  {
+    id: string;
+    name: string;
+    cnpj: string;
+  }
+>;
+
 type SeedUserInput = {
   role: UserRole;
   fullName: string;
@@ -32,11 +58,211 @@ type SeedVendorConversation = {
 const PASSWORD = 'Handsell@123';
 const SEED_FLOW_NAME = 'seed_dashboard_v1';
 
-const COMPANIES = {
-  norte: 'c000000000000000000000001',
-  sul: 'c000000000000000000000002',
-  centro: 'c000000000000000000000003',
-} as const;
+const SEED_COMPANIES: SeedCompanyConfig[] = [
+  {
+    key: 'a',
+    id: 'c000000000000000000000001',
+    name: 'Distribuidor A DEV',
+    cnpj: '11111111000101',
+  },
+  {
+    key: 'b',
+    id: 'c000000000000000000000002',
+    name: 'Distribuidor B DEV',
+    cnpj: '22222222000101',
+  },
+  {
+    key: 'c',
+    id: 'c000000000000000000000003',
+    name: 'Distribuidor C DEV',
+    cnpj: '33333333000101',
+  },
+];
+
+const SEED_PRODUCTS: SeedProductConfig[] = [
+  {
+    id: '00000000-0000-4000-8000-000000000101',
+    companyKey: 'a',
+    name: 'Produto A - Mix Tradicional',
+    sku: 'A-001',
+    brand: 'Marca A',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000102',
+    companyKey: 'a',
+    name: 'Produto A - Molho Especial',
+    sku: 'A-002',
+    brand: 'Marca A',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000103',
+    companyKey: 'a',
+    name: 'Produto A - Base Premium',
+    sku: 'A-003',
+    brand: 'Marca A',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000104',
+    companyKey: 'a',
+    name: 'Produto A - Linha Profissional',
+    sku: 'A-004',
+    brand: 'Marca A',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000105',
+    companyKey: 'a',
+    name: 'Produto A - Linha Economica',
+    sku: 'A-005',
+    brand: 'Marca A',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000106',
+    companyKey: 'a',
+    name: 'Produto A - Versao Chef',
+    sku: 'A-006',
+    brand: 'Marca A',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000201',
+    companyKey: 'b',
+    name: 'Produto B - Mix Tradicional',
+    sku: 'B-001',
+    brand: 'Marca B',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000202',
+    companyKey: 'b',
+    name: 'Produto B - Molho Especial',
+    sku: 'B-002',
+    brand: 'Marca B',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000203',
+    companyKey: 'b',
+    name: 'Produto B - Base Premium',
+    sku: 'B-003',
+    brand: 'Marca B',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000204',
+    companyKey: 'b',
+    name: 'Produto B - Linha Profissional',
+    sku: 'B-004',
+    brand: 'Marca B',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000205',
+    companyKey: 'b',
+    name: 'Produto B - Linha Economica',
+    sku: 'B-005',
+    brand: 'Marca B',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000206',
+    companyKey: 'b',
+    name: 'Produto B - Versao Chef',
+    sku: 'B-006',
+    brand: 'Marca B',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000301',
+    companyKey: 'c',
+    name: 'Produto C - Mix Tradicional',
+    sku: 'C-001',
+    brand: 'Marca C',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000302',
+    companyKey: 'c',
+    name: 'Produto C - Molho Especial',
+    sku: 'C-002',
+    brand: 'Marca C',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000303',
+    companyKey: 'c',
+    name: 'Produto C - Base Premium',
+    sku: 'C-003',
+    brand: 'Marca C',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000304',
+    companyKey: 'c',
+    name: 'Produto C - Linha Profissional',
+    sku: 'C-004',
+    brand: 'Marca C',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000305',
+    companyKey: 'c',
+    name: 'Produto C - Linha Economica',
+    sku: 'C-005',
+    brand: 'Marca C',
+  },
+  {
+    id: '00000000-0000-4000-8000-000000000306',
+    companyKey: 'c',
+    name: 'Produto C - Versao Chef',
+    sku: 'C-006',
+    brand: 'Marca C',
+  },
+];
+
+async function upsertSeedCompanies(): Promise<SeedCompanyMap> {
+  const companies = {} as SeedCompanyMap;
+
+  for (const company of SEED_COMPANIES) {
+    const saved = await prisma.company.upsert({
+      where: {
+        id: company.id,
+      },
+      update: {
+        name: company.name,
+        cnpj: company.cnpj,
+        deletedAt: null,
+      },
+      create: {
+        id: company.id,
+        name: company.name,
+        cnpj: company.cnpj,
+      },
+      select: {
+        id: true,
+        name: true,
+        cnpj: true,
+      },
+    });
+
+    companies[company.key] = saved;
+  }
+
+  return companies;
+}
+
+async function upsertSeedProducts(companies: SeedCompanyMap) {
+  for (const product of SEED_PRODUCTS) {
+    const company = companies[product.companyKey];
+
+    await prisma.produtos.upsert({
+      where: {
+        id: product.id,
+      },
+      update: {
+        company_id: company.id,
+        nome: product.name,
+        codigo_interno_sku: product.sku,
+        marca: product.brand,
+      },
+      create: {
+        id: product.id,
+        company_id: company.id,
+        nome: product.name,
+        codigo_interno_sku: product.sku,
+        marca: product.brand,
+      },
+    });
+  }
+}
 
 async function upsertSeedUser(input: SeedUserInput, passwordHash: string | null): Promise<SeededUser> {
   const normalizedPhone = normalizePhone(input.phone);
@@ -83,39 +309,20 @@ async function upsertSeedUser(input: SeedUserInput, passwordHash: string | null)
 }
 
 async function cleanupPreviousSeedRows() {
-  const rows = await prisma.historico_conversas.findMany({
-    where: {
-      flow_name: SEED_FLOW_NAME,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (rows.length === 0) {
-    return;
-  }
-
-  const historyIds = rows.map((row) => row.id);
-
   await prisma.historico_conversas_produtos.deleteMany({
     where: {
-      historico_id: {
-        in: historyIds,
-      },
+      source: SEED_FLOW_NAME,
     },
   });
 
   await prisma.historico_conversas.deleteMany({
     where: {
-      id: {
-        in: historyIds,
-      },
+      flow_name: SEED_FLOW_NAME,
     },
   });
 }
 
-async function seedUsers() {
+async function seedUsers(companies: SeedCompanyMap) {
   const passwordHash = await bcrypt.hash(PASSWORD, 10);
 
   const admin = await upsertSeedUser(
@@ -131,248 +338,266 @@ async function seedUsers() {
     passwordHash,
   );
 
-  const managerNorte = await upsertSeedUser(
+  const directorA = await upsertSeedUser(
+    {
+      role: UserRole.DIRETOR,
+      fullName: 'Diretor Distribuidor A',
+      cpf: '90000000041',
+      email: 'diretor.a@handsell.dev',
+      phone: '555191700401',
+      companyId: companies.a.id,
+      withPassword: true,
+    },
+    passwordHash,
+  );
+
+  const directorB = await upsertSeedUser(
+    {
+      role: UserRole.DIRETOR,
+      fullName: 'Diretor Distribuidor B',
+      cpf: '90000000051',
+      email: 'diretor.b@handsell.dev',
+      phone: '555191700501',
+      companyId: companies.b.id,
+      withPassword: true,
+    },
+    passwordHash,
+  );
+
+  const directorC = await upsertSeedUser(
+    {
+      role: UserRole.DIRETOR,
+      fullName: 'Diretor Distribuidor C',
+      cpf: '90000000061',
+      email: 'diretor.c@handsell.dev',
+      phone: '555191700601',
+      companyId: companies.c.id,
+      withPassword: true,
+    },
+    passwordHash,
+  );
+
+  const managerA = await upsertSeedUser(
     {
       role: UserRole.GERENTE_COMERCIAL,
-      fullName: 'Gerente Norte',
+      fullName: 'Gerente A',
       cpf: '90000000011',
-      email: 'gerente.norte@handsell.dev',
+      email: 'gerente.a@handsell.dev',
       phone: '555191700101',
-      companyId: COMPANIES.norte,
+      companyId: companies.a.id,
       withPassword: true,
     },
     passwordHash,
   );
 
-  const managerSul = await upsertSeedUser(
+  const managerB = await upsertSeedUser(
     {
       role: UserRole.GERENTE_COMERCIAL,
-      fullName: 'Gerente Sul',
+      fullName: 'Gerente B',
       cpf: '90000000021',
-      email: 'gerente.sul@handsell.dev',
+      email: 'gerente.b@handsell.dev',
       phone: '555191700201',
-      companyId: COMPANIES.sul,
+      companyId: companies.b.id,
       withPassword: true,
     },
     passwordHash,
   );
 
-  const managerCentro = await upsertSeedUser(
+  const managerC = await upsertSeedUser(
     {
       role: UserRole.GERENTE_COMERCIAL,
-      fullName: 'Gerente Centro',
+      fullName: 'Gerente C',
       cpf: '90000000031',
-      email: 'gerente.centro@handsell.dev',
+      email: 'gerente.c@handsell.dev',
       phone: '555191700301',
-      companyId: COMPANIES.centro,
+      companyId: companies.c.id,
       withPassword: true,
     },
     passwordHash,
   );
 
-  const supervisorNorteA = await upsertSeedUser(
+  const supervisorA1 = await upsertSeedUser(
     {
       role: UserRole.SUPERVISOR,
-      fullName: 'Supervisor Norte A',
+      fullName: 'Supervisor A 1',
       cpf: '90000000012',
-      email: 'supervisor.norte.a@handsell.dev',
+      email: 'supervisor.a.1@handsell.dev',
       phone: '555191700102',
-      companyId: COMPANIES.norte,
-      managerId: managerNorte.id,
+      companyId: companies.a.id,
+      managerId: managerA.id,
       withPassword: true,
     },
     passwordHash,
   );
 
-  const supervisorNorteB = await upsertSeedUser(
+  const supervisorA2 = await upsertSeedUser(
     {
       role: UserRole.SUPERVISOR,
-      fullName: 'Supervisor Norte B',
+      fullName: 'Supervisor A 2',
       cpf: '90000000013',
-      email: 'supervisor.norte.b@handsell.dev',
+      email: 'supervisor.a.2@handsell.dev',
       phone: '555191700103',
-      companyId: COMPANIES.norte,
-      managerId: managerNorte.id,
+      companyId: companies.a.id,
+      managerId: managerA.id,
       withPassword: true,
     },
     passwordHash,
   );
 
-  const supervisorSul = await upsertSeedUser(
+  const supervisorB = await upsertSeedUser(
     {
       role: UserRole.SUPERVISOR,
-      fullName: 'Supervisor Sul',
+      fullName: 'Supervisor B',
       cpf: '90000000022',
-      email: 'supervisor.sul@handsell.dev',
+      email: 'supervisor.b@handsell.dev',
       phone: '555191700202',
-      companyId: COMPANIES.sul,
-      managerId: managerSul.id,
+      companyId: companies.b.id,
+      managerId: managerB.id,
       withPassword: true,
     },
     passwordHash,
   );
 
-  const supervisorCentro = await upsertSeedUser(
+  const supervisorC = await upsertSeedUser(
     {
       role: UserRole.SUPERVISOR,
-      fullName: 'Supervisor Centro',
+      fullName: 'Supervisor C',
       cpf: '90000000032',
-      email: 'supervisor.centro@handsell.dev',
+      email: 'supervisor.c@handsell.dev',
       phone: '555191700302',
-      companyId: COMPANIES.centro,
-      managerId: managerCentro.id,
+      companyId: companies.c.id,
+      managerId: managerC.id,
       withPassword: true,
     },
     passwordHash,
   );
 
-  const vendorNorteA1 = await upsertSeedUser(
+  const vendorA1 = await upsertSeedUser(
     {
       role: UserRole.VENDEDOR,
-      fullName: 'Vendedor Norte A1',
+      fullName: 'Vendedor A 1',
       cpf: '90000000014',
       email: null,
-      phone: '553491549095',
-      companyId: COMPANIES.norte,
-      supervisorId: supervisorNorteA.id,
+      phone: '555191700104',
+      companyId: companies.a.id,
+      supervisorId: supervisorA1.id,
       withPassword: false,
     },
     passwordHash,
   );
 
-  const vendorNorteA2 = await upsertSeedUser(
+  const vendorA2 = await upsertSeedUser(
     {
       role: UserRole.VENDEDOR,
-      fullName: 'Vendedor Norte A2',
+      fullName: 'Vendedor A 2',
       cpf: '90000000015',
       email: null,
-      phone: '555191700104',
-      companyId: COMPANIES.norte,
-      supervisorId: supervisorNorteA.id,
+      phone: '555191700105',
+      companyId: companies.a.id,
+      supervisorId: supervisorA1.id,
       withPassword: false,
     },
     passwordHash,
   );
 
-  const vendorNorteB1 = await upsertSeedUser(
+  const vendorA3 = await upsertSeedUser(
     {
       role: UserRole.VENDEDOR,
-      fullName: 'Vendedor Norte B1',
+      fullName: 'Vendedor A 3',
       cpf: '90000000016',
       email: null,
-      phone: '555191700105',
-      companyId: COMPANIES.norte,
-      supervisorId: supervisorNorteB.id,
+      phone: '555191700106',
+      companyId: companies.a.id,
+      supervisorId: supervisorA2.id,
       withPassword: false,
     },
     passwordHash,
   );
 
-  const vendorSul1 = await upsertSeedUser(
+  const vendorB1 = await upsertSeedUser(
     {
       role: UserRole.VENDEDOR,
-      fullName: 'Vendedor Sul 1',
+      fullName: 'Vendedor B 1',
       cpf: '90000000023',
       email: null,
       phone: '555191700203',
-      companyId: COMPANIES.sul,
-      supervisorId: supervisorSul.id,
+      companyId: companies.b.id,
+      supervisorId: supervisorB.id,
       withPassword: false,
     },
     passwordHash,
   );
 
-  const vendorSul2 = await upsertSeedUser(
+  const vendorB2 = await upsertSeedUser(
     {
       role: UserRole.VENDEDOR,
-      fullName: 'Vendedor Sul 2',
+      fullName: 'Vendedor B 2',
       cpf: '90000000024',
       email: null,
       phone: '555191700204',
-      companyId: COMPANIES.sul,
-      supervisorId: supervisorSul.id,
+      companyId: companies.b.id,
+      supervisorId: supervisorB.id,
       withPassword: false,
     },
     passwordHash,
   );
 
-  const vendorCentro1 = await upsertSeedUser(
+  const vendorC1 = await upsertSeedUser(
     {
       role: UserRole.VENDEDOR,
-      fullName: 'Vendedor Centro 1',
+      fullName: 'Vendedor C 1',
       cpf: '90000000033',
       email: null,
       phone: '555191700303',
-      companyId: COMPANIES.centro,
-      supervisorId: supervisorCentro.id,
+      companyId: companies.c.id,
+      supervisorId: supervisorC.id,
       withPassword: false,
     },
     passwordHash,
   );
 
-  const vendorCentro2 = await upsertSeedUser(
+  const vendorC2 = await upsertSeedUser(
     {
       role: UserRole.VENDEDOR,
-      fullName: 'Vendedor Centro 2',
+      fullName: 'Vendedor C 2',
       cpf: '90000000034',
       email: null,
       phone: '555191700304',
-      companyId: COMPANIES.centro,
-      supervisorId: supervisorCentro.id,
+      companyId: companies.c.id,
+      supervisorId: supervisorC.id,
       withPassword: false,
     },
     passwordHash,
   );
 
   const vendorConversations: SeedVendorConversation[] = [
-    { user: supervisorNorteA, supervisorName: supervisorNorteA.fullName },
-    { user: supervisorNorteB, supervisorName: supervisorNorteB.fullName },
-    { user: supervisorSul, supervisorName: supervisorSul.fullName },
-    { user: supervisorCentro, supervisorName: supervisorCentro.fullName },
-    { user: vendorNorteA1, supervisorName: supervisorNorteA.fullName },
-    { user: vendorNorteA2, supervisorName: supervisorNorteA.fullName },
-    { user: vendorNorteB1, supervisorName: supervisorNorteB.fullName },
-    { user: vendorSul1, supervisorName: supervisorSul.fullName },
-    { user: vendorSul2, supervisorName: supervisorSul.fullName },
-    { user: vendorCentro1, supervisorName: supervisorCentro.fullName },
-    { user: vendorCentro2, supervisorName: supervisorCentro.fullName },
+    { user: supervisorA1, supervisorName: supervisorA1.fullName },
+    { user: supervisorA2, supervisorName: supervisorA2.fullName },
+    { user: supervisorB, supervisorName: supervisorB.fullName },
+    { user: supervisorC, supervisorName: supervisorC.fullName },
+    { user: vendorA1, supervisorName: supervisorA1.fullName },
+    { user: vendorA2, supervisorName: supervisorA1.fullName },
+    { user: vendorA3, supervisorName: supervisorA2.fullName },
+    { user: vendorB1, supervisorName: supervisorB.fullName },
+    { user: vendorB2, supervisorName: supervisorB.fullName },
+    { user: vendorC1, supervisorName: supervisorC.fullName },
+    { user: vendorC2, supervisorName: supervisorC.fullName },
   ];
 
   return {
     admin,
-    managerNorte,
-    managerSul,
-    managerCentro,
-    supervisorNorteA,
-    supervisorNorteB,
-    supervisorSul,
-    supervisorCentro,
+    directorA,
+    directorB,
+    directorC,
+    managerA,
+    managerB,
+    managerC,
+    supervisorA1,
+    supervisorA2,
+    supervisorB,
+    supervisorC,
     vendorConversations,
   };
-}
-
-async function bindLegacyHistoryByPhone(vendor: SeededUser, supervisorName: string) {
-  const updated = await prisma.historico_conversas.updateMany({
-    where: {
-      vendedor_telefone: vendor.phone,
-      OR: [
-        {
-          company_id: null,
-        },
-        {
-          company_id: vendor.companyId,
-        },
-      ],
-    },
-    data: {
-      user_id: vendor.id,
-      company_id: vendor.companyId,
-      supervisor: supervisorName,
-      vendedor_nome: vendor.fullName,
-    },
-  });
-
-  return updated.count;
 }
 
 async function seedConversationHistory(vendors: SeedVendorConversation[]) {
@@ -447,7 +672,6 @@ async function seedConversationHistory(vendors: SeedVendorConversation[]) {
       const clientName = clientNames[clientIndex];
 
       for (let interactionRound = 0; interactionRound < profile.roundsPerClient; interactionRound += 1) {
-        const interactionIndex = clientIndex * profile.roundsPerClient + interactionRound;
         const daysAgo = (clientIndex * 5 + interactionRound * 2 + vendorIndex * 3) % 28;
         const minutesAgo = vendorIndex * 29 + clientIndex * 17 + interactionRound * 11;
         const baseTimestamp = new Date(now);
@@ -526,11 +750,9 @@ async function seedConversationHistory(vendors: SeedVendorConversation[]) {
 }
 
 async function main() {
-  const seededUsers = await seedUsers();
-  const legacyLinked = await bindLegacyHistoryByPhone(
-    seededUsers.vendorConversations[0].user,
-    seededUsers.vendorConversations[0].supervisorName,
-  );
+  const companies = await upsertSeedCompanies();
+  await upsertSeedProducts(companies);
+  const seededUsers = await seedUsers(companies);
   const seededHistory = await seedConversationHistory(seededUsers.vendorConversations);
 
   const totalUsers = await prisma.user.count({
@@ -549,6 +771,13 @@ async function main() {
     },
   });
 
+  const totalCompanies = await prisma.company.count({
+    where: {
+      deletedAt: null,
+    },
+  });
+
+  const totalProducts = await prisma.produtos.count();
   const totalHistory = await prisma.historico_conversas.count();
   const totalCitations = await prisma.historico_conversas_produtos.count();
 
@@ -558,18 +787,30 @@ async function main() {
       {
         credentials: {
           password: PASSWORD,
-          admin: 'admin@handsell.dev',
-          managerNorte: 'gerente.norte@handsell.dev',
-          managerSul: 'gerente.sul@handsell.dev',
-          managerCentro: 'gerente.centro@handsell.dev',
-          supervisorNorteA: 'supervisor.norte.a@handsell.dev',
-          supervisorNorteB: 'supervisor.norte.b@handsell.dev',
-          supervisorSul: 'supervisor.sul@handsell.dev',
-          supervisorCentro: 'supervisor.centro@handsell.dev',
+          admin: [
+            'admin@handsell.dev (Admin HandSell)',
+          ],
+          diretor: [
+            `diretor.a@handsell.dev (Diretor Distribuidor A, ${companies.a.name})`,
+            `diretor.b@handsell.dev (Diretor Distribuidor B, ${companies.b.name})`,
+            `diretor.c@handsell.dev (Diretor Distribuidor C, ${companies.c.name})`,
+          ],
+          gerente_comercial: [
+            `gerente.a@handsell.dev (Gerente A, ${companies.a.name})`,
+            `gerente.b@handsell.dev (Gerente B, ${companies.b.name})`,
+            `gerente.c@handsell.dev (Gerente C, ${companies.c.name})`,
+          ],
+          supervisor: [
+            `supervisor.a.1@handsell.dev (Supervisor A 1, ${companies.a.name})`,
+            `supervisor.a.2@handsell.dev (Supervisor A 2, ${companies.a.name})`,
+            `supervisor.b@handsell.dev (Supervisor B, ${companies.b.name})`,
+            `supervisor.c@handsell.dev (Supervisor C, ${companies.c.name})`,
+          ],
         },
-        legacyLinked,
         seededHistory,
         totals: {
+          companies: totalCompanies,
+          products: totalProducts,
           users: totalUsers,
           usersByRole,
           history: totalHistory,

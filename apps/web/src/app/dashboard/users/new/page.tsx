@@ -1,19 +1,12 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ArrowLeft, UserRound } from "lucide-react";
 
 import { UserCreateForm } from "@/components/users/user-create-form";
-import { getAuthUserFromServerCookies } from "@/lib/auth-cookie";
 import { createPageMetadata } from "@/lib/metadata";
 
 export const metadata = createPageMetadata("Adicionar Usuário");
 
 export default async function DashboardUserCreatePage() {
-  const authUser = await getAuthUserFromServerCookies();
-  if (authUser?.role === "DIRETOR") {
-    redirect("/dashboard/users");
-  }
-
   return (
     <div className="flex w-full max-w-6xl flex-col gap-6 p-6">
       <div className="flex flex-wrap items-center gap-3 text-sm">

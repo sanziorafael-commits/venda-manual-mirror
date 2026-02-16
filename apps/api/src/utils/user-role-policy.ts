@@ -19,6 +19,14 @@ export function canCreateRole(actorRole: UserRole, targetRole: UserRole) {
     return true;
   }
 
+  if (actorRole === UserRole.DIRETOR) {
+    return (
+      targetRole === UserRole.GERENTE_COMERCIAL ||
+      targetRole === UserRole.SUPERVISOR ||
+      targetRole === UserRole.VENDEDOR
+    );
+  }
+
   if (actorRole === UserRole.GERENTE_COMERCIAL) {
     return targetRole === UserRole.SUPERVISOR || targetRole === UserRole.VENDEDOR;
   }

@@ -15,7 +15,7 @@ export function OverviewLocatedClientsCard({ value }: { value: number }) {
       </div>
       <div className="text-muted-foreground mt-6 flex items-center gap-2 text-sm">
         <MapPin className="size-3.5" />
-        Via geolocalizacao
+        Via geolocalização
       </div>
     </OverviewCardFrame>
   );

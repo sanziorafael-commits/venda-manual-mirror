@@ -54,6 +54,10 @@ function getAllowedRoleOptions(actorRole: UserRole): UserRole[] {
     return ["ADMIN", "DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR", "VENDEDOR"];
   }
 
+  if (actorRole === "DIRETOR") {
+    return ["GERENTE_COMERCIAL", "SUPERVISOR", "VENDEDOR"];
+  }
+
   if (actorRole === "GERENTE_COMERCIAL") {
     return ["SUPERVISOR", "VENDEDOR"];
   }
@@ -231,13 +235,15 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
   const selectedCompanyId = watch("companyId");
   const actorRole = authUser?.role ?? null;
   const isAdminActor = actorRole === "ADMIN";
+  const isDirectorActor = actorRole === "DIRETOR";
   const isManagerActor = actorRole === "GERENTE_COMERCIAL";
+  const canUseCompanyScopeFilters =
+    (isAdminActor || isDirectorActor) && Boolean(selectedCompanyId);
   const shouldShowCompanyField = isAdminActor && selectedRole !== "ADMIN";
   const shouldShowManagerField =
-    isAdminActor && selectedRole === "SUPERVISOR" && Boolean(selectedCompanyId);
+    selectedRole === "SUPERVISOR" && canUseCompanyScopeFilters;
   const shouldShowSupervisorField =
-    selectedRole === "VENDEDOR" &&
-    ((isAdminActor && Boolean(selectedCompanyId)) || isManagerActor);
+    selectedRole === "VENDEDOR" && (canUseCompanyScopeFilters || isManagerActor);
   const shouldShowPasswordField = selectedRole === "ADMIN";
 
   const roleOptions = React.useMemo<UserRole[]>(() => {
@@ -322,10 +328,10 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
       setValue("password", "");
     }
 
-    if (!shouldShowCompanyField) {
+    if (isAdminActor && !shouldShowCompanyField) {
       setValue("companyId", "");
     }
-  }, [selectedRole, setValue, shouldShowCompanyField]);
+  }, [isAdminActor, selectedRole, setValue, shouldShowCompanyField]);
 
   React.useEffect(() => {
     if (!isAdminActor || !formInitializedRef.current) {
@@ -438,7 +444,7 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
       try {
         const options = await fetchUserOptionsByRole({
           role: "SUPERVISOR",
-          ...(isAdminActor && selectedCompanyId
+          ...((isAdminActor || isDirectorActor) && selectedCompanyId
             ? { companyId: selectedCompanyId }
             : {}),
         });
@@ -471,6 +477,7 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
   }, [
     authHydrated,
     isAdminActor,
+    isDirectorActor,
     selectedCompanyId,
     shouldShowSupervisorField,
   ]);
@@ -544,13 +551,13 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
       }
 
       if (selectedRole === "SUPERVISOR") {
-        if (isAdminActor) {
+        if (isAdminActor || isDirectorActor) {
           payload.managerId = managerId;
         }
       }
 
       if (selectedRole === "VENDEDOR") {
-        if (isAdminActor) {
+        if (isAdminActor || isDirectorActor) {
           payload.supervisorId = supervisorId;
         } else if (isManagerActor) {
           payload.supervisorId = supervisorId;

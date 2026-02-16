@@ -39,7 +39,11 @@ export function UsersFormWrapper() {
   const authHydrated = useAuthHydrated();
   const selectedCompanyContext = useSelectedCompanyContext();
   const isAdmin = authUser?.role === "ADMIN";
-  const canManageUsers = authUser?.role !== "DIRETOR";
+  const canManageUsers =
+    authUser?.role === "ADMIN" ||
+    authUser?.role === "DIRETOR" ||
+    authUser?.role === "GERENTE_COMERCIAL" ||
+    authUser?.role === "SUPERVISOR";
   const isPlatformAdminSelected =
     isAdmin && isPlatformAdminContext(selectedCompanyContext);
 
@@ -133,7 +137,7 @@ export function UsersFormWrapper() {
 
       const parsed = usersApiResponseSchema.safeParse(response);
       if (!parsed.success) {
-        toast.error("Resposta inesperada ao carregar usuarios.");
+        toast.error("Resposta inesperada ao carregar usuários.");
         setUsers([]);
         setMeta({
           ...EMPTY_META,
@@ -216,7 +220,7 @@ export function UsersFormWrapper() {
 
   const handleAddUser = React.useCallback(() => {
     if (!canManageUsers) {
-      toast.error("Perfil sem permissao para cadastrar usuarios.");
+      toast.error("Perfil sem permissão para cadastrar usuários.");
       return;
     }
 
@@ -226,7 +230,7 @@ export function UsersFormWrapper() {
   const handleEditUser = React.useCallback(
     (user: UserListItem) => {
       if (!canManageUsers) {
-        toast.error("Perfil sem permissao para editar usuarios.");
+        toast.error("Perfil sem permissão para editar usuários.");
         return;
       }
 
@@ -238,17 +242,17 @@ export function UsersFormWrapper() {
   const handleDeleteUser = React.useCallback(
     async (user: UserListItem) => {
       if (!canManageUsers) {
-        toast.error("Perfil sem permissao para excluir usuarios.");
+        toast.error("Perfil sem permissão para excluir usuários.");
         return;
       }
 
       if (user.deletedAt) {
-        toast.error("Usuario ja esta excluido.");
+        toast.error("Usuário já está excluído.");
         return;
       }
 
       const confirmed = window.confirm(
-        `Confirma a exclusao do usuario "${user.fullName}"? Esta acao e irreversivel.`,
+        `Confirma a exclusão do usuário "${user.fullName}"? Esta ação é irreversível.`,
       );
 
       if (!confirmed) {
@@ -257,7 +261,7 @@ export function UsersFormWrapper() {
 
       const deleted = await tryApiDelete(
         `/users/${user.id}`,
-        "Usuario excluido com sucesso.",
+        "Usuário excluído com sucesso.",
       );
       if (!deleted) {
         return;
@@ -275,7 +279,7 @@ export function UsersFormWrapper() {
 
   return (
     <section className="flex flex-col gap-5">
-      <h3 className="text-2xl font-semibold">Usuarios cadastrados</h3>
+      <h3 className="text-2xl font-semibold">Usuários cadastrados</h3>
 
       <UsersFilterForm
         searchValue={searchDraft}
@@ -296,7 +300,7 @@ export function UsersFormWrapper() {
 
       {isAdmin && !selectedCompanyContext ? (
         <div className="rounded-xl border border-dashed bg-card p-6 text-sm text-muted-foreground">
-          Selecione uma empresa no topo para visualizar os usuarios.
+          Selecione uma empresa no topo para visualizar os usuários.
         </div>
       ) : (
         <UsersTable

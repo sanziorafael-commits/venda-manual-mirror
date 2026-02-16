@@ -48,7 +48,7 @@ router.post('/activate-account', activateAccountHandler);
 router.post(
   '/resend-activation',
   authenticate,
-  authorize(UserRole.ADMIN, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
+  authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
   resendActivationHandler,
 );
 

@@ -47,9 +47,8 @@ export function CompanyContextSelect() {
           return;
         }
 
-        const parsed = dashboardFilterOptionsApiResponseSchema.safeParse(
-          response,
-        );
+        const parsed =
+          dashboardFilterOptionsApiResponseSchema.safeParse(response);
         if (!parsed.success) {
           toast.error("Resposta inesperada ao carregar empresas.");
           setOptions(
@@ -147,13 +146,15 @@ export function CompanyContextSelect() {
         <span className="bg-sidebar-primary text-sidebar-primary-foreground inline-flex size-7 items-center justify-center rounded-full text-xs font-semibold">
           {initialFromName(companyName)}
         </span>
-        <span className="text-sm font-medium text-foreground">{companyName}</span>
+        <span className="text-sm font-medium text-foreground">
+          {companyName}
+        </span>
       </div>
     );
   }
 
   return (
-    <label className="text-muted-foreground flex min-w-[250px] flex-col gap-1.5 text-xs font-medium">
+    <label className="text-muted-foreground flex gap-2 text-xs font-medium items-center">
       Empresa
       <select
         value={selectedContext ?? ""}

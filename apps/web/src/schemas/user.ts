@@ -110,7 +110,7 @@ export const createUserFormSchema = z
         context.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["password"],
-          message: "Senha deve ter no minimo 6 caracteres.",
+          message: "Senha deve ter no mínimo 6 caracteres.",
         });
       }
     }
@@ -176,7 +176,7 @@ export const updateUserFormSchema = z
         context.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["password"],
-          message: "Senha deve ter no minimo 6 caracteres.",
+          message: "Senha deve ter no mínimo 6 caracteres.",
         });
       }
     }

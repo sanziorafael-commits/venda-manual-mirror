@@ -24,13 +24,11 @@ import {
   isPlatformAdminContext,
   useSelectedCompanyContext,
 } from "@/stores/company-context-store";
-
 import { OverviewAdoptionCard } from "./overview/adoption-card";
 import { OverviewLocatedClientsCard } from "./overview/located-clients-card";
 import { OverviewProductsCard } from "./overview/products-card";
 import { OverviewRankingCard } from "./overview/ranking-card";
 import { OverviewTotalInteractionsCard } from "./overview/total-interactions-card";
-import { LayoutDashboard } from "lucide-react";
 
 const PERIOD_ORDER: DashboardPeriod[] = ["365d", "30d", "7d", "today"];
 
@@ -40,7 +38,8 @@ export function DashboardOverviewPanel() {
   const authUser = useAuthUser();
   const authHydrated = useAuthHydrated();
   const isAdmin = authUser?.role === "ADMIN";
-  const isManager = authUser?.role === "GERENTE_COMERCIAL";
+  const canSelectScope =
+    authUser?.role === "GERENTE_COMERCIAL" || authUser?.role === "DIRETOR";
   const selectedCompanyContext = useSelectedCompanyContext();
 
   const [isLoadingOptions, setIsLoadingOptions] = React.useState(true);
@@ -270,12 +269,7 @@ export function DashboardOverviewPanel() {
     <section className="flex flex-col gap-5">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div className="flex flex-wrap items-end gap-3">
-          <h2 className="flex items-center gap-2 text-2xl font-semibold">
-            <LayoutDashboard className="size-6" />
-            Dashboard
-          </h2>
-
-          {isManager ? (
+          {canSelectScope ? (
             <label className="text-muted-foreground flex min-w-[240px] flex-col gap-1.5 text-xs font-medium">
               Escopo
               <select
@@ -324,7 +318,7 @@ export function DashboardOverviewPanel() {
                 onChange={setDateRange}
                 disabled={isLoadingOptions || isLoadingData}
                 className="min-w-[240px]"
-                placeholder="Selecione o periodo"
+                placeholder="Selecione o período"
               />
             </div>
             {hasCustomDateRange ? (
@@ -364,13 +358,13 @@ export function DashboardOverviewPanel() {
             <OverviewRankingCard
               variant="highest"
               items={selectedHighestRanking}
-              emptyMessage="Sem dados para o periodo."
+              emptyMessage="Sem dados para o período."
             />
 
             <OverviewRankingCard
               variant="lowest"
               items={selectedLowestRanking}
-              emptyMessage="Sem dados para o periodo."
+              emptyMessage="Sem dados para o período."
             />
 
             <OverviewLocatedClientsCard value={overview.newLocatedClients} />
@@ -378,13 +372,13 @@ export function DashboardOverviewPanel() {
             <OverviewProductsCard
               variant="most"
               items={overview.productRanking.mostCited}
-              emptyMessage="Sem citacoes registradas."
+              emptyMessage="Sem citações registradas."
             />
 
             <OverviewProductsCard
               variant="least"
               items={overview.productRanking.leastCited}
-              emptyMessage="Sem citacoes registradas."
+              emptyMessage="Sem citações registradas."
             />
           </section>
         </>
@@ -394,7 +388,7 @@ export function DashboardOverviewPanel() {
         </div>
       ) : (
         <div className="rounded-xl border border-dashed bg-card p-6 text-sm text-muted-foreground">
-          Nao foi possivel carregar os dados do dashboard.
+          Não foi possível carregar os dados do dashboard.
         </div>
       )}
     </section>

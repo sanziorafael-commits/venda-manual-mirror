@@ -135,7 +135,7 @@ export function ConversationsHistoryWrapper() {
 
       const parsed = conversationsApiResponseSchema.safeParse(response);
       if (!parsed.success) {
-        toast.error("Resposta inesperada ao carregar historico.");
+        toast.error("Resposta inesperada ao carregar histórico.");
         setConversations([]);
         setMeta({
           ...EMPTY_META,
@@ -284,7 +284,7 @@ export function ConversationsHistoryWrapper() {
 
       {isAdmin && !selectedCompanyId ? (
         <div className="rounded-xl border border-dashed bg-card p-6 text-sm text-muted-foreground">
-          Selecione uma empresa no topo para visualizar o historico.
+          Selecione uma empresa no topo para visualizar o histórico.
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
@@ -296,8 +296,8 @@ export function ConversationsHistoryWrapper() {
                   {isAdmin ? (
                     <th className="px-4 py-3 font-semibold">Distribuidor</th>
                   ) : null}
-                  <th className="px-4 py-3 font-semibold">Interacoes</th>
-                  <th className="px-4 py-3 font-semibold">Ultima interacao</th>
+                  <th className="px-4 py-3 font-semibold">Interações</th>
+                  <th className="px-4 py-3 font-semibold">Última interação</th>
                   <th className="px-4 py-3 font-semibold">Conversa</th>
                 </tr>
               </thead>
@@ -386,7 +386,7 @@ export function ConversationsHistoryWrapper() {
             size="icon-sm"
             disabled={!canGoBack || isLoadingConversations}
             onClick={() => setPageIndex(pageIndex - 1)}
-            aria-label="Pagina anterior"
+            aria-label="Página anterior"
           >
             <ChevronLeft className="size-4" />
           </Button>
@@ -415,7 +415,7 @@ export function ConversationsHistoryWrapper() {
             size="icon-sm"
             disabled={!canGoForward || isLoadingConversations}
             onClick={() => setPageIndex(pageIndex + 1)}
-            aria-label="Proxima pagina"
+            aria-label="Próxima página"
           >
             <ChevronRight className="size-4" />
           </Button>
