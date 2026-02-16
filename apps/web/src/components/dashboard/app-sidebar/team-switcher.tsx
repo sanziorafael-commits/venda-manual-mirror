@@ -3,10 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 
-import {
-  SidebarMenu,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
+import { SidebarMenu, SidebarMenuItem } from "@/components/ui/sidebar";
 
 export function TeamSwitcher() {
   return (
@@ -21,9 +18,9 @@ export function TeamSwitcher() {
               <Image
                 src="/icone-handsell.svg"
                 alt="Handsell"
-                width={32}
-                height={32}
-                quality={100}
+                width={28}
+                height={28}
+                quality={75}
                 loading="lazy"
               />
             </span>
@@ -32,11 +29,11 @@ export function TeamSwitcher() {
           <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsed=true]:hidden">
             <span className="text-xs font-semibold ml-1">
               <Image
-                src="/texto-handsell.svg"
+                src="/texto-handsell-orienta.svg"
                 alt="Handsell"
-                width={114}
-                height={22}
-                quality={100}
+                width={174}
+                height={26}
+                quality={75}
                 loading="lazy"
               />
             </span>

@@ -241,7 +241,7 @@ export function ConversationsHistoryWrapper() {
                 {isAdmin ? (
                   <th className="px-4 py-3 font-semibold">Distribuidor</th>
                 ) : null}
-                {/* <th className="px-4 py-3 font-semibold">Interações</th> */}
+                <th className="px-4 py-3 font-semibold">Interações</th>
                 <th className="px-4 py-3 font-semibold">Última interação</th>
                 <th className="px-4 py-3 font-semibold">Conversa</th>
               </tr>
@@ -286,9 +286,9 @@ export function ConversationsHistoryWrapper() {
                           {conversation.companyName ?? "Sem empresa"}
                         </td>
                       ) : null}
-                      {/* <td className="px-4 py-4">
+                      <td className="px-4 py-4">
                         {conversation.totalInteracoes}
-                      </td> */}
+                      </td>
                       <td className="px-4 py-4">
                         {formatDateTime(conversation.ultimaInteracaoEm)}
                       </td>

@@ -413,6 +413,13 @@ async function seedConversationHistory(vendors: SeedVendorConversation[]) {
   const now = new Date();
   let insertedHistory = 0;
   let insertedCitations = 0;
+  const interactionProfiles = [
+    { clients: 2, roundsPerClient: 3, turnsPerRound: 2 },
+    { clients: 3, roundsPerClient: 3, turnsPerRound: 2 },
+    { clients: 3, roundsPerClient: 4, turnsPerRound: 2 },
+    { clients: 3, roundsPerClient: 4, turnsPerRound: 3 },
+    { clients: 4, roundsPerClient: 4, turnsPerRound: 3 },
+  ] as const;
 
   for (let vendorIndex = 0; vendorIndex < vendors.length; vendorIndex += 1) {
     const entry = vendors[vendorIndex];
@@ -425,24 +432,40 @@ async function seedConversationHistory(vendors: SeedVendorConversation[]) {
       continue;
     }
 
-    const clientNames = Array.from({ length: 3 }, (_, clientIndex) => `Cliente Seed ${vendorIndex + 1}-${clientIndex + 1}`);
+    const profile = interactionProfiles[vendorIndex % interactionProfiles.length];
+    const preferredProductOffsets = [
+      vendorIndex % companyProducts.length,
+      (vendorIndex + 1) % companyProducts.length,
+      (vendorIndex + 3) % companyProducts.length,
+    ];
+    const clientNames = Array.from(
+      { length: profile.clients },
+      (_, clientIndex) => `Cliente Seed ${vendorIndex + 1}-${clientIndex + 1}`,
+    );
 
     for (let clientIndex = 0; clientIndex < clientNames.length; clientIndex += 1) {
       const clientName = clientNames[clientIndex];
 
-      for (let interactionRound = 0; interactionRound < 4; interactionRound += 1) {
-        const interactionIndex = clientIndex * 4 + interactionRound;
-        const product = companyProducts[(interactionIndex + vendorIndex) % companyProducts.length];
-        const daysAgo = (clientIndex * 5 + interactionRound * 2 + vendorIndex) % 28;
-        const minutesAgo = vendorIndex * 23 + clientIndex * 13 + interactionRound * 7;
+      for (let interactionRound = 0; interactionRound < profile.roundsPerClient; interactionRound += 1) {
+        const interactionIndex = clientIndex * profile.roundsPerClient + interactionRound;
+        const daysAgo = (clientIndex * 5 + interactionRound * 2 + vendorIndex * 3) % 28;
+        const minutesAgo = vendorIndex * 29 + clientIndex * 17 + interactionRound * 11;
         const baseTimestamp = new Date(now);
         baseTimestamp.setDate(baseTimestamp.getDate() - daysAgo);
         baseTimestamp.setMinutes(baseTimestamp.getMinutes() - minutesAgo);
 
-        for (let turnIndex = 0; turnIndex < 3; turnIndex += 1) {
-          const turnProduct = companyProducts[(interactionIndex + vendorIndex + turnIndex) % companyProducts.length];
+        for (let turnIndex = 0; turnIndex < profile.turnsPerRound; turnIndex += 1) {
+          const productSelector =
+            (clientIndex * 7 + interactionRound * 5 + turnIndex * 3 + vendorIndex) % 10;
+          const primaryOffset =
+            preferredProductOffsets[
+              (interactionRound + turnIndex + clientIndex) % preferredProductOffsets.length
+            ];
+          const secondaryOffset = (primaryOffset + clientIndex + 2) % companyProducts.length;
+          const turnProductIndex = productSelector < 7 ? primaryOffset : secondaryOffset;
+          const turnProduct = companyProducts[turnProductIndex];
           const timestamp = new Date(baseTimestamp);
-          timestamp.setMinutes(timestamp.getMinutes() + turnIndex * 4);
+          timestamp.setMinutes(timestamp.getMinutes() + turnIndex * 5);
 
           const created = await prisma.historico_conversas.create({
             data: {
@@ -468,17 +491,29 @@ async function seedConversationHistory(vendors: SeedVendorConversation[]) {
 
           insertedHistory += 1;
 
-          await prisma.historico_conversas_produtos.create({
-            data: {
-              historico_id: created.id,
-              produto_id: turnProduct.id,
-              company_id: entry.user.companyId,
-              cited_at: timestamp,
-              source: SEED_FLOW_NAME,
-            },
-          });
+          const citedProductIndexes = new Set<number>([turnProductIndex]);
+          if ((interactionRound + turnIndex + vendorIndex) % 4 === 0 && companyProducts.length > 1) {
+            citedProductIndexes.add((turnProductIndex + 1 + clientIndex) % companyProducts.length);
+          }
+          if ((interactionRound + clientIndex + vendorIndex) % 7 === 0 && companyProducts.length > 2) {
+            citedProductIndexes.add((turnProductIndex + 2 + turnIndex) % companyProducts.length);
+          }
 
-          insertedCitations += 1;
+          for (const citedProductIndex of citedProductIndexes) {
+            const citedProduct = companyProducts[citedProductIndex];
+
+            await prisma.historico_conversas_produtos.create({
+              data: {
+                historico_id: created.id,
+                produto_id: citedProduct.id,
+                company_id: entry.user.companyId,
+                cited_at: timestamp,
+                source: SEED_FLOW_NAME,
+              },
+            });
+
+            insertedCitations += 1;
+          }
         }
       }
     }
