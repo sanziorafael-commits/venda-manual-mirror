@@ -80,6 +80,10 @@ export function getUserReadScopeWhere(
     return {};
   }
 
+  if (actor.role === UserRole.DIRETOR) {
+    return {};
+  }
+
   if (actor.role === UserRole.GERENTE_COMERCIAL) {
     return buildManagerScopedWhere(actor.userId);
   }

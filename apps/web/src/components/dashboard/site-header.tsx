@@ -6,7 +6,7 @@ import { getPageTitleByPath } from "@/config/nav";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
-import { ThemeToggleSlider } from "./theme-toggle-slider";
+import { CompanyContextSelect } from "./company-context-select";
 
 export function SiteHeader() {
   const pathname = usePathname();
@@ -22,7 +22,7 @@ export function SiteHeader() {
         />
         <h1 className="text-base font-medium">{title}</h1>
         <div className="ml-auto flex items-center gap-2">
-          <ThemeToggleSlider />
+          <CompanyContextSelect />
         </div>
       </div>
     </header>

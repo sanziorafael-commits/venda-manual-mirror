@@ -12,7 +12,9 @@ const router = Router();
 
 router.post('/webhook', conversationWebhookHandler);
 router.use(authenticate);
-router.use(authorize(UserRole.ADMIN, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR));
+router.use(
+  authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
+);
 router.get('/', listConversationsHandler);
 router.get('/:conversationId', getConversationByIdHandler);
 

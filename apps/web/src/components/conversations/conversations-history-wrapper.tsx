@@ -17,6 +17,10 @@ import {
   type ConversationListItem,
   type ConversationListMeta,
 } from "@/schemas/conversation";
+import {
+  isPlatformAdminContext,
+  useSelectedCompanyContext,
+} from "@/stores/company-context-store";
 
 const PAGE_SIZE_OPTIONS = [10, 20, 30, 50];
 const DEFAULT_PAGE_SIZE = 10;
@@ -32,7 +36,23 @@ export function ConversationsHistoryWrapper() {
   const router = useRouter();
   const authUser = useAuthUser();
   const authHydrated = useAuthHydrated();
+  const selectedCompanyContext = useSelectedCompanyContext();
   const isAdmin = authUser?.role === "ADMIN";
+
+  const selectedCompanyId = React.useMemo(() => {
+    if (!isAdmin) {
+      return authUser?.companyId ?? null;
+    }
+
+    if (
+      !selectedCompanyContext ||
+      isPlatformAdminContext(selectedCompanyContext)
+    ) {
+      return null;
+    }
+
+    return selectedCompanyContext;
+  }, [authUser?.companyId, isAdmin, selectedCompanyContext]);
 
   const [searchDraft, setSearchDraft] = React.useState("");
   const [query, setQuery] = React.useState("");
@@ -72,6 +92,16 @@ export function ConversationsHistoryWrapper() {
       return;
     }
 
+    if (isAdmin && !selectedCompanyId) {
+      setConversations([]);
+      setMeta({
+        ...EMPTY_META,
+        pageSize,
+      });
+      setIsLoadingConversations(false);
+      return;
+    }
+
     const params = new URLSearchParams();
     params.set("page", String(pageIndex + 1));
     params.set("pageSize", String(pageSize));
@@ -88,6 +118,10 @@ export function ConversationsHistoryWrapper() {
       params.set("endDate", endDate);
     }
 
+    if (isAdmin && selectedCompanyId) {
+      params.set("companyId", selectedCompanyId);
+    }
+
     const currentRequestId = ++conversationsRequestRef.current;
     setIsLoadingConversations(true);
 
@@ -101,7 +135,7 @@ export function ConversationsHistoryWrapper() {
 
       const parsed = conversationsApiResponseSchema.safeParse(response);
       if (!parsed.success) {
-        toast.error("Resposta inesperada ao carregar histórico.");
+        toast.error("Resposta inesperada ao carregar historico.");
         setConversations([]);
         setMeta({
           ...EMPTY_META,
@@ -133,11 +167,28 @@ export function ConversationsHistoryWrapper() {
         setIsLoadingConversations(false);
       }
     }
-  }, [authHydrated, endDate, pageIndex, pageSize, query, startDate]);
+  }, [
+    authHydrated,
+    endDate,
+    isAdmin,
+    pageIndex,
+    pageSize,
+    query,
+    selectedCompanyId,
+    startDate,
+  ]);
 
   React.useEffect(() => {
     void loadConversations();
   }, [loadConversations]);
+
+  React.useEffect(() => {
+    if (!isAdmin) {
+      return;
+    }
+
+    setPageIndex(0);
+  }, [isAdmin, selectedCompanyContext]);
 
   const handleSearch = React.useCallback(() => {
     const nextQuery = searchDraft.trim();
@@ -179,7 +230,7 @@ export function ConversationsHistoryWrapper() {
           }}
         >
           <label htmlFor="conversations-search" className="text-sm font-medium">
-            Buscar por vendedor ou cliente
+            Buscar por vendedor
           </label>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
@@ -231,99 +282,101 @@ export function ConversationsHistoryWrapper() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[920px] border-collapse text-left text-sm">
-            <thead className="bg-muted text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 font-semibold">Nome do vendedor</th>
-                <th className="px-4 py-3 font-semibold">Cliente</th>
-                {isAdmin ? (
-                  <th className="px-4 py-3 font-semibold">Distribuidor</th>
-                ) : null}
-                <th className="px-4 py-3 font-semibold">Interações</th>
-                <th className="px-4 py-3 font-semibold">Última interação</th>
-                <th className="px-4 py-3 font-semibold">Conversa</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoadingConversations
-                ? Array.from(
-                    { length: Math.max(4, Math.min(pageSize, 8)) },
-                    (_, rowIndex) => (
-                      <tr key={`loading-${rowIndex}`} className="border-t">
-                        {Array.from(
-                          { length: isAdmin ? 6 : 5 },
-                          (_, columnIndex) => (
-                            <td
-                              key={`loading-${rowIndex}-${columnIndex}`}
-                              className="px-4 py-4"
-                            >
-                              <div className="h-4 w-full animate-pulse rounded bg-muted" />
-                            </td>
-                          ),
-                        )}
-                      </tr>
-                    ),
-                  )
-                : conversations.map((conversation) => (
-                    <tr key={conversation.id} className="border-t">
-                      <td className="px-4 py-4">
-                        <p className="font-medium">
-                          {conversation.vendedorNome}
-                        </p>
-                        {conversation.vendedorTelefone ? (
-                          <p className="text-xs text-muted-foreground">
-                            {formatPhone(conversation.vendedorTelefone)}
-                          </p>
-                        ) : null}
-                      </td>
-                      <td className="px-4 py-4">
-                        {conversation.ultimoClienteNome ?? "-"}
-                      </td>
-                      {isAdmin ? (
-                        <td className="px-4 py-4">
-                          {conversation.companyName ?? "Sem empresa"}
-                        </td>
-                      ) : null}
-                      <td className="px-4 py-4">
-                        {conversation.totalInteracoes}
-                      </td>
-                      <td className="px-4 py-4">
-                        {formatDateTime(conversation.ultimaInteracaoEm)}
-                      </td>
-                      <td className="px-4 py-4">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
-                          onClick={() =>
-                            router.push(
-                              `/dashboard/conversations/${conversation.id}`,
-                            )
-                          }
-                        >
-                          Ver conversa
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-
-              {!isLoadingConversations && conversations.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={isAdmin ? 6 : 5}
-                    className="px-4 py-8 text-center text-sm text-muted-foreground"
-                  >
-                    Nenhuma conversa encontrada.
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
+      {isAdmin && !selectedCompanyId ? (
+        <div className="rounded-xl border border-dashed bg-card p-6 text-sm text-muted-foreground">
+          Selecione uma empresa no topo para visualizar o historico.
         </div>
-      </div>
+      ) : (
+        <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[920px] border-collapse text-left text-sm">
+              <thead className="bg-muted text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Nome do vendedor</th>
+                  {isAdmin ? (
+                    <th className="px-4 py-3 font-semibold">Distribuidor</th>
+                  ) : null}
+                  <th className="px-4 py-3 font-semibold">Interacoes</th>
+                  <th className="px-4 py-3 font-semibold">Ultima interacao</th>
+                  <th className="px-4 py-3 font-semibold">Conversa</th>
+                </tr>
+              </thead>
+              <tbody>
+                {isLoadingConversations
+                  ? Array.from(
+                      { length: Math.max(4, Math.min(pageSize, 8)) },
+                      (_, rowIndex) => (
+                        <tr key={`loading-${rowIndex}`} className="border-t">
+                          {Array.from(
+                            { length: isAdmin ? 5 : 4 },
+                            (_, columnIndex) => (
+                              <td
+                                key={`loading-${rowIndex}-${columnIndex}`}
+                                className="px-4 py-4"
+                              >
+                                <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                              </td>
+                            ),
+                          )}
+                        </tr>
+                      ),
+                    )
+                  : conversations.map((conversation) => (
+                      <tr key={conversation.id} className="border-t">
+                        <td className="px-4 py-4">
+                          <p className="font-medium">
+                            {conversation.vendedorNome}
+                          </p>
+                          {conversation.vendedorTelefone ? (
+                            <p className="text-xs text-muted-foreground">
+                              {formatPhone(conversation.vendedorTelefone)}
+                            </p>
+                          ) : null}
+                        </td>
+                        {isAdmin ? (
+                          <td className="px-4 py-4">
+                            {conversation.companyName ?? "Sem empresa"}
+                          </td>
+                        ) : null}
+                        <td className="px-4 py-4">
+                          {conversation.totalInteracoes}
+                        </td>
+                        <td className="px-4 py-4">
+                          {formatDateTime(conversation.ultimaInteracaoEm)}
+                        </td>
+                        <td className="px-4 py-4">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/conversations/${conversation.id}`,
+                              )
+                            }
+                          >
+                            Ver conversa
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+
+                {!isLoadingConversations && conversations.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={isAdmin ? 5 : 4}
+                      className="px-4 py-8 text-center text-sm text-muted-foreground"
+                    >
+                      Nenhuma conversa encontrada.
+                    </td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center justify-center">
         <div className="flex items-center gap-1">
@@ -333,7 +386,7 @@ export function ConversationsHistoryWrapper() {
             size="icon-sm"
             disabled={!canGoBack || isLoadingConversations}
             onClick={() => setPageIndex(pageIndex - 1)}
-            aria-label="Página anterior"
+            aria-label="Pagina anterior"
           >
             <ChevronLeft className="size-4" />
           </Button>
@@ -342,7 +395,12 @@ export function ConversationsHistoryWrapper() {
             <Button
               key={page}
               type="button"
-              variant={page === pageIndex ? "default" : "ghost"}
+              variant="ghost"
+              className={
+                page === pageIndex
+                  ? "bg-[#212a38] text-white hover:bg-[#182130] hover:text-white"
+                  : undefined
+              }
               size="icon-sm"
               disabled={isLoadingConversations}
               onClick={() => setPageIndex(page)}
@@ -357,7 +415,7 @@ export function ConversationsHistoryWrapper() {
             size="icon-sm"
             disabled={!canGoForward || isLoadingConversations}
             onClick={() => setPageIndex(pageIndex + 1)}
-            aria-label="Próxima página"
+            aria-label="Proxima pagina"
           >
             <ChevronRight className="size-4" />
           </Button>

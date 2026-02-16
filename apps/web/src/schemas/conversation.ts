@@ -6,9 +6,7 @@ export const conversationListItemSchema = z.object({
   companyName: z.string().nullable(),
   vendedorNome: z.string().min(1),
   vendedorTelefone: z.string().nullable(),
-  ultimoClienteNome: z.string().nullable(),
   totalInteracoes: z.number().int().nonnegative(),
-  clientesUnicos: z.number().int().nonnegative(),
   ultimaInteracaoEm: z.string().nullable(),
   primeiraInteracaoEm: z.string().nullable(),
 });

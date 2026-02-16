@@ -11,7 +11,9 @@ import { authenticate, authorize } from '../middlewares/auth.middleware.js';
 const router = Router();
 
 router.use(authenticate);
-router.use(authorize(UserRole.ADMIN, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR));
+router.use(
+  authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
+);
 
 router.get('/overview', dashboardOverviewHandler);
 router.get('/interactions-series', dashboardInteractionsSeriesHandler);

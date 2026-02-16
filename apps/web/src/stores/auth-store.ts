@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 import type { AuthUser } from "@/schemas/auth";
+import { clearCompanyContextStore } from "@/stores/company-context-store";
 
 type AuthStoreState = {
   user: AuthUser | null;
@@ -43,6 +44,7 @@ export const useAuthStore = create<AuthStoreState>((set) => ({
 
   clear: () => {
     clearLegacyAuthStorage();
+    clearCompanyContextStore();
     set({
       user: null,
       hydrated: true,

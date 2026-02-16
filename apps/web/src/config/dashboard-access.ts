@@ -1,4 +1,8 @@
-export type DashboardRole = "ADMIN" | "GERENTE_COMERCIAL" | "SUPERVISOR";
+export type DashboardRole =
+  | "ADMIN"
+  | "DIRETOR"
+  | "GERENTE_COMERCIAL"
+  | "SUPERVISOR";
 
 type DashboardRouteRule = {
   path: string;
@@ -11,7 +15,7 @@ const DASHBOARD_ROUTE_RULES: DashboardRouteRule[] = [
   {
     path: "/dashboard",
     title: "Dashboard",
-    roles: ["ADMIN", "GERENTE_COMERCIAL", "SUPERVISOR"],
+    roles: ["ADMIN", "DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR"],
     showInNav: true,
   },
   {
@@ -22,14 +26,14 @@ const DASHBOARD_ROUTE_RULES: DashboardRouteRule[] = [
   },
   {
     path: "/dashboard/users",
-    title: "Usuários",
-    roles: ["ADMIN", "GERENTE_COMERCIAL", "SUPERVISOR"],
+    title: "Usuarios",
+    roles: ["ADMIN", "DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR"],
     showInNav: true,
   },
   {
     path: "/dashboard/conversations",
-    title: "Histórico de Conversas",
-    roles: ["ADMIN", "GERENTE_COMERCIAL", "SUPERVISOR"],
+    title: "Historico de Conversas",
+    roles: ["ADMIN", "DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR"],
     showInNav: true,
   },
   {
@@ -41,13 +45,13 @@ const DASHBOARD_ROUTE_RULES: DashboardRouteRule[] = [
   {
     path: "/dashboard/products",
     title: "Cadastro de Produtos",
-    roles: ["GERENTE_COMERCIAL", "SUPERVISOR"],
+    roles: ["DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR"],
     showInNav: true,
   },
   {
     path: "/dashboard/profile",
     title: "Perfil",
-    roles: ["ADMIN", "GERENTE_COMERCIAL", "SUPERVISOR"],
+    roles: ["ADMIN", "DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR"],
     showInNav: false,
   },
 ];

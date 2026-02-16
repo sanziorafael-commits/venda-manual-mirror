@@ -1,8 +1,11 @@
 "use client";
 
 import * as React from "react";
+import { format } from "date-fns";
+import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 
+import { DateRangePicker } from "@/components/conversations/date-range-picker";
 import { useAuthHydrated, useAuthUser } from "@/hooks/use-auth-user";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
@@ -17,12 +20,17 @@ import {
   type DashboardScope,
   type DashboardSeries,
 } from "@/schemas/dashboard";
+import {
+  isPlatformAdminContext,
+  useSelectedCompanyContext,
+} from "@/stores/company-context-store";
 
 import { OverviewAdoptionCard } from "./overview/adoption-card";
 import { OverviewLocatedClientsCard } from "./overview/located-clients-card";
 import { OverviewProductsCard } from "./overview/products-card";
 import { OverviewRankingCard } from "./overview/ranking-card";
 import { OverviewTotalInteractionsCard } from "./overview/total-interactions-card";
+import { LayoutDashboard } from "lucide-react";
 
 const PERIOD_ORDER: DashboardPeriod[] = ["365d", "30d", "7d", "today"];
 
@@ -33,6 +41,7 @@ export function DashboardOverviewPanel() {
   const authHydrated = useAuthHydrated();
   const isAdmin = authUser?.role === "ADMIN";
   const isManager = authUser?.role === "GERENTE_COMERCIAL";
+  const selectedCompanyContext = useSelectedCompanyContext();
 
   const [isLoadingOptions, setIsLoadingOptions] = React.useState(true);
   const [isLoadingData, setIsLoadingData] = React.useState(true);
@@ -40,7 +49,9 @@ export function DashboardOverviewPanel() {
     React.useState<DashboardFilterOptions | null>(null);
   const [period, setPeriod] = React.useState<DashboardPeriod>("365d");
   const [scope, setScope] = React.useState<DashboardScope>("all");
-  const [companyId, setCompanyId] = React.useState("");
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(
+    undefined,
+  );
   const [overview, setOverview] = React.useState<DashboardOverview | null>(
     null,
   );
@@ -48,6 +59,41 @@ export function DashboardOverviewPanel() {
 
   const optionsRequestRef = React.useRef(0);
   const dashboardRequestRef = React.useRef(0);
+
+  const selectedCompanyId = React.useMemo(() => {
+    if (!isAdmin) {
+      return authUser?.companyId ?? null;
+    }
+
+    if (!selectedCompanyContext) {
+      return null;
+    }
+
+    if (isPlatformAdminContext(selectedCompanyContext)) {
+      return null;
+    }
+
+    return selectedCompanyContext;
+  }, [authUser?.companyId, isAdmin, selectedCompanyContext]);
+
+  const customStartDate = React.useMemo(() => {
+    if (!dateRange?.from) {
+      return null;
+    }
+
+    return format(dateRange.from, "yyyy-MM-dd");
+  }, [dateRange?.from]);
+
+  const customEndDate = React.useMemo(() => {
+    const endSource = dateRange?.to ?? dateRange?.from;
+    if (!endSource) {
+      return null;
+    }
+
+    return format(endSource, "yyyy-MM-dd");
+  }, [dateRange?.from, dateRange?.to]);
+
+  const hasCustomDateRange = Boolean(customStartDate && customEndDate);
 
   const loadFilterOptions = React.useCallback(async () => {
     if (!authHydrated) {
@@ -75,9 +121,6 @@ export function DashboardOverviewPanel() {
       setFilterOptions(options);
       setPeriod(options.defaults.period);
       setScope(options.defaults.scope);
-      setCompanyId(
-        options.defaults.companyId ?? options.companyOptions[0]?.value ?? "",
-      );
     } catch (error) {
       if (currentRequestId !== optionsRequestRef.current) {
         return;
@@ -97,7 +140,7 @@ export function DashboardOverviewPanel() {
       return;
     }
 
-    if (isAdmin && !companyId) {
+    if (isAdmin && !selectedCompanyId) {
       setOverview(null);
       setSeries(null);
       setIsLoadingData(false);
@@ -108,8 +151,16 @@ export function DashboardOverviewPanel() {
     params.set("period", period);
     params.set("scope", scope);
 
-    if (isAdmin && companyId) {
-      params.set("companyId", companyId);
+    if (customStartDate) {
+      params.set("startDate", customStartDate);
+    }
+
+    if (customEndDate) {
+      params.set("endDate", customEndDate);
+    }
+
+    if (isAdmin && selectedCompanyId) {
+      params.set("companyId", selectedCompanyId);
     }
 
     const query = params.toString();
@@ -153,7 +204,16 @@ export function DashboardOverviewPanel() {
         setIsLoadingData(false);
       }
     }
-  }, [authHydrated, companyId, filterOptions, isAdmin, period, scope]);
+  }, [
+    authHydrated,
+    customEndDate,
+    customStartDate,
+    filterOptions,
+    isAdmin,
+    period,
+    scope,
+    selectedCompanyId,
+  ]);
 
   React.useEffect(() => {
     void loadFilterOptions();
@@ -177,21 +237,6 @@ export function DashboardOverviewPanel() {
       return leftIndex - rightIndex;
     });
   }, [filterOptions]);
-
-  const selectedCompanyName = React.useMemo(() => {
-    if (overview?.company?.name) {
-      return overview.company.name;
-    }
-
-    const bySelectedId = filterOptions?.companyOptions.find(
-      (option) => option.value === companyId,
-    );
-    if (bySelectedId?.label) {
-      return bySelectedId.label;
-    }
-
-    return null;
-  }, [companyId, filterOptions?.companyOptions, overview?.company?.name]);
 
   const selectedHighestRanking = React.useMemo(() => {
     if (!overview) {
@@ -225,30 +270,10 @@ export function DashboardOverviewPanel() {
     <section className="flex flex-col gap-5">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div className="flex flex-wrap items-end gap-3">
-          {isAdmin ? (
-            <label className="text-muted-foreground flex min-w-[280px] flex-col gap-1.5 text-xs font-medium">
-              Empresa
-              <select
-                value={companyId}
-                onChange={(event) => setCompanyId(event.target.value)}
-                className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/40 focus-visible:ring-[3px]"
-                disabled={isLoadingOptions || isLoadingData}
-              >
-                {filterOptions?.companyOptions.length ? (
-                  filterOptions.companyOptions.map((companyOption) => (
-                    <option
-                      key={companyOption.value}
-                      value={companyOption.value}
-                    >
-                      {companyOption.label}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">Nenhuma empresa disponível</option>
-                )}
-              </select>
-            </label>
-          ) : null}
+          <h2 className="flex items-center gap-2 text-2xl font-semibold">
+            <LayoutDashboard className="size-6" />
+            Dashboard
+          </h2>
 
           {isManager ? (
             <label className="text-muted-foreground flex min-w-[240px] flex-col gap-1.5 text-xs font-medium">
@@ -269,25 +294,17 @@ export function DashboardOverviewPanel() {
               </select>
             </label>
           ) : null}
-
-          {!isAdmin && selectedCompanyName ? (
-            <div className="bg-muted/40 border-border flex items-center gap-2 rounded-full border px-3 py-1.5">
-              <span className="bg-sidebar-primary text-sidebar-primary-foreground inline-flex size-7 items-center justify-center rounded-full text-xs font-semibold">
-                {initialFromName(selectedCompanyName)}
-              </span>
-              <span className="text-foreground text-sm font-medium">
-                {selectedCompanyName}
-              </span>
-            </div>
-          ) : null}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-end gap-2">
           {orderedPeriodOptions.map((periodOption) => (
             <button
               key={periodOption.value}
               type="button"
-              onClick={() => setPeriod(periodOption.value as DashboardPeriod)}
+              onClick={() => {
+                setPeriod(periodOption.value as DashboardPeriod);
+                setDateRange(undefined);
+              }}
               disabled={isLoadingOptions || isLoadingData}
               className={cn(
                 "cursor-pointer rounded-md border px-3 py-1.5 text-sm font-medium transition-colors",
@@ -299,6 +316,28 @@ export function DashboardOverviewPanel() {
               {periodOption.label}
             </button>
           ))}
+
+          <div className="ml-1 flex items-end gap-2">
+            <div className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
+              <DateRangePicker
+                value={dateRange}
+                onChange={setDateRange}
+                disabled={isLoadingOptions || isLoadingData}
+                className="min-w-[240px]"
+                placeholder="Selecione o periodo"
+              />
+            </div>
+            {hasCustomDateRange ? (
+              <button
+                type="button"
+                onClick={() => setDateRange(undefined)}
+                disabled={isLoadingOptions || isLoadingData}
+                className="cursor-pointer rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              >
+                Limpar
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -325,13 +364,13 @@ export function DashboardOverviewPanel() {
             <OverviewRankingCard
               variant="highest"
               items={selectedHighestRanking}
-              emptyMessage="Sem dados para o período."
+              emptyMessage="Sem dados para o periodo."
             />
 
             <OverviewRankingCard
               variant="lowest"
               items={selectedLowestRanking}
-              emptyMessage="Sem dados para o período."
+              emptyMessage="Sem dados para o periodo."
             />
 
             <OverviewLocatedClientsCard value={overview.newLocatedClients} />
@@ -339,19 +378,23 @@ export function DashboardOverviewPanel() {
             <OverviewProductsCard
               variant="most"
               items={overview.productRanking.mostCited}
-              emptyMessage="Sem citações registradas."
+              emptyMessage="Sem citacoes registradas."
             />
 
             <OverviewProductsCard
               variant="least"
               items={overview.productRanking.leastCited}
-              emptyMessage="Sem citações registradas."
+              emptyMessage="Sem citacoes registradas."
             />
           </section>
         </>
+      ) : isAdmin && !selectedCompanyId ? (
+        <div className="rounded-xl border border-dashed bg-card p-6 text-sm text-muted-foreground">
+          Selecione uma empresa no topo para visualizar o dashboard.
+        </div>
       ) : (
         <div className="rounded-xl border border-dashed bg-card p-6 text-sm text-muted-foreground">
-          Não foi possível carregar os dados do dashboard.
+          Nao foi possivel carregar os dados do dashboard.
         </div>
       )}
     </section>
@@ -373,13 +416,3 @@ function DashboardSkeleton() {
     </>
   );
 }
-
-function initialFromName(name: string) {
-  const trimmed = name.trim();
-  if (!trimmed) {
-    return "H";
-  }
-
-  return trimmed[0]!.toUpperCase();
-}
-

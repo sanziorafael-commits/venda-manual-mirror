@@ -66,6 +66,7 @@ export const companyDetailsApiResponseSchema = z.object({
 
 export const companyUserRoleSchema = z.enum([
   "ADMIN",
+  "DIRETOR",
   "GERENTE_COMERCIAL",
   "SUPERVISOR",
   "VENDEDOR",

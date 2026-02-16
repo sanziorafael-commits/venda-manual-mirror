@@ -91,7 +91,11 @@ const SUPERVISOR_SCOPE_OPTIONS: DashboardFilterOption<DashboardScope>[] = [
 export async function getDashboardOverview(actor: AuthActor, input: DashboardOverviewInput) {
   const companyId = resolveScopedCompanyId(actor, input.companyId);
   const scope = resolveDashboardScope(actor, input.scope, input.viewBy);
-  const range = buildRange(input.period ?? '365d');
+  const range = buildRange({
+    period: input.period ?? '365d',
+    startDate: input.startDate,
+    endDate: input.endDate,
+  });
   const rankLimit = input.rankLimit ?? 3;
   const actorScopeContext = await buildActorScopeContext(actor, companyId);
   const actorScopePrismaWhere = buildHistoryActorScopePrismaWhere(actorScopeContext, scope);
@@ -261,7 +265,11 @@ export async function getDashboardInteractionsSeries(
 ) {
   const companyId = resolveScopedCompanyId(actor, input.companyId);
   const scope = resolveDashboardScope(actor, input.scope, input.viewBy);
-  const range = buildRange(input.period ?? '365d');
+  const range = buildRange({
+    period: input.period ?? '365d',
+    startDate: input.startDate,
+    endDate: input.endDate,
+  });
   const actorScopeContext = await buildActorScopeContext(actor, companyId);
   const actorScopeSqlWhere = buildHistoryActorScopeSqlWhere(actorScopeContext, scope, 'h');
   const whereSql = buildHistorySqlWhere(companyId, range.startAt, range.endAt, 'h', actorScopeSqlWhere);
@@ -395,8 +403,11 @@ function resolveDashboardScope(
 
   const resolvedScope = requestedScope ?? scopeFromLegacy ?? defaultScope;
 
-  if (actor.role === UserRole.ADMIN && resolvedScope !== 'all') {
-    throw badRequest('Perfil admin utiliza somente escopo total da empresa selecionada');
+  if (
+    (actor.role === UserRole.ADMIN || actor.role === UserRole.DIRETOR) &&
+    resolvedScope !== 'all'
+  ) {
+    throw badRequest('Perfil admin/diretor utiliza somente escopo total da empresa selecionada');
   }
 
   if (actor.role === UserRole.SUPERVISOR && resolvedScope !== 'vendors') {
@@ -445,6 +456,18 @@ async function buildActorScopeContext(
   if (!companyId) {
     return {
       isRestricted: true,
+      vendorIds: [],
+      vendorPhones: [],
+      supervisorIds: [],
+      supervisorPhones: [],
+      supervisorNames: [],
+      supervisorNameKeys: [],
+    };
+  }
+
+  if (actor.role === UserRole.DIRETOR) {
+    return {
+      isRestricted: false,
       vendorIds: [],
       vendorPhones: [],
       supervisorIds: [],
@@ -666,7 +689,22 @@ function buildHistoryActorScopeSqlWhere(
   return Prisma.sql`(${Prisma.join(conditions, ' OR ')})`;
 }
 
-function buildRange(period: DashboardPeriod): DashboardRange {
+function buildRange(input: {
+  period: DashboardPeriod;
+  startDate?: string;
+  endDate?: string;
+}): DashboardRange {
+  const customRange = parseCustomDateRange(input.startDate, input.endDate);
+  if (customRange) {
+    return {
+      period: input.period,
+      startAt: customRange.startAt,
+      endAt: customRange.endAt,
+      granularity: resolveRangeGranularity(customRange.startAt, customRange.endAt),
+    };
+  }
+
+  const period = input.period;
   const now = new Date();
   const endAt = new Date(now);
 
@@ -718,6 +756,46 @@ function buildRange(period: DashboardPeriod): DashboardRange {
     endAt,
     granularity: 'month',
   };
+}
+
+function parseCustomDateRange(startDate?: string, endDate?: string) {
+  if (!startDate && !endDate) {
+    return null;
+  }
+
+  const startAt = startDate
+    ? new Date(`${startDate}T00:00:00.000Z`)
+    : new Date(`${endDate}T00:00:00.000Z`);
+  const endAt = endDate
+    ? new Date(`${endDate}T23:59:59.999Z`)
+    : new Date(`${startDate}T23:59:59.999Z`);
+
+  if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
+    throw badRequest('Periodo de data invalido');
+  }
+
+  if (startAt > endAt) {
+    throw badRequest('A data inicial nao pode ser maior que a data final');
+  }
+
+  return {
+    startAt,
+    endAt,
+  };
+}
+
+function resolveRangeGranularity(startAt: Date, endAt: Date): 'hour' | 'day' | 'month' {
+  const totalDays = Math.floor((endAt.getTime() - startAt.getTime()) / 86_400_000) + 1;
+
+  if (totalDays <= 1) {
+    return 'hour';
+  }
+
+  if (totalDays <= 90) {
+    return 'day';
+  }
+
+  return 'month';
 }
 
 function buildHistoryWhere(

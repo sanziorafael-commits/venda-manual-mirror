@@ -26,7 +26,11 @@ export async function resolveHierarchyForCreate(
     supervisorId?: string | null;
   },
 ): Promise<ResolvedHierarchy> {
-  if (input.role === UserRole.ADMIN || input.role === UserRole.GERENTE_COMERCIAL) {
+  if (
+    input.role === UserRole.ADMIN ||
+    input.role === UserRole.DIRETOR ||
+    input.role === UserRole.GERENTE_COMERCIAL
+  ) {
     if (input.managerId || input.supervisorId) {
       throw badRequest('managerId e supervisorId não são permitidos para este cargo');
     }
@@ -108,7 +112,11 @@ export async function resolveHierarchyForUpdate(
 ): Promise<ResolvedHierarchy> {
   const { existing, nextRole, companyId } = input;
 
-  if (nextRole === UserRole.ADMIN || nextRole === UserRole.GERENTE_COMERCIAL) {
+  if (
+    nextRole === UserRole.ADMIN ||
+    nextRole === UserRole.DIRETOR ||
+    nextRole === UserRole.GERENTE_COMERCIAL
+  ) {
     if (input.managerId || input.supervisorId) {
       throw badRequest('managerId e supervisorId não são permitidos para este cargo');
     }

@@ -3,9 +3,12 @@ import { z } from 'zod';
 const dashboardPeriodSchema = z.enum(['today', '7d', '30d', '365d']);
 const dashboardViewBySchema = z.enum(['vendedor', 'supervisor']);
 const dashboardScopeSchema = z.enum(['all', 'vendors', 'supervisors']);
+const dateQuerySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
 export const dashboardOverviewQuerySchema = z.object({
   period: dashboardPeriodSchema.default('365d'),
+  startDate: dateQuerySchema.optional(),
+  endDate: dateQuerySchema.optional(),
   viewBy: dashboardViewBySchema.optional(),
   scope: dashboardScopeSchema.optional(),
   companyId: z.string().cuid().optional(),
@@ -14,6 +17,8 @@ export const dashboardOverviewQuerySchema = z.object({
 
 export const dashboardInteractionsSeriesQuerySchema = z.object({
   period: dashboardPeriodSchema.default('365d'),
+  startDate: dateQuerySchema.optional(),
+  endDate: dateQuerySchema.optional(),
   viewBy: dashboardViewBySchema.optional(),
   scope: dashboardScopeSchema.optional(),
   companyId: z.string().cuid().optional(),

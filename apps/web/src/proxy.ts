@@ -81,5 +81,10 @@ function isSessionUser(value: unknown): value is SessionUser {
   }
 
   const role = (value as SessionUser).role;
-  return role === "ADMIN" || role === "GERENTE_COMERCIAL" || role === "SUPERVISOR";
+  return (
+    role === "ADMIN" ||
+    role === "DIRETOR" ||
+    role === "GERENTE_COMERCIAL" ||
+    role === "SUPERVISOR"
+  );
 }

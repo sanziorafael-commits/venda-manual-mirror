@@ -4,7 +4,6 @@ import { Fustat } from "next/font/google";
 import "./globals.css";
 
 import { Toaster } from "sonner";
-import { ThemeProvider } from "@/components/theme/theme-provider";
 import { BRAND_NAME } from "@/lib/metadata";
 
 const fustat = Fustat({
@@ -51,9 +50,7 @@ export default function RootLayout({
   return (
     <html lang="pt-br" suppressHydrationWarning>
       <body className={`${fustat.variable} antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
-        </ThemeProvider>
+        {children}
         <Toaster richColors position="top-right" />
       </body>
     </html>

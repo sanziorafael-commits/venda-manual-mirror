@@ -14,6 +14,7 @@ type UsersTableProps = {
   data: UserListItem[];
   isLoading: boolean;
   isAdmin: boolean;
+  canManageUsers: boolean;
   pageIndex: number;
   pageSize: number;
   totalPages: number;
@@ -24,6 +25,7 @@ type UsersTableProps = {
 
 const ROLE_LABEL_BY_VALUE: Record<UserListItem["role"], string> = {
   ADMIN: "Admin",
+  DIRETOR: "Diretor",
   GERENTE_COMERCIAL: "Gerente Comercial",
   SUPERVISOR: "Supervisor",
   VENDEDOR: "Vendedor",
@@ -69,6 +71,7 @@ export function UsersTable({
   data,
   isLoading,
   isAdmin,
+  canManageUsers,
   pageIndex,
   pageSize,
   totalPages,
@@ -132,43 +135,45 @@ export function UsersTable({
       });
     }
 
-    baseColumns.push({
-      id: "details",
-      header: "Ações",
-      cell: ({ row }) => {
-        const isDeleted = Boolean(row.original.deletedAt);
+    if (canManageUsers) {
+      baseColumns.push({
+        id: "details",
+        header: "Ações",
+        cell: ({ row }) => {
+          const isDeleted = Boolean(row.original.deletedAt);
 
-        return (
-          <div className="flex items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
-              onClick={() => onEditUser(row.original)}
-              disabled={isLoading}
-            >
-              <Pencil className="size-3.5" />
-              Editar
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => onDeleteUser(row.original)}
-              disabled={isDeleted || isLoading}
-              aria-label={`Excluir usuário ${row.original.fullName}`}
-            >
-              <Trash2 className="size-4" />
-            </Button>
-          </div>
-        );
-      },
-    });
+          return (
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                onClick={() => onEditUser(row.original)}
+                disabled={isLoading}
+              >
+                <Pencil className="size-3.5" />
+                Editar
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => onDeleteUser(row.original)}
+                disabled={isDeleted || isLoading}
+                aria-label={`Excluir usuário ${row.original.fullName}`}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </div>
+          );
+        },
+      });
+    }
 
     return baseColumns;
-  }, [isAdmin, isLoading, onDeleteUser, onEditUser]);
+  }, [canManageUsers, isAdmin, isLoading, onDeleteUser, onEditUser]);
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -270,7 +275,12 @@ export function UsersTable({
             <Button
               key={page}
               type="button"
-              variant={page === pageIndex ? "default" : "ghost"}
+              variant="ghost"
+              className={
+                page === pageIndex
+                  ? "bg-[#212a38] text-white hover:bg-[#182130] hover:text-white"
+                  : undefined
+              }
               size="icon-sm"
               disabled={isLoading}
               onClick={() => onPageChange(page)}

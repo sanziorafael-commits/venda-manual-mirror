@@ -85,6 +85,7 @@ export const profileSchema = profileFormSchema;
 
 export const dashboardUserRoleSchema = z.enum([
   "ADMIN",
+  "DIRETOR",
   "GERENTE_COMERCIAL",
   "SUPERVISOR",
 ]);

@@ -1,14 +1,8 @@
-﻿import { Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import type { UserRole } from "@/schemas/user";
-
-type CompanyOption = {
-  id: string;
-  name: string;
-};
 
 type UserStatusFilter = "ALL" | "ACTIVE" | "INACTIVE";
 
@@ -17,14 +11,12 @@ type UsersFilterFormProps = {
   pageSize: number;
   isLoading: boolean;
   isAdmin: boolean;
-  showAdminFiltersSkeleton: boolean;
-  companyFilterValue: string;
   roleFilterValue: "ALL" | UserRole;
   statusFilterValue: UserStatusFilter;
-  companyOptions: CompanyOption[];
+  forceAdminRole: boolean;
+  canAddUser: boolean;
   onSearchValueChange: (value: string) => void;
   onPageSizeChange: (pageSize: number) => void;
-  onCompanyFilterChange: (value: string) => void;
   onRoleFilterChange: (value: "ALL" | UserRole) => void;
   onStatusFilterChange: (value: UserStatusFilter) => void;
   onSubmit: () => void;
@@ -35,6 +27,7 @@ const PAGE_SIZE_OPTIONS = [10, 20, 30, 50];
 const ROLE_OPTIONS: Array<{ value: "ALL" | UserRole; label: string }> = [
   { value: "ALL", label: "Todos os cargos" },
   { value: "ADMIN", label: "Admin" },
+  { value: "DIRETOR", label: "Diretor" },
   { value: "GERENTE_COMERCIAL", label: "Gerente Comercial" },
   { value: "SUPERVISOR", label: "Supervisor" },
   { value: "VENDEDOR", label: "Vendedor" },
@@ -50,81 +43,41 @@ export function UsersFilterForm({
   pageSize,
   isLoading,
   isAdmin,
-  showAdminFiltersSkeleton,
-  companyFilterValue,
   roleFilterValue,
   statusFilterValue,
-  companyOptions,
+  forceAdminRole,
+  canAddUser,
   onSearchValueChange,
   onPageSizeChange,
-  onCompanyFilterChange,
   onRoleFilterChange,
   onStatusFilterChange,
   onSubmit,
   onAddUser,
 }: UsersFilterFormProps) {
-  const companyFilterIsPlatform = companyFilterValue === "__PLATFORM__";
-
   return (
     <div className="flex flex-col gap-4">
-      {isAdmin || showAdminFiltersSkeleton ? (
+      {isAdmin ? (
         <div className="grid gap-4 md:grid-cols-2">
-          {isAdmin ? (
-            <>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="users-company-filter" className="text-sm font-medium">
-                  Empresa
-                </label>
-                <select
-                  id="users-company-filter"
-                  className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                  value={companyFilterValue}
-                  onChange={(event) => onCompanyFilterChange(event.target.value)}
-                  disabled={isLoading}
-                >
-                  <option value="__ALL__">Todas as empresas e admins</option>
-                  <option value="__PLATFORM__">Handsell (admins da plataforma)</option>
-                  {companyOptions.map((company) => (
-                    <option key={company.id} value={company.id}>
-                      {company.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label htmlFor="users-role-filter" className="text-sm font-medium">
-                  Cargo
-                </label>
-                <select
-                  id="users-role-filter"
-                  className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                  value={roleFilterValue}
-                  onChange={(event) =>
-                    onRoleFilterChange(event.target.value as "ALL" | UserRole)
-                  }
-                  disabled={isLoading || companyFilterIsPlatform}
-                >
-                  {ROLE_OPTIONS.map((roleOption) => (
-                    <option key={roleOption.value} value={roleOption.value}>
-                      {roleOption.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="flex flex-col gap-2">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-9 w-full" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Skeleton className="h-4 w-16" />
-                <Skeleton className="h-9 w-full" />
-              </div>
-            </>
-          )}
+          <div className="flex flex-col gap-2">
+            <label htmlFor="users-role-filter" className="text-sm font-medium">
+              Cargo
+            </label>
+            <select
+              id="users-role-filter"
+              className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+              value={roleFilterValue}
+              onChange={(event) =>
+                onRoleFilterChange(event.target.value as "ALL" | UserRole)
+              }
+              disabled={isLoading || forceAdminRole}
+            >
+              {ROLE_OPTIONS.map((roleOption) => (
+                <option key={roleOption.value} value={roleOption.value}>
+                  {roleOption.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       ) : null}
 
@@ -138,7 +91,7 @@ export function UsersFilterForm({
             }}
           >
             <label htmlFor="users-search" className="text-sm font-medium">
-              Buscar por usuário
+              Buscar por usuario
             </label>
             <div className="flex flex-col gap-2 sm:flex-row">
               <Input
@@ -185,14 +138,14 @@ export function UsersFilterForm({
             type="button"
             className="min-w-[170px]"
             onClick={onAddUser}
-            disabled={isLoading}
+            disabled={isLoading || !canAddUser}
           >
-            Adicionar usuário
+            Adicionar usuario
             <Plus className="size-4" />
           </Button>
 
           <label htmlFor="users-page-size" className="sr-only">
-            Itens por página
+            Itens por pagina
           </label>
           <select
             id="users-page-size"
@@ -212,4 +165,3 @@ export function UsersFilterForm({
     </div>
   );
 }
-

@@ -1,6 +1,7 @@
 import { UserRole } from '@prisma/client';
 
 const INVITABLE_ROLES = new Set<UserRole>([
+  UserRole.DIRETOR,
   UserRole.GERENTE_COMERCIAL,
   UserRole.SUPERVISOR,
 ]);

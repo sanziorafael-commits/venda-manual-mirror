@@ -7,7 +7,9 @@ import { authenticate, authorize } from '../middlewares/auth.middleware.js';
 const router = Router();
 
 router.use(authenticate);
-router.use(authorize(UserRole.ADMIN, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR));
+router.use(
+  authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
+);
 
 router.post('/signed-url', createUploadSignedUrlHandler);
 

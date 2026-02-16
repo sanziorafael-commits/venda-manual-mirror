@@ -37,6 +37,7 @@ type SelectOption = {
 
 const ROLE_LABEL_BY_VALUE: Record<UserRole, string> = {
   ADMIN: "Admin",
+  DIRETOR: "Diretor",
   GERENTE_COMERCIAL: "Gerente Comercial",
   SUPERVISOR: "Supervisor",
   VENDEDOR: "Vendedor",
@@ -44,7 +45,7 @@ const ROLE_LABEL_BY_VALUE: Record<UserRole, string> = {
 
 function getAllowedRoleOptions(actorRole: UserRole): UserRole[] {
   if (actorRole === "ADMIN") {
-    return ["ADMIN", "GERENTE_COMERCIAL", "SUPERVISOR", "VENDEDOR"];
+    return ["ADMIN", "DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR", "VENDEDOR"];
   }
 
   if (actorRole === "GERENTE_COMERCIAL") {

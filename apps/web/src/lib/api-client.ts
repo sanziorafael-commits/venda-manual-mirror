@@ -31,6 +31,7 @@ const NON_REFRESHABLE_AUTH_PATHS = [
 ];
 
 let refreshPromise: Promise<RefreshResult> | null = null;
+let suppressAuthErrorsUntil = 0;
 
 export const getBaseURL = () => {
   const browserBase = process.env.NEXT_PUBLIC_API_URL;
@@ -52,6 +53,26 @@ const joinUrl = (base: string | undefined | null, path: string) => {
 };
 
 const isBrowser = () => typeof window !== "undefined";
+
+const nowMs = () => Date.now();
+
+const shouldSuppressAuthErrors = () => {
+  if (!isBrowser()) {
+    return false;
+  }
+
+  return nowMs() < suppressAuthErrorsUntil;
+};
+
+const createNeverPromise = <T>() => new Promise<T>(() => {});
+
+export const suppressAuthErrorsFor = (durationMs = 8_000) => {
+  if (!isBrowser()) {
+    return;
+  }
+
+  suppressAuthErrorsUntil = nowMs() + durationMs;
+};
 
 const isNonRefreshablePath = (path: string) => {
   const lowerPath = path.toLowerCase();
@@ -213,8 +234,10 @@ async function apiFetchInternal<T = unknown>(
         });
       } catch (error) {
         if (error instanceof ApiError && error.status === 401) {
+          suppressAuthErrorsFor();
           clearAuthStore();
           redirectToLogin();
+          return createNeverPromise<T>();
         }
 
         throw error;
@@ -222,9 +245,14 @@ async function apiFetchInternal<T = unknown>(
     }
 
     if (refreshResult.kind === "invalid_session") {
+      suppressAuthErrorsFor();
       clearAuthStore();
       redirectToLogin();
-      throw new ApiError("Sessão expirada. Faça login novamente.", 401);
+      return createNeverPromise<T>();
+    }
+
+    if (shouldSuppressAuthErrors()) {
+      return createNeverPromise<T>();
     }
 
     throw new ApiError(refreshResult.message, 401);

@@ -21,7 +21,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { apiFetch } from "@/lib/api-client";
+import { apiFetch, suppressAuthErrorsFor } from "@/lib/api-client";
 import type { AuthUser } from "@/schemas/auth";
 import { clearAuthStore } from "@/stores/auth-store";
 
@@ -52,7 +52,7 @@ export function NavUser({ user }: NavUserProps) {
     if (isLoggingOut) return;
 
     setIsLoggingOut(true);
-    let logoutFailed = false;
+    suppressAuthErrorsFor();
 
     try {
       await apiFetch("/auth/logout", {
@@ -60,15 +60,13 @@ export function NavUser({ user }: NavUserProps) {
         body: {},
       });
     } catch {
-      logoutFailed = true;
-      toast.error("Não foi possível sair, tente novamente.");
-    }
-
-    clearAuthStore();
-    if (!logoutFailed) {
+      // Mesmo com erro no endpoint de logout, seguimos para limpeza local
+      // sem exibir toast de erro para manter a experiencia consistente.
+    } finally {
+      clearAuthStore();
       toast.success("Logout realizado com sucesso!");
+      router.replace("/login");
     }
-    router.replace("/login");
   };
 
   return (

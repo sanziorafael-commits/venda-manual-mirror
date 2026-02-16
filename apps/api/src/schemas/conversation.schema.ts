@@ -56,7 +56,6 @@ export const conversationListQuerySchema = z.object({
   companyId: z.string().cuid().optional(),
   vendedorNome: z.string().optional(),
   vendedorTelefone: z.string().optional(),
-  clienteNome: z.string().optional(),
   startDate: dateQuerySchema.optional(),
   endDate: dateQuerySchema.optional(),
   page: z.coerce.number().int().positive().default(1),

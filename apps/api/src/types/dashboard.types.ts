@@ -4,6 +4,8 @@ export type DashboardScope = 'all' | 'vendors' | 'supervisors';
 
 export type DashboardOverviewInput = {
   period?: DashboardPeriod;
+  startDate?: string;
+  endDate?: string;
   companyId?: string;
   rankLimit?: number;
   viewBy?: DashboardViewBy;
@@ -12,6 +14,8 @@ export type DashboardOverviewInput = {
 
 export type DashboardInteractionsSeriesInput = {
   period?: DashboardPeriod;
+  startDate?: string;
+  endDate?: string;
   companyId?: string;
   viewBy?: DashboardViewBy;
   scope?: DashboardScope;

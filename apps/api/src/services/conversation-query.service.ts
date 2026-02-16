@@ -35,11 +35,10 @@ export async function listConversations(actor: AuthActor, input: ConversationLis
     q: input.q,
     vendedorNome: input.vendedorNome,
     vendedorTelefone: input.vendedorTelefone,
-    clienteNome: input.clienteNome,
   });
 
   const grouped = await prisma.historico_conversas.groupBy({
-    by: ['company_id', 'vendedor_telefone', 'vendedor_nome', 'cliente_nome'],
+    by: ['company_id', 'vendedor_telefone', 'vendedor_nome'],
     where,
     _count: {
       _all: true,
@@ -72,7 +71,6 @@ export async function listConversations(actor: AuthActor, input: ConversationLis
           created_at: true,
           vendedor_nome: true,
           vendedor_telefone: true,
-          cliente_nome: true,
         },
         orderBy: [{ timestamp_iso: 'desc' }, { created_at: 'desc' }],
       });
@@ -80,8 +78,6 @@ export async function listConversations(actor: AuthActor, input: ConversationLis
       if (!latestRow) {
         return null;
       }
-
-      const clientesUnicos = sanitizeDisplayText(group.cliente_nome) ? 1 : 0;
 
       return {
         id: latestRow.id,
@@ -93,10 +89,7 @@ export async function listConversations(actor: AuthActor, input: ConversationLis
           sanitizeDisplayText(latestRow.vendedor_telefone) ??
           'Vendedor sem nome',
         vendedorTelefone: sanitizeDisplayText(latestRow.vendedor_telefone),
-        ultimoClienteNome:
-          sanitizeDisplayText(group.cliente_nome) ?? sanitizeDisplayText(latestRow.cliente_nome),
         totalInteracoes: group._count._all,
-        clientesUnicos,
         ultimaInteracaoEm: resolveInteractionDate({
           timestamp_iso: latestRow.timestamp_iso,
           data: latestRow.data,
@@ -204,10 +197,6 @@ export async function getConversationById(
       vendedor_nome: baseConversation.vendedor_nome,
     });
   }
-
-  sharedWhereFilters.push({
-    cliente_nome: baseConversation.cliente_nome,
-  });
 
   const whereWithoutDate =
     sharedWhereFilters.length > 0 ? { AND: sharedWhereFilters } : EMPTY_WHERE;
@@ -345,7 +334,6 @@ function buildConversationListWhere(input: {
   q?: string;
   vendedorNome?: string;
   vendedorTelefone?: string;
-  clienteNome?: string;
 }): Prisma.historico_conversasWhereInput {
   const andFilters: Prisma.historico_conversasWhereInput[] = [];
 
@@ -381,28 +369,12 @@ function buildConversationListWhere(input: {
     });
   }
 
-  const clienteNome = sanitizeDisplayText(input.clienteNome);
-  if (clienteNome) {
-    andFilters.push({
-      cliente_nome: {
-        contains: clienteNome,
-        mode: 'insensitive',
-      },
-    });
-  }
-
   const q = sanitizeDisplayText(input.q);
   if (q) {
     const qDigits = normalizePhone(q);
     const orFilters: Prisma.historico_conversasWhereInput[] = [
       {
         vendedor_nome: {
-          contains: q,
-          mode: 'insensitive',
-        },
-      },
-      {
-        cliente_nome: {
           contains: q,
           mode: 'insensitive',
         },
@@ -520,7 +492,6 @@ function buildGroupKeyWhere(group: {
   company_id: string | null;
   vendedor_telefone: string | null;
   vendedor_nome: string | null;
-  cliente_nome: string | null;
 }): Prisma.historico_conversasWhereInput {
   return {
     AND: [
@@ -532,9 +503,6 @@ function buildGroupKeyWhere(group: {
       },
       {
         vendedor_nome: group.vendedor_nome,
-      },
-      {
-        cliente_nome: group.cliente_nome,
       },
     ],
   };

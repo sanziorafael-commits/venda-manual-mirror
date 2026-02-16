@@ -202,7 +202,12 @@ export function CompanyTable({
             <Button
               key={page}
               type="button"
-              variant={page === pageIndex ? "default" : "ghost"}
+              variant="ghost"
+              className={
+                page === pageIndex
+                  ? "bg-[#212a38] text-white hover:bg-[#182130] hover:text-white"
+                  : undefined
+              }
               size="icon-sm"
               disabled={isLoading}
               onClick={() => onPageChange(page)}
