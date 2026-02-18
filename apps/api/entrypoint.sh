@@ -1,0 +1,48 @@
+﻿#!/bin/sh
+set -e
+
+# GCS credentials via base64
+if [ -n "$GCS_CREDENTIALS_BASE64" ]; then
+  echo "$GCS_CREDENTIALS_BASE64" | base64 -d > /app/storage-account.json
+  export GOOGLE_APPLICATION_CREDENTIALS=/app/storage-account.json
+  export GCS_CREDENTIALS_FILE=/app/storage-account.json
+fi
+
+# Generate .env inside container (if not exists)
+if [ ! -f /app/.env ]; then
+  cat > /app/.env <<EOF
+PORT=${PORT}
+LOG_LEVEL=${LOG_LEVEL}
+
+JWT_SECRET=${JWT_SECRET}
+JWT_ACCESS_TOKEN_TTL=${JWT_ACCESS_TOKEN_TTL}
+JWT_REFRESH_TOKEN_TTL=${JWT_REFRESH_TOKEN_TTL}
+ACCOUNT_ACTIVATION_TOKEN_TTL=${ACCOUNT_ACTIVATION_TOKEN_TTL}
+PASSWORD_RESET_TOKEN_TTL=${PASSWORD_RESET_TOKEN_TTL}
+
+MAIL_PROVIDER=${MAIL_PROVIDER}
+RESEND_API_KEY=${RESEND_API_KEY}
+MAIL_FROM=${MAIL_FROM}
+APP_WEB_URL=${APP_WEB_URL}
+APP_CORS_ORIGINS=${APP_CORS_ORIGINS}
+APP_ACTIVATION_PATH=${APP_ACTIVATION_PATH}
+APP_RESET_PASSWORD_PATH=${APP_RESET_PASSWORD_PATH}
+
+STORAGE_PROVIDER=${STORAGE_PROVIDER}
+STORAGE_UPLOAD_URL_TTL=${STORAGE_UPLOAD_URL_TTL}
+STORAGE_READ_URL_TTL=${STORAGE_READ_URL_TTL}
+GCS_PROJECT_ID=${GCS_PROJECT_ID}
+GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
+GCS_CREDENTIALS_FILE=${GCS_CREDENTIALS_FILE}
+
+DATABASE_URL=${DATABASE_URL}
+DIRECT_URL=${DIRECT_URL}
+EOF
+fi
+
+# Start
+if node -e "const p=require('./package.json'); process.exit(p.scripts && p.scripts['start:prod'] ? 0 : 1)"; then
+  exec npm run start:prod
+else
+  exec npm start
+fi
