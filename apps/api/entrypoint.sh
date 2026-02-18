@@ -2,9 +2,9 @@
 set -e
 
 # Se vier credencial do GCS em base64, cria o arquivo dentro do container
-if [ -n "\" ]; then
-  echo "\" | base64 -d > "\"
+if [ -n "$GCS_CREDENTIALS_BASE64" ]; then
+  echo "$GCS_CREDENTIALS_BASE64" | base64 -d > /app/storage-account.json
 fi
 
-# Start padrão (usa o package.json)
+# Start padrao (usa o package.json)
 exec npm run start:prod
