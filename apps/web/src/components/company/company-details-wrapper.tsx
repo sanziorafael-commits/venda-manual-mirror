@@ -6,6 +6,10 @@ import { toast } from "sonner";
 
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
+import {
+  createEmptyPaginationMeta,
+  DEFAULT_PAGE_SIZE,
+} from "@/lib/pagination";
 import { tryApiDelete } from "@/lib/try-api";
 import {
   companyDetailsApiResponseSchema,
@@ -23,15 +27,6 @@ type CompanyDetailsWrapperProps = {
   companyId: string;
 };
 
-const DEFAULT_PAGE_SIZE = 10;
-
-const EMPTY_META: CompanyListMeta = {
-  page: 1,
-  pageSize: DEFAULT_PAGE_SIZE,
-  total: 0,
-  totalPages: 1,
-};
-
 export function CompanyDetailsWrapper({
   companyId,
 }: CompanyDetailsWrapperProps) {
@@ -46,7 +41,9 @@ export function CompanyDetailsWrapper({
   const [query, setQuery] = React.useState("");
   const [isUsersLoading, setIsUsersLoading] = React.useState(true);
   const [users, setUsers] = React.useState<CompanyUserItem[]>([]);
-  const [meta, setMeta] = React.useState<CompanyListMeta>(EMPTY_META);
+  const [meta, setMeta] = React.useState<CompanyListMeta>(
+    createEmptyPaginationMeta<CompanyListMeta>(),
+  );
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
   const usersRequestIdRef = React.useRef(0);
@@ -97,10 +94,7 @@ export function CompanyDetailsWrapper({
       if (!parsed.success) {
         toast.error("Resposta inesperada ao carregar Usuários da empresa.");
         setUsers([]);
-        setMeta({
-          ...EMPTY_META,
-          pageSize,
-        });
+        setMeta(createEmptyPaginationMeta<CompanyListMeta>(pageSize));
         return;
       }
 
@@ -118,10 +112,7 @@ export function CompanyDetailsWrapper({
 
       toast.error(parseApiError(error));
       setUsers([]);
-      setMeta({
-        ...EMPTY_META,
-        pageSize,
-      });
+      setMeta(createEmptyPaginationMeta<CompanyListMeta>(pageSize));
     } finally {
       if (currentRequestId === usersRequestIdRef.current) {
         setIsUsersLoading(false);

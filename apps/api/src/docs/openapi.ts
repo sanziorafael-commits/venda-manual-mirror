@@ -14,6 +14,7 @@ export const openApiDocument = {
     { name: 'uploads' },
     { name: 'dashboard' },
     { name: 'conversations' },
+    { name: 'located-clients' },
   ],
   components: {
     securitySchemes: {
@@ -251,6 +252,52 @@ export const openApiDocument = {
       post: {
         tags: ['conversations'],
         summary: 'Recebe mensagens de histórico e detecta produtos citados por texto',
+        responses: { '201': { description: 'Criado' } },
+      },
+    },
+    '/api/located-clients': {
+      get: {
+        tags: ['located-clients'],
+        summary: 'Lista clientes localizados com filtros e paginacao',
+        security: [{ bearerAuth: [] }],
+        responses: { '200': { description: 'OK' } },
+      },
+    },
+    '/api/located-clients/{locatedClientId}': {
+      get: {
+        tags: ['located-clients'],
+        summary: 'Busca cliente localizado por id',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { in: 'path', name: 'locatedClientId', required: true, schema: { type: 'string' } },
+        ],
+        responses: { '200': { description: 'OK' } },
+      },
+      delete: {
+        tags: ['located-clients'],
+        summary: 'Exclusao logica de cliente localizado',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { in: 'path', name: 'locatedClientId', required: true, schema: { type: 'string' } },
+        ],
+        responses: { '200': { description: 'OK' } },
+      },
+    },
+    '/api/located-clients/{locatedClientId}/status': {
+      patch: {
+        tags: ['located-clients'],
+        summary: 'Atualiza status do cliente localizado',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { in: 'path', name: 'locatedClientId', required: true, schema: { type: 'string' } },
+        ],
+        responses: { '200': { description: 'OK' } },
+      },
+    },
+    '/api/located-clients/webhook': {
+      post: {
+        tags: ['located-clients'],
+        summary: 'Recebe clientes localizados pela integracao de IA',
         responses: { '201': { description: 'Criado' } },
       },
     },

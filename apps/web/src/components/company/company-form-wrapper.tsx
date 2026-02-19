@@ -7,6 +7,10 @@ import { toast } from "sonner";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
 import {
+  createEmptyPaginationMeta,
+  DEFAULT_PAGE_SIZE,
+} from "@/lib/pagination";
+import {
   companiesApiResponseSchema,
   type CompanyListItem,
   type CompanyListMeta,
@@ -15,22 +19,15 @@ import {
 import { CompanyFilterForm } from "./company-filter-form";
 import { CompanyTable } from "./company-table";
 
-const DEFAULT_PAGE_SIZE = 10;
-
-const EMPTY_META: CompanyListMeta = {
-  page: 1,
-  pageSize: DEFAULT_PAGE_SIZE,
-  total: 0,
-  totalPages: 1,
-};
-
 export function CompanyFormWrapper() {
   const router = useRouter();
   const [searchDraft, setSearchDraft] = React.useState("");
   const [query, setQuery] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(true);
   const [companies, setCompanies] = React.useState<CompanyListItem[]>([]);
-  const [meta, setMeta] = React.useState<CompanyListMeta>(EMPTY_META);
+  const [meta, setMeta] = React.useState<CompanyListMeta>(
+    createEmptyPaginationMeta<CompanyListMeta>(),
+  );
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
   const requestIdRef = React.useRef(0);
@@ -57,10 +54,7 @@ export function CompanyFormWrapper() {
       if (!parsedResponse.success) {
         toast.error("Resposta inesperada ao carregar empresas.");
         setCompanies([]);
-        setMeta({
-          ...EMPTY_META,
-          pageSize,
-        });
+        setMeta(createEmptyPaginationMeta<CompanyListMeta>(pageSize));
         return;
       }
 
@@ -78,10 +72,7 @@ export function CompanyFormWrapper() {
 
       toast.error(parseApiError(error));
       setCompanies([]);
-      setMeta({
-        ...EMPTY_META,
-        pageSize,
-      });
+      setMeta(createEmptyPaginationMeta<CompanyListMeta>(pageSize));
     } finally {
       if (currentRequestId === requestIdRef.current) {
         setIsLoading(false);

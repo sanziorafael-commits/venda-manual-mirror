@@ -1,8 +1,8 @@
-import { UserRole } from '@prisma/client';
-
 import { prisma } from '../lib/prisma.js';
 import type { ConversationWebhookMessageInput } from '../schemas/conversation.schema.js';
 import { normalizePhone } from '../utils/normalizers.js';
+
+import { resolveSellerScopeByPhone } from './seller-scope-resolver.service.js';
 
 type NormalizedConversationWebhookInput = {
   timestampIso: Date | null;
@@ -22,12 +22,6 @@ type NormalizedConversationWebhookInput = {
   companyId: string | null;
   userId: string | null;
   source: string | null;
-};
-
-type ResolveConversationScopeInput = {
-  userId: string | null;
-  companyId: string | null;
-  vendedorTelefone: string | null;
 };
 
 type MentionMethod = 'code_exact' | 'name_exact' | 'name_fuzzy';
@@ -95,10 +89,10 @@ async function ingestConversationWebhookMessage(
   productMatcherCache: Map<string, ProductMatcherEntry[]>,
 ) {
   const normalized = normalizeConversationWebhookMessage(message);
-  const resolvedScope = await resolveConversationScope({
+  const resolvedScope = await resolveSellerScopeByPhone({
     userId: normalized.userId,
     companyId: normalized.companyId,
-    vendedorTelefone: normalized.vendedorTelefone,
+    sellerPhone: normalized.vendedorTelefone,
   });
 
   const record = await prisma.historico_conversas.create({
@@ -145,89 +139,6 @@ async function ingestConversationWebhookMessage(
   return {
     id: record.id,
     linkedProducts,
-  };
-}
-
-async function resolveConversationScope(input: ResolveConversationScopeInput) {
-  let resolvedUserId = normalizeText(input.userId);
-  let resolvedCompanyId = normalizeText(input.companyId);
-
-  if (resolvedUserId) {
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        id: resolvedUserId,
-        deletedAt: null,
-      },
-      select: {
-        id: true,
-        companyId: true,
-      },
-    });
-
-    if (existingUser) {
-      resolvedUserId = existingUser.id;
-
-      if (!resolvedCompanyId && existingUser.companyId) {
-        resolvedCompanyId = existingUser.companyId;
-      }
-    } else {
-      resolvedUserId = null;
-    }
-  }
-
-  if (!resolvedUserId && input.vendedorTelefone) {
-    if (resolvedCompanyId) {
-      const user = await prisma.user.findFirst({
-        where: {
-          role: {
-            in: [UserRole.VENDEDOR, UserRole.SUPERVISOR],
-          },
-          phone: input.vendedorTelefone,
-          companyId: resolvedCompanyId,
-          deletedAt: null,
-        },
-        select: {
-          id: true,
-          companyId: true,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      });
-
-      if (user) {
-        resolvedUserId = user.id;
-        resolvedCompanyId = user.companyId;
-      }
-    } else {
-      const users = await prisma.user.findMany({
-        where: {
-          role: {
-            in: [UserRole.VENDEDOR, UserRole.SUPERVISOR],
-          },
-          phone: input.vendedorTelefone,
-          deletedAt: null,
-        },
-        select: {
-          id: true,
-          companyId: true,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        take: 2,
-      });
-
-      if (users.length === 1) {
-        resolvedUserId = users[0].id;
-        resolvedCompanyId = users[0].companyId;
-      }
-    }
-  }
-
-  return {
-    userId: resolvedUserId,
-    companyId: resolvedCompanyId,
   };
 }
 

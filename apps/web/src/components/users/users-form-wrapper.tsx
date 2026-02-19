@@ -7,6 +7,10 @@ import { toast } from "sonner";
 import { useAuthHydrated, useAuthUser } from "@/hooks/use-auth-user";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
+import {
+  createEmptyPaginationMeta,
+  DEFAULT_PAGE_SIZE,
+} from "@/lib/pagination";
 import { tryApiDelete } from "@/lib/try-api";
 import {
   usersApiResponseSchema,
@@ -22,16 +26,7 @@ import {
 import { UsersFilterForm } from "./users-filter-form";
 import { UsersTable } from "./users-table";
 
-const DEFAULT_PAGE_SIZE = 10;
-
 type UserStatusFilter = "ALL" | "ACTIVE" | "INACTIVE";
-
-const EMPTY_META: UserListMeta = {
-  page: 1,
-  pageSize: DEFAULT_PAGE_SIZE,
-  total: 0,
-  totalPages: 1,
-};
 
 export function UsersFormWrapper() {
   const router = useRouter();
@@ -51,7 +46,9 @@ export function UsersFormWrapper() {
   const [query, setQuery] = React.useState("");
   const [isLoadingUsers, setIsLoadingUsers] = React.useState(true);
   const [users, setUsers] = React.useState<UserListItem[]>([]);
-  const [meta, setMeta] = React.useState<UserListMeta>(EMPTY_META);
+  const [meta, setMeta] = React.useState<UserListMeta>(
+    createEmptyPaginationMeta<UserListMeta>(),
+  );
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
   const [roleFilterValue, setRoleFilterValue] = React.useState<
@@ -90,10 +87,7 @@ export function UsersFormWrapper() {
 
     if (isAdmin && !selectedCompanyContext) {
       setUsers([]);
-      setMeta({
-        ...EMPTY_META,
-        pageSize,
-      });
+      setMeta(createEmptyPaginationMeta<UserListMeta>(pageSize));
       setIsLoadingUsers(false);
       return;
     }
@@ -139,10 +133,7 @@ export function UsersFormWrapper() {
       if (!parsed.success) {
         toast.error("Resposta inesperada ao carregar usuários.");
         setUsers([]);
-        setMeta({
-          ...EMPTY_META,
-          pageSize,
-        });
+        setMeta(createEmptyPaginationMeta<UserListMeta>(pageSize));
         return;
       }
 
@@ -160,10 +151,7 @@ export function UsersFormWrapper() {
 
       toast.error(parseApiError(error));
       setUsers([]);
-      setMeta({
-        ...EMPTY_META,
-        pageSize,
-      });
+      setMeta(createEmptyPaginationMeta<UserListMeta>(pageSize));
     } finally {
       if (currentRequestId === usersRequestIdRef.current) {
         setIsLoadingUsers(false);

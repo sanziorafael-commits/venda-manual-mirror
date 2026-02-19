@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PAGE_SIZE_OPTIONS } from "@/lib/pagination";
 
 type CompanyFilterFormProps = {
   searchValue: string;
@@ -12,8 +13,6 @@ type CompanyFilterFormProps = {
   onSubmit: () => void;
   onAddCompany: () => void;
 };
-
-const PAGE_SIZE_OPTIONS = [10, 20, 30, 50];
 
 export function CompanyFilterForm({
   searchValue,

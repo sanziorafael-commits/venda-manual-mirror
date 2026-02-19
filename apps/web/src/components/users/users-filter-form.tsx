@@ -2,6 +2,7 @@ import { Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PAGE_SIZE_OPTIONS } from "@/lib/pagination";
 import type { UserRole } from "@/schemas/user";
 
 type UserStatusFilter = "ALL" | "ACTIVE" | "INACTIVE";
@@ -23,7 +24,6 @@ type UsersFilterFormProps = {
   onAddUser: () => void;
 };
 
-const PAGE_SIZE_OPTIONS = [10, 20, 30, 50];
 const ROLE_OPTIONS: Array<{ value: "ALL" | UserRole; label: string }> = [
   { value: "ALL", label: "Todos os cargos" },
   { value: "ADMIN", label: "Admin" },

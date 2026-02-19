@@ -2,8 +2,7 @@
 
 import * as React from "react";
 import { format } from "date-fns";
-import { Search } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Search, Trash2 } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 
@@ -18,22 +17,26 @@ import {
   DEFAULT_PAGE_SIZE,
   PAGE_SIZE_OPTIONS,
 } from "@/lib/pagination";
+import { tryApiDelete } from "@/lib/try-api";
 import {
-  conversationsApiResponseSchema,
-  type ConversationListItem,
-  type ConversationListMeta,
-} from "@/schemas/conversation";
+  locatedClientsApiResponseSchema,
+  type LocatedClientListItem,
+  type LocatedClientListMeta,
+} from "@/schemas/located-client";
 import {
   isPlatformAdminContext,
   useSelectedCompanyContext,
 } from "@/stores/company-context-store";
 
-export function ConversationsHistoryWrapper() {
-  const router = useRouter();
+export function LocatedClientsWrapper() {
   const authUser = useAuthUser();
   const authHydrated = useAuthHydrated();
   const selectedCompanyContext = useSelectedCompanyContext();
   const isAdmin = authUser?.role === "ADMIN";
+  const canMutateLocatedClients =
+    authUser?.role === "DIRETOR" ||
+    authUser?.role === "GERENTE_COMERCIAL" ||
+    authUser?.role === "SUPERVISOR";
 
   const selectedCompanyId = React.useMemo(() => {
     if (!isAdmin) {
@@ -57,16 +60,16 @@ export function ConversationsHistoryWrapper() {
   );
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
-  const [isLoadingConversations, setIsLoadingConversations] =
+  const [isLoadingLocatedClients, setIsLoadingLocatedClients] =
     React.useState(true);
-  const [conversations, setConversations] = React.useState<
-    ConversationListItem[]
+  const [locatedClients, setLocatedClients] = React.useState<
+    LocatedClientListItem[]
   >([]);
-  const [meta, setMeta] = React.useState<ConversationListMeta>(
-    createEmptyPaginationMeta<ConversationListMeta>(),
+  const [meta, setMeta] = React.useState<LocatedClientListMeta>(
+    createEmptyPaginationMeta<LocatedClientListMeta>(),
   );
 
-  const conversationsRequestRef = React.useRef(0);
+  const requestRef = React.useRef(0);
 
   const startDate = React.useMemo(() => {
     if (!dateRange?.from) {
@@ -85,15 +88,15 @@ export function ConversationsHistoryWrapper() {
     return format(endSource, "yyyy-MM-dd");
   }, [dateRange?.from, dateRange?.to]);
 
-  const loadConversations = React.useCallback(async () => {
+  const loadLocatedClients = React.useCallback(async () => {
     if (!authHydrated) {
       return;
     }
 
     if (isAdmin && !selectedCompanyId) {
-      setConversations([]);
-      setMeta(createEmptyPaginationMeta<ConversationListMeta>(pageSize));
-      setIsLoadingConversations(false);
+      setLocatedClients([]);
+      setMeta(createEmptyPaginationMeta<LocatedClientListMeta>(pageSize));
+      setIsLoadingLocatedClients(false);
       return;
     }
 
@@ -102,7 +105,7 @@ export function ConversationsHistoryWrapper() {
     params.set("pageSize", String(pageSize));
 
     if (query.trim().length > 0) {
-      params.set("q", query.trim());
+      params.set("seller", query.trim());
     }
 
     if (startDate) {
@@ -117,26 +120,26 @@ export function ConversationsHistoryWrapper() {
       params.set("companyId", selectedCompanyId);
     }
 
-    const currentRequestId = ++conversationsRequestRef.current;
-    setIsLoadingConversations(true);
+    const currentRequestId = ++requestRef.current;
+    setIsLoadingLocatedClients(true);
 
     try {
       const response = await apiFetch<unknown>(
-        `/conversations?${params.toString()}`,
+        `/located-clients?${params.toString()}`,
       );
-      if (currentRequestId !== conversationsRequestRef.current) {
+      if (currentRequestId !== requestRef.current) {
         return;
       }
 
-      const parsed = conversationsApiResponseSchema.safeParse(response);
+      const parsed = locatedClientsApiResponseSchema.safeParse(response);
       if (!parsed.success) {
-        toast.error("Resposta inesperada ao carregar histórico.");
-        setConversations([]);
-        setMeta(createEmptyPaginationMeta<ConversationListMeta>(pageSize));
+        toast.error("Resposta inesperada ao carregar clientes localizados.");
+        setLocatedClients([]);
+        setMeta(createEmptyPaginationMeta<LocatedClientListMeta>(pageSize));
         return;
       }
 
-      setConversations(parsed.data.data);
+      setLocatedClients(parsed.data.data);
       setMeta(parsed.data.meta);
 
       const normalizedPageIndex = Math.max(0, parsed.data.meta.page - 1);
@@ -144,16 +147,16 @@ export function ConversationsHistoryWrapper() {
         setPageIndex(normalizedPageIndex);
       }
     } catch (error) {
-      if (currentRequestId !== conversationsRequestRef.current) {
+      if (currentRequestId !== requestRef.current) {
         return;
       }
 
       toast.error(parseApiError(error));
-      setConversations([]);
-      setMeta(createEmptyPaginationMeta<ConversationListMeta>(pageSize));
+      setLocatedClients([]);
+      setMeta(createEmptyPaginationMeta<LocatedClientListMeta>(pageSize));
     } finally {
-      if (currentRequestId === conversationsRequestRef.current) {
-        setIsLoadingConversations(false);
+      if (currentRequestId === requestRef.current) {
+        setIsLoadingLocatedClients(false);
       }
     }
   }, [
@@ -168,8 +171,8 @@ export function ConversationsHistoryWrapper() {
   ]);
 
   React.useEffect(() => {
-    void loadConversations();
-  }, [loadConversations]);
+    void loadLocatedClients();
+  }, [loadLocatedClients]);
 
   React.useEffect(() => {
     if (!isAdmin) {
@@ -183,13 +186,13 @@ export function ConversationsHistoryWrapper() {
     const nextQuery = searchDraft.trim();
 
     if (nextQuery === query && pageIndex === 0) {
-      void loadConversations();
+      void loadLocatedClients();
       return;
     }
 
     setPageIndex(0);
     setQuery(nextQuery);
-  }, [loadConversations, pageIndex, query, searchDraft]);
+  }, [loadLocatedClients, pageIndex, query, searchDraft]);
 
   const handlePageSizeChange = React.useCallback((nextPageSize: number) => {
     setPageSize(nextPageSize);
@@ -204,8 +207,42 @@ export function ConversationsHistoryWrapper() {
     [],
   );
 
+  const handleDelete = React.useCallback(
+    async (item: LocatedClientListItem) => {
+      if (!canMutateLocatedClients) {
+        toast.error(
+          "Seu perfil possui acesso somente leitura em clientes localizados.",
+        );
+        return;
+      }
+
+      const confirmed = window.confirm(
+        `Confirma a exclusao do cliente "${item.customerName}"?`,
+      );
+      if (!confirmed) {
+        return;
+      }
+
+      const deleted = await tryApiDelete(
+        `/located-clients/${item.id}`,
+        "Cliente localizado excluido com sucesso.",
+      );
+      if (!deleted) {
+        return;
+      }
+
+      if (locatedClients.length === 1 && pageIndex > 0) {
+        setPageIndex((currentPage) => Math.max(0, currentPage - 1));
+        return;
+      }
+
+      void loadLocatedClients();
+    },
+    [canMutateLocatedClients, loadLocatedClients, locatedClients.length, pageIndex],
+  );
+
   return (
-    <section className="flex flex-col gap-5 max-w-6xl">
+    <section className="flex flex-col gap-5 max-w-7xl">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <form
           className="flex w-full max-w-2xl flex-col gap-2"
@@ -214,12 +251,15 @@ export function ConversationsHistoryWrapper() {
             handleSearch();
           }}
         >
-          <label htmlFor="conversations-search" className="text-sm font-medium">
+          <label
+            htmlFor="located-clients-search"
+            className="text-sm font-medium"
+          >
             Buscar por vendedor
           </label>
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
-              id="conversations-search"
+              id="located-clients-search"
               value={searchDraft}
               placeholder="Digite aqui sua busca"
               onChange={(event) => setSearchDraft(event.target.value)}
@@ -228,7 +268,7 @@ export function ConversationsHistoryWrapper() {
             <Button
               type="submit"
               className="bg-[#212a38] text-white hover:bg-[#182130]"
-              disabled={isLoadingConversations}
+              disabled={isLoadingLocatedClients}
             >
               <Search className="size-4" />
               Buscar
@@ -236,16 +276,16 @@ export function ConversationsHistoryWrapper() {
           </div>
         </form>
 
-        <div className="flex items-center gap-2">
-          <div className="flex flex-col gap-1 text-sm">
-            <span>Data</span>
+        <div className="flex items-end gap-2">
+          <label className="flex flex-col gap-1 text-sm">
+            Data
             <DateRangePicker
               value={dateRange}
               onChange={handleDateRangeChange}
-              disabled={isLoadingConversations}
-              className="min-w-[230px]"
+              disabled={isLoadingLocatedClients}
+              className="min-w-[210px]"
             />
-          </div>
+          </label>
 
           <label className="flex flex-col gap-1 text-sm">
             Itens
@@ -255,7 +295,7 @@ export function ConversationsHistoryWrapper() {
               onChange={(event) =>
                 handlePageSizeChange(Number(event.target.value))
               }
-              disabled={isLoadingConversations}
+              disabled={isLoadingLocatedClients}
             >
               {PAGE_SIZE_OPTIONS.map((option) => (
                 <option key={option} value={option}>
@@ -269,31 +309,34 @@ export function ConversationsHistoryWrapper() {
 
       {isAdmin && !selectedCompanyId ? (
         <div className="rounded-xl border border-dashed bg-card p-6 text-sm text-muted-foreground">
-          Selecione uma empresa no topo para visualizar o histórico.
+          Selecione uma empresa no topo para visualizar os clientes localizados.
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[920px] border-collapse text-left text-sm">
+            <table className="w-full min-w-[1180px] border-collapse text-left text-sm">
               <thead className="bg-muted text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3 font-semibold">Nome do vendedor</th>
-                  {isAdmin ? (
-                    <th className="px-4 py-3 font-semibold">Distribuidor</th>
+                  <th className="px-4 py-3 font-semibold">Vendedor que identificou</th>
+                  <th className="px-4 py-3 font-semibold">Nome do cliente</th>
+                  <th className="px-4 py-3 font-semibold">Cidade</th>
+                  <th className="px-4 py-3 font-semibold">Estado</th>
+                  <th className="px-4 py-3 font-semibold">Endereço</th>
+                  <th className="px-4 py-3 font-semibold">Identificado em</th>
+                  <th className="px-4 py-3 font-semibold">Mapa</th>
+                  {canMutateLocatedClients ? (
+                    <th className="px-4 py-3 font-semibold">Ações</th>
                   ) : null}
-                  <th className="px-4 py-3 font-semibold">Interações</th>
-                  <th className="px-4 py-3 font-semibold">Última interação</th>
-                  <th className="px-4 py-3 font-semibold">Conversa</th>
                 </tr>
               </thead>
               <tbody>
-                {isLoadingConversations
+                {isLoadingLocatedClients
                   ? Array.from(
                       { length: Math.max(4, Math.min(pageSize, 8)) },
                       (_, rowIndex) => (
                         <tr key={`loading-${rowIndex}`} className="border-t">
                           {Array.from(
-                            { length: isAdmin ? 5 : 4 },
+                            { length: canMutateLocatedClients ? 8 : 7 },
                             (_, columnIndex) => (
                               <td
                                 key={`loading-${rowIndex}-${columnIndex}`}
@@ -306,54 +349,71 @@ export function ConversationsHistoryWrapper() {
                         </tr>
                       ),
                     )
-                  : conversations.map((conversation) => (
-                      <tr key={conversation.id} className="border-t">
+                  : locatedClients.map((item) => (
+                      <tr key={item.id} className="border-t">
                         <td className="px-4 py-4">
                           <p className="font-medium">
-                            {conversation.vendedorNome}
+                            {item.identifiedByUserName ?? "Vendedor nao identificado"}
                           </p>
-                          {conversation.vendedorTelefone ? (
-                            <p className="text-xs text-muted-foreground">
-                              {formatPhone(conversation.vendedorTelefone)}
-                            </p>
-                          ) : null}
+                          <p className="text-xs text-muted-foreground">
+                            {formatPhone(item.sourceSellerPhone)}
+                          </p>
                         </td>
-                        {isAdmin ? (
+                        <td className="px-4 py-4">{item.customerName}</td>
+                        <td className="px-4 py-4">{item.city}</td>
+                        <td className="px-4 py-4">{item.state}</td>
+                        <td className="px-4 py-4">{item.address}</td>
+                        <td className="px-4 py-4">
+                          {formatDate(item.identifiedAt)}
+                        </td>
+                        <td className="px-4 py-4">
+                          {item.mapUrl ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                              onClick={() =>
+                                window.open(
+                                  item.mapUrl ?? "",
+                                  "_blank",
+                                  "noopener,noreferrer",
+                                )
+                              }
+                            >
+                              Ver no mapa
+                            </Button>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                        {canMutateLocatedClients ? (
                           <td className="px-4 py-4">
-                            {conversation.companyName ?? "Sem empresa"}
+                            <div className="flex items-center">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                onClick={() => void handleDelete(item)}
+                                disabled={isLoadingLocatedClients}
+                                aria-label={`Excluir cliente ${item.customerName}`}
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            </div>
                           </td>
                         ) : null}
-                        <td className="px-4 py-4">
-                          {conversation.totalInteracoes}
-                        </td>
-                        <td className="px-4 py-4">
-                          {formatDateTime(conversation.ultimaInteracaoEm)}
-                        </td>
-                        <td className="px-4 py-4">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
-                            onClick={() =>
-                              router.push(
-                                `/dashboard/conversations/${conversation.id}`,
-                              )
-                            }
-                          >
-                            Ver conversa
-                          </Button>
-                        </td>
                       </tr>
                     ))}
 
-                {!isLoadingConversations && conversations.length === 0 ? (
+                {!isLoadingLocatedClients && locatedClients.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={isAdmin ? 5 : 4}
+                      colSpan={canMutateLocatedClients ? 8 : 7}
                       className="px-4 py-8 text-center text-sm text-muted-foreground"
                     >
-                      Nenhuma conversa encontrada.
+                      Nenhum cliente localizado encontrado.
                     </td>
                   </tr>
                 ) : null}
@@ -366,18 +426,14 @@ export function ConversationsHistoryWrapper() {
       <PaginationControls
         pageIndex={pageIndex}
         totalPages={meta.totalPages}
-        isLoading={isLoadingConversations}
+        isLoading={isLoadingLocatedClients}
         onPageChange={setPageIndex}
       />
     </section>
   );
 }
 
-function formatDateTime(value: string | null) {
-  if (!value) {
-    return "-";
-  }
-
+function formatDate(value: string) {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
     return "-";
@@ -387,8 +443,6 @@ function formatDateTime(value: string | null) {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
   });
 }
 

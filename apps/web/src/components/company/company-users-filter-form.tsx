@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PAGE_SIZE_OPTIONS } from "@/lib/pagination";
 
 type CompanyUsersFilterFormProps = {
   searchValue: string;
@@ -11,8 +12,6 @@ type CompanyUsersFilterFormProps = {
   onPageSizeChange: (pageSize: number) => void;
   onSubmit: () => void;
 };
-
-const PAGE_SIZE_OPTIONS = [10, 20, 30, 50];
 
 export function CompanyUsersFilterForm({
   searchValue,

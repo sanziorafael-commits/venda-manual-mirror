@@ -5,9 +5,10 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ChevronLeft, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import type { CompanyUserItem } from "@/schemas/company";
 
 type CompanyUsersTableProps = {
@@ -36,20 +37,6 @@ function formatCpf(value: string) {
   }
 
   return digits.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
-}
-
-function buildPageList(currentPage: number, totalPages: number, maxPages = 7) {
-  if (totalPages <= maxPages) {
-    return Array.from({ length: totalPages }, (_, index) => index);
-  }
-
-  const sideSlots = Math.floor((maxPages - 1) / 2);
-  const start = Math.max(
-    0,
-    Math.min(currentPage - sideSlots, totalPages - maxPages),
-  );
-
-  return Array.from({ length: maxPages }, (_, index) => start + index);
 }
 
 export function CompanyUsersTable({
@@ -154,10 +141,6 @@ export function CompanyUsersTable({
     getCoreRowModel: getCoreRowModel(),
   });
 
-  const canGoBack = pageIndex > 0;
-  const canGoForward = pageIndex + 1 < totalPages;
-  const pages = buildPageList(pageIndex, totalPages);
-
   return (
     <div className="flex flex-col gap-4">
       <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
@@ -222,49 +205,12 @@ export function CompanyUsersTable({
         </div>
       </div>
 
-      <div className="flex items-center justify-center">
-        <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            disabled={!canGoBack || isLoading}
-            onClick={() => onPageChange(pageIndex - 1)}
-            aria-label="Página anterior"
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-
-          {pages.map((page) => (
-            <Button
-              key={page}
-              type="button"
-              variant="ghost"
-              className={
-                page === pageIndex
-                  ? "bg-[#212a38] text-white hover:bg-[#182130] hover:text-white"
-                  : undefined
-              }
-              size="icon-sm"
-              disabled={isLoading}
-              onClick={() => onPageChange(page)}
-            >
-              {page + 1}
-            </Button>
-          ))}
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            disabled={!canGoForward || isLoading}
-            onClick={() => onPageChange(pageIndex + 1)}
-            aria-label="Próxima página"
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
-      </div>
+      <PaginationControls
+        pageIndex={pageIndex}
+        totalPages={totalPages}
+        isLoading={isLoading}
+        onPageChange={onPageChange}
+      />
     </div>
   );
 }
