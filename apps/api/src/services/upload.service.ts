@@ -33,13 +33,13 @@ const UPLOAD_TARGET_POLICY: Record<UploadTarget, UploadTargetPolicy> = {
     allowedMimeExact: IMAGE_ALLOWED_MIME_TYPES,
   },
   PRODUCT_IMAGE: {
-    maxSizeBytes: 10 * 1024 * 1024,
+    maxSizeBytes: 3 * 1024 * 1024,
     allowedRoles: [UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR],
     allowedMimePrefixes: [],
     allowedMimeExact: IMAGE_ALLOWED_MIME_TYPES,
   },
   PRODUCT_VIDEO: {
-    maxSizeBytes: 150 * 1024 * 1024,
+    maxSizeBytes: 100 * 1024 * 1024,
     allowedRoles: [UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR],
     allowedMimePrefixes: ['video/'],
   },

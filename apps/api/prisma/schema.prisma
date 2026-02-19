@@ -224,6 +224,7 @@ model produtos {
   id                                  String                         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   created_at                          DateTime                       @default(now()) @db.Timestamptz(6)
   updated_at                          DateTime                       @default(now()) @db.Timestamptz(6)
+  deleted_at                          DateTime?                      @db.Timestamptz(6)
   company_id                          String?
   company                             Company?                       @relation("ProdutoCompany", fields: [company_id], references: [id], onDelete: SetNull)
   nome                                String
@@ -271,7 +272,9 @@ model produtos {
   citedOnHistory                      historico_conversas_produtos[] @relation("HistoricoConversaProdutoProduto")
 
   @@index([company_id], map: "idx_produtos_company_id")
+  @@index([deleted_at], map: "idx_produtos_deleted_at")
   @@index([company_id, nome], map: "idx_produtos_company_nome")
+  @@index([company_id, deleted_at, created_at(sort: Desc)], map: "idx_produtos_company_deleted_created")
   @@index([codigo_interno_sku], map: "idx_produtos_codigo_interno")
   @@index([created_at(sort: Desc)], map: "idx_produtos_created_at")
   @@index([marca], map: "idx_produtos_marca")

@@ -217,6 +217,7 @@ async function getCompanyProductMatcherEntries(
   const products = await prisma.produtos.findMany({
     where: {
       company_id: companyId,
+      deleted_at: null,
     },
     select: {
       id: true,

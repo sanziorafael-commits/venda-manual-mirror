@@ -1192,6 +1192,7 @@ function buildProductSqlWhere(
     Prisma.sql`hcp.cited_at >= ${startAt}`,
     Prisma.sql`hcp.cited_at <= ${endAt}`,
     actorScopeSqlWhere,
+    Prisma.sql`p.deleted_at IS NULL`,
   ];
 
   if (companyId) {
