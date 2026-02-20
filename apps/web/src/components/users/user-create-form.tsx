@@ -36,6 +36,10 @@ type SelectOption = {
   label: string;
 };
 
+type UserCreateFormProps = {
+  prefilledCompanyId?: string | null;
+};
+
 const ROLE_LABEL_BY_VALUE: Record<UserRole, string> = {
   ADMIN: "Admin",
   DIRETOR: "Diretor",
@@ -155,7 +159,7 @@ async function fetchUserOptionsByRole(input: {
   return options;
 }
 
-export function UserCreateForm() {
+export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProps) {
   const router = useRouter();
   const authUser = useAuthUser();
   const authHydrated = useAuthHydrated();
@@ -170,6 +174,10 @@ export function UserCreateForm() {
   const [isLoadingCompanies, setIsLoadingCompanies] = React.useState(false);
   const [isLoadingManagers, setIsLoadingManagers] = React.useState(false);
   const [isLoadingSupervisors, setIsLoadingSupervisors] = React.useState(false);
+  const prefilledCompanyIdValue = React.useMemo(() => {
+    const value = prefilledCompanyId?.trim() ?? "";
+    return value.length > 0 ? value : "";
+  }, [prefilledCompanyId]);
 
   const {
     register,
@@ -229,14 +237,17 @@ export function UserCreateForm() {
       email: "",
       phone: "",
       role: defaultRole,
-      companyId: authUser.role === "ADMIN" ? "" : (authUser.companyId ?? ""),
+      companyId:
+        authUser.role === "ADMIN"
+          ? prefilledCompanyIdValue
+          : (authUser.companyId ?? ""),
       password: "",
       managerId: "",
       supervisorId: "",
     });
 
     setupDoneRef.current = true;
-  }, [authHydrated, authUser, reset]);
+  }, [authHydrated, authUser, prefilledCompanyIdValue, reset]);
 
   React.useEffect(() => {
     if (selectedRole !== "SUPERVISOR") {

@@ -1,9 +1,11 @@
 ﻿"use client";
 
 import * as React from "react";
+import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
 import { useAuthUser } from "@/hooks/use-auth-user";
 import { canResendActivationInvite } from "@/lib/activation-invite";
 import { apiFetch } from "@/lib/api-client";
@@ -152,6 +154,10 @@ export function CompanyDetailsWrapper({
 
   const handleEditCompany = React.useCallback(() => {
     router.push(`/dashboard/companies/${companyId}/edit`);
+  }, [companyId, router]);
+
+  const handleAddUser = React.useCallback(() => {
+    router.push(`/dashboard/users/new?companyId=${companyId}`);
   }, [companyId, router]);
 
   const handleEditUser = React.useCallback(
@@ -316,7 +322,17 @@ export function CompanyDetailsWrapper({
       <CompanyDetailsCard company={company} onEditCompany={handleEditCompany} />
 
       <div className="flex flex-col gap-5">
-        <h3 className="text-2xl font-semibold">Usuários da empresa</h3>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-2xl font-semibold">Usuários da empresa</h3>
+          <Button
+            type="button"
+            className="bg-emerald-600 text-white hover:bg-emerald-700 lg:hidden"
+            onClick={handleAddUser}
+          >
+            Adicionar usuário
+            <Plus className="size-4" />
+          </Button>
+        </div>
 
         <CompanyUsersFilterForm
           searchValue={searchDraft}
@@ -325,6 +341,7 @@ export function CompanyDetailsWrapper({
           onSearchValueChange={setSearchDraft}
           onPageSizeChange={handlePageSizeChange}
           onSubmit={handleSearch}
+          onAddUser={handleAddUser}
         />
 
         <CompanyUsersTable

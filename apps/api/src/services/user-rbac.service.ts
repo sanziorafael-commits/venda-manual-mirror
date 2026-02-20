@@ -19,7 +19,13 @@ export function canReadUserByHierarchy(actor: AuthActor, target: ScopedTargetUse
   }
 
   if (actor.role === UserRole.DIRETOR) {
-    return Boolean(actor.companyId) && actor.companyId === target.companyId;
+    return (
+      Boolean(actor.companyId) &&
+      actor.companyId === target.companyId &&
+      (target.role === UserRole.GERENTE_COMERCIAL ||
+        target.role === UserRole.SUPERVISOR ||
+        target.role === UserRole.VENDEDOR)
+    );
   }
 
   if (actor.role === UserRole.GERENTE_COMERCIAL) {

@@ -6,12 +6,25 @@ import { createPageMetadata } from "@/lib/metadata";
 
 export const metadata = createPageMetadata("Adicionar Usuário");
 
-export default async function DashboardUserCreatePage() {
+type DashboardUserCreatePageProps = {
+  searchParams: Promise<{
+    companyId?: string;
+  }>;
+};
+
+export default async function DashboardUserCreatePage({
+  searchParams,
+}: DashboardUserCreatePageProps) {
+  const { companyId } = await searchParams;
+  const backHref = companyId
+    ? `/dashboard/companies/${companyId}`
+    : "/dashboard/users";
+
   return (
     <div className="flex w-full max-w-6xl flex-col gap-6 p-6">
       <div className="flex flex-wrap items-center gap-3 text-sm">
         <Link
-          href="/dashboard/users"
+          href={backHref}
           className="inline-flex items-center gap-2 font-medium text-foreground hover:text-foreground/80"
         >
           <ArrowLeft className="size-4" />
@@ -28,7 +41,7 @@ export default async function DashboardUserCreatePage() {
 
       <h3 className="text-2xl font-semibold">Adicionar usuário</h3>
 
-      <UserCreateForm />
+      <UserCreateForm prefilledCompanyId={companyId ?? null} />
     </div>
   );
 }

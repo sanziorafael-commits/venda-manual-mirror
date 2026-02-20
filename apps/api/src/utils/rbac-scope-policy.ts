@@ -50,6 +50,14 @@ function buildManagerScopedWhere(actorUserId: string): Prisma.UserWhereInput {
   };
 }
 
+function buildDirectorUsersScopedWhere(): Prisma.UserWhereInput {
+  return {
+    role: {
+      in: [UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR, UserRole.VENDEDOR],
+    },
+  };
+}
+
 export function resolveActorCompanyScope(actor: AuthActor, requestedCompanyId?: string) {
   if (actor.role === UserRole.ADMIN) {
     return requestedCompanyId ?? null;
@@ -81,6 +89,10 @@ export function getUserReadScopeWhere(
   }
 
   if (actor.role === UserRole.DIRETOR) {
+    if (context === 'users') {
+      return buildDirectorUsersScopedWhere();
+    }
+
     return {};
   }
 

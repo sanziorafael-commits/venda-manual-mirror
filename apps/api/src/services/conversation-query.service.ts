@@ -29,13 +29,15 @@ export async function listConversations(actor: AuthActor, input: ConversationLis
   const pagination = getPagination(input.page, input.pageSize);
   const scopedCompanyId = resolveScopedCompanyId(actor, input.companyId);
   const range = parseDateRange(input.startDate, input.endDate);
-  const where = buildConversationListWhere({
+  const baseWhere = buildConversationListWhere({
     companyId: scopedCompanyId,
     range,
     q: input.q,
     vendedorNome: input.vendedorNome,
     vendedorTelefone: input.vendedorTelefone,
   });
+  const actorScopeWhere = await buildConversationActorScopeWhere(actor, scopedCompanyId);
+  const where = combineWhere(baseWhere, actorScopeWhere);
 
   const grouped = await prisma.historico_conversas.groupBy({
     by: ['company_id', 'vendedor_telefone', 'vendedor_nome'],
@@ -171,6 +173,28 @@ export async function getConversationById(
     }
   }
 
+  const actorScopeWhere = await buildConversationActorScopeWhere(
+    actor,
+    baseConversation.company_id ?? null,
+  );
+  if (Object.keys(actorScopeWhere).length > 0) {
+    const scopedConversation = await prisma.historico_conversas.findFirst({
+      where: combineWhere(
+        {
+          id: conversationId,
+        },
+        actorScopeWhere,
+      ),
+      select: {
+        id: true,
+      },
+    });
+
+    if (!scopedConversation) {
+      throw forbidden('Voce nao tem acesso a esta conversa');
+    }
+  }
+
   const vendedorTelefone = sanitizeDisplayText(baseConversation.vendedor_telefone);
   const vendedorNome = sanitizeDisplayText(baseConversation.vendedor_nome);
 
@@ -196,6 +220,9 @@ export async function getConversationById(
     sharedWhereFilters.push({
       vendedor_nome: baseConversation.vendedor_nome,
     });
+  }
+  if (Object.keys(actorScopeWhere).length > 0) {
+    sharedWhereFilters.push(actorScopeWhere);
   }
 
   const whereWithoutDate =
@@ -306,6 +333,127 @@ function resolveScopedCompanyId(actor: AuthActor, requestedCompanyId?: string) {
   }
 
   return actor.companyId;
+}
+
+async function buildConversationActorScopeWhere(
+  actor: AuthActor,
+  companyId: string | null,
+): Promise<Prisma.historico_conversasWhereInput> {
+  if (actor.role === UserRole.ADMIN || actor.role === UserRole.DIRETOR) {
+    return EMPTY_WHERE;
+  }
+
+  if (!companyId) {
+    return {
+      id: '00000000-0000-0000-0000-000000000000',
+    };
+  }
+
+  if (actor.role === UserRole.GERENTE_COMERCIAL) {
+    const [supervisors, vendors] = await Promise.all([
+      prisma.user.findMany({
+        where: {
+          role: UserRole.SUPERVISOR,
+          managerId: actor.userId,
+          companyId,
+          deletedAt: null,
+        },
+        select: {
+          id: true,
+          phone: true,
+        },
+      }),
+      prisma.user.findMany({
+        where: {
+          role: UserRole.VENDEDOR,
+          companyId,
+          deletedAt: null,
+          supervisor: {
+            is: {
+              managerId: actor.userId,
+              deletedAt: null,
+            },
+          },
+        },
+        select: {
+          id: true,
+          phone: true,
+        },
+      }),
+    ]);
+
+    return buildRestrictedConversationScopeWhere({
+      isRestricted: true,
+      allowedUserIds: [...supervisors.map((supervisor) => supervisor.id), ...vendors.map((vendor) => vendor.id)],
+      allowedPhones: [
+        ...supervisors.map((supervisor) => normalizePhone(supervisor.phone)),
+        ...vendors.map((vendor) => normalizePhone(vendor.phone)),
+      ],
+    });
+  }
+
+  if (actor.role === UserRole.SUPERVISOR) {
+    const vendors = await prisma.user.findMany({
+      where: {
+        role: UserRole.VENDEDOR,
+        companyId,
+        supervisorId: actor.userId,
+        deletedAt: null,
+      },
+      select: {
+        id: true,
+        phone: true,
+      },
+    });
+
+    return buildRestrictedConversationScopeWhere({
+      isRestricted: true,
+      allowedUserIds: vendors.map((vendor) => vendor.id),
+      allowedPhones: vendors.map((vendor) => normalizePhone(vendor.phone)),
+    });
+  }
+
+  throw forbidden('Voce nao tem acesso ao historico de conversas');
+}
+
+function buildRestrictedConversationScopeWhere(input: {
+  isRestricted: boolean;
+  allowedUserIds: string[];
+  allowedPhones: string[];
+}): Prisma.historico_conversasWhereInput {
+  if (!input.isRestricted) {
+    return EMPTY_WHERE;
+  }
+
+  const allowedUserIds = Array.from(new Set(input.allowedUserIds.filter((value) => value.length > 0)));
+  const allowedPhones = Array.from(new Set(input.allowedPhones.filter((value) => value.length > 0)));
+  const orFilters: Prisma.historico_conversasWhereInput[] = [];
+
+  if (allowedUserIds.length > 0) {
+    orFilters.push({
+      user_id: {
+        in: allowedUserIds,
+      },
+    });
+  }
+
+  if (allowedPhones.length > 0) {
+    orFilters.push({
+      vendedor_telefone: {
+        in: allowedPhones,
+      },
+    });
+  }
+
+  if (orFilters.length === 0) {
+    return {
+      id: '00000000-0000-0000-0000-000000000000',
+    };
+  }
+
+  return {
+    OR: orFilters,
+  };
 }
 
 function resolveConversationDetailDateRange(input: ConversationDetailInput) {
