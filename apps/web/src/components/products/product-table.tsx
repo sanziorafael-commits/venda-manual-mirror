@@ -5,7 +5,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { PaginationControls } from "@/components/ui/pagination-controls";
@@ -114,6 +114,7 @@ export function ProductTable({
               onClick={() => onViewDetails(row.original)}
               disabled={isLoading}
             >
+              <Eye className="size-3.5" />
               Ver detalhes
             </Button>
             {canManageProducts ? (
@@ -136,6 +137,7 @@ export function ProductTable({
                   className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                   onClick={() => onDeleteProduct(row.original)}
                   disabled={isLoading}
+                  title={`Excluir produto ${row.original.nome}`}
                   aria-label={`Excluir produto ${row.original.nome}`}
                 >
                   <Trash2 className="size-4" />

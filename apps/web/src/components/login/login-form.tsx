@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import { AuthSubmitButton } from "@/components/auth/auth-submit-button";
 import {
@@ -33,7 +33,7 @@ export function LoginForm({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors },
   } = useForm<LoginSchema>({
     resolver: zodResolver(loginSchema),
@@ -43,8 +43,8 @@ export function LoginForm({
     },
   });
 
-  const email = watch("email", "");
-  const password = watch("password", "");
+  const email = useWatch({ control, name: "email", defaultValue: "" });
+  const password = useWatch({ control, name: "password", defaultValue: "" });
   const isSubmitEnabled = email.trim().length > 0 && password.trim().length > 0;
 
   const { loading, submit } = useAuthSubmit<LoginSchema, LoginResponse>({

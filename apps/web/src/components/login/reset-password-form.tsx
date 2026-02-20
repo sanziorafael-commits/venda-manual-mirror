@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import { AuthSubmitButton } from "@/components/auth/auth-submit-button";
 import { Field, FieldDescription, FieldGroup } from "@/components/ui/field";
@@ -32,7 +32,7 @@ export function ResetPasswordForm({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     setValue,
     formState: { errors },
   } = useForm<ResetPasswordSchema>({
@@ -48,8 +48,12 @@ export function ResetPasswordForm({
     setValue("token", tokenFromUrl, { shouldValidate: true });
   }, [tokenFromUrl, setValue]);
 
-  const password = watch("newPassword", "");
-  const confirmPassword = watch("confirmPassword", "");
+  const password = useWatch({ control, name: "newPassword", defaultValue: "" });
+  const confirmPassword = useWatch({
+    control,
+    name: "confirmPassword",
+    defaultValue: "",
+  });
   const isSubmitEnabled =
     tokenFromUrl.length > 0 &&
     password.trim().length > 0 &&

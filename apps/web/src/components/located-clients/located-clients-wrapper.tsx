@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { format } from "date-fns";
-import { Search, Trash2 } from "lucide-react";
+import { MapPin, Search, Trash2 } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 
@@ -238,11 +238,16 @@ export function LocatedClientsWrapper() {
 
       void loadLocatedClients();
     },
-    [canMutateLocatedClients, loadLocatedClients, locatedClients.length, pageIndex],
+    [
+      canMutateLocatedClients,
+      loadLocatedClients,
+      locatedClients.length,
+      pageIndex,
+    ],
   );
 
   return (
-    <section className="flex flex-col gap-5 max-w-7xl">
+    <section className="flex flex-col gap-5 max-w-full">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <form
           className="flex w-full max-w-2xl flex-col gap-2"
@@ -317,7 +322,9 @@ export function LocatedClientsWrapper() {
             <table className="w-full min-w-[1180px] border-collapse text-left text-sm">
               <thead className="bg-muted text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3 font-semibold">Vendedor que identificou</th>
+                  <th className="px-4 py-3 font-semibold">
+                    Vendedor que identificou
+                  </th>
                   <th className="px-4 py-3 font-semibold">Nome do cliente</th>
                   <th className="px-4 py-3 font-semibold">Cidade</th>
                   <th className="px-4 py-3 font-semibold">Estado</th>
@@ -353,7 +360,8 @@ export function LocatedClientsWrapper() {
                       <tr key={item.id} className="border-t">
                         <td className="px-4 py-4">
                           <p className="font-medium">
-                            {item.identifiedByUserName ?? "Vendedor nao identificado"}
+                            {item.identifiedByUserName ??
+                              "Vendedor nao identificado"}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {formatPhone(item.sourceSellerPhone)}
@@ -381,6 +389,7 @@ export function LocatedClientsWrapper() {
                                 )
                               }
                             >
+                              <MapPin className="size-3.5" />
                               Ver no mapa
                             </Button>
                           ) : (
@@ -397,6 +406,7 @@ export function LocatedClientsWrapper() {
                                 className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                                 onClick={() => void handleDelete(item)}
                                 disabled={isLoadingLocatedClients}
+                                title={`Excluir cliente ${item.customerName}`}
                                 aria-label={`Excluir cliente ${item.customerName}`}
                               >
                                 <Trash2 className="size-4" />
@@ -462,4 +472,3 @@ function formatPhone(phone: string) {
 
   return phone;
 }
-

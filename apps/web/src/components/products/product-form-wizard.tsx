@@ -1104,6 +1104,7 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
                       className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => objectionFieldArray.remove(index)}
                       disabled={isSubmitting}
+                      title={`Remover objecao ${index + 1}`}
                     >
                       <Trash2 className="size-4" />
                     </Button>
@@ -1292,6 +1293,7 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
                       className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => handleRemovePhoto(publicUrl)}
                       disabled={isSubmitting}
+                      title="Remover foto"
                     >
                       <Trash2 className="size-4" />
                     </Button>
@@ -1350,6 +1352,7 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
                       className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => handleRemoveVideo(publicUrl)}
                       disabled={isSubmitting}
+                      title="Remover material"
                     >
                       <Trash2 className="size-4" />
                     </Button>

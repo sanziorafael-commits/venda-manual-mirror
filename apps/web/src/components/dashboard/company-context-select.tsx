@@ -7,6 +7,7 @@ import { useAuthHydrated, useAuthUser } from "@/hooks/use-auth-user";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
 import { dashboardFilterOptionsApiResponseSchema } from "@/schemas/dashboard";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   PLATFORM_ADMIN_CONTEXT,
   useCompanyContextStore,
@@ -31,6 +32,7 @@ export function CompanyContextSelect() {
   const [isLoadingOptions, setIsLoadingOptions] = React.useState(false);
   const [options, setOptions] = React.useState<ContextOption[]>([]);
   const optionsRequestRef = React.useRef(0);
+  const hasRequestedOptions = optionsRequestRef.current > 0;
 
   React.useEffect(() => {
     if (!authHydrated || !authUser) {
@@ -132,10 +134,15 @@ export function CompanyContextSelect() {
   }, [authHydrated, authUser, options, selectedContext, setSelectedContext]);
 
   if (!authHydrated || !authUser) {
-    return null;
+    return <CompanyNameSkeleton />;
   }
 
   if (authUser.role !== "ADMIN") {
+    const isCompanyLoading = options.length === 0 && (!hasRequestedOptions || isLoadingOptions);
+    if (isCompanyLoading) {
+      return <CompanyNameSkeleton />;
+    }
+
     const companyName =
       options.find((option) => option.value === authUser.companyId)?.label ??
       options[0]?.label ??
@@ -151,6 +158,11 @@ export function CompanyContextSelect() {
         </span>
       </div>
     );
+  }
+
+  const isAdminLoading = options.length === 0 && (!hasRequestedOptions || isLoadingOptions);
+  if (isAdminLoading) {
+    return <CompanySelectSkeleton />;
   }
 
   return (
@@ -179,4 +191,22 @@ function initialFromName(name: string) {
   }
 
   return trimmed[0]!.toUpperCase();
+}
+
+function CompanyNameSkeleton() {
+  return (
+    <div className="flex items-center gap-2">
+      <Skeleton className="size-7 rounded-full" />
+      <Skeleton className="h-4 w-28" />
+    </div>
+  );
+}
+
+function CompanySelectSkeleton() {
+  return (
+    <div className="flex items-center gap-2">
+      <Skeleton className="h-3 w-12" />
+      <Skeleton className="h-9 w-40" />
+    </div>
+  );
 }

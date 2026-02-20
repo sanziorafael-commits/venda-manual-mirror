@@ -374,6 +374,11 @@ export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
               className="text-destructive hover:bg-destructive/10 hover:text-destructive"
               onClick={() => setRemoveCurrentLogo((current) => !current)}
               disabled={isSubmitting}
+              title={
+                removeCurrentLogo
+                  ? "Cancelar remocao da logo atual"
+                  : "Remover logo atual"
+              }
             >
               {removeCurrentLogo ? (
                 <>Cancelar remoção da logo atual</>
@@ -417,6 +422,7 @@ export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
                 onClick={() => setLogoFile(null)}
                 disabled={isSubmitting}
                 className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                title="Remover logo selecionada"
               >
                 Remover logo selecionada
               </Button>

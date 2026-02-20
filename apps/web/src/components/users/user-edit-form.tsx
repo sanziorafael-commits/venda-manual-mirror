@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { useAuthHydrated, useAuthUser } from "@/hooks/use-auth-user";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
-import { tryApiDelete } from "@/lib/try-api";
 import {
   companiesApiResponseSchema,
   type CompanyListItem,
@@ -206,7 +205,6 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
   const [isLoadingCompanies, setIsLoadingCompanies] = React.useState(false);
   const [isLoadingManagers, setIsLoadingManagers] = React.useState(false);
   const [isLoadingSupervisors, setIsLoadingSupervisors] = React.useState(false);
-  const [isReactivating, setIsReactivating] = React.useState(false);
 
   const {
     register,
@@ -243,7 +241,8 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
   const shouldShowManagerField =
     selectedRole === "SUPERVISOR" && canUseCompanyScopeFilters;
   const shouldShowSupervisorField =
-    selectedRole === "VENDEDOR" && (canUseCompanyScopeFilters || isManagerActor);
+    selectedRole === "VENDEDOR" &&
+    (canUseCompanyScopeFilters || isManagerActor);
   const shouldShowPasswordField = selectedRole === "ADMIN";
 
   const roleOptions = React.useMemo<UserRole[]>(() => {
@@ -582,67 +581,6 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
     }
   };
 
-  const handleDeleteUser = React.useCallback(async () => {
-    if (!userData) {
-      return;
-    }
-
-    const confirmed = window.confirm(
-      `Confirma a exclusão do usuário "${userData.fullName}"? Esta ação é irreversível.`,
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    const deleted = await tryApiDelete(
-      `/users/${userData.id}`,
-      "Usuário excluído com sucesso.",
-    );
-    if (!deleted) {
-      return;
-    }
-
-    router.push(backHref);
-  }, [backHref, router, userData]);
-
-  const handleReactivateUser = React.useCallback(async () => {
-    if (!userData || userData.isActive) {
-      return;
-    }
-
-    const confirmed = window.confirm(
-      `Confirma reativar o usuário "${userData.fullName}"?`,
-    );
-    if (!confirmed) {
-      return;
-    }
-
-    setIsReactivating(true);
-
-    try {
-      const response = await apiFetch<unknown>(`/users/${userData.id}`, {
-        method: "PATCH",
-        body: {
-          isActive: true,
-        },
-      });
-
-      const parsed = userDetailsApiResponseSchema.safeParse(response);
-      if (!parsed.success) {
-        toast.error("Resposta inesperada ao reativar usuário.");
-        return;
-      }
-
-      setUserData(parsed.data.data);
-      toast.success("Usuário reativado com sucesso!");
-    } catch (error) {
-      toast.error(parseApiError(error));
-    } finally {
-      setIsReactivating(false);
-    }
-  }, [userData]);
-
   if (!authHydrated || isLoadingUser) {
     return (
       <div className="w-full max-w-xl rounded-xl border bg-card p-5 shadow-xs">
@@ -902,36 +840,8 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
               <>Salvar alterações</>
             )}
           </Button>
-
-          {!userData.isActive ? (
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                void handleReactivateUser();
-              }}
-              disabled={isSubmitting || isReactivating}
-            >
-              {isReactivating ? "Reativando..." : "Reativar usuário"}
-            </Button>
-          ) : null}
-
-          {userData.isActive ? (
-            <Button
-              type="button"
-              variant="outline"
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => {
-                void handleDeleteUser();
-              }}
-              disabled={isSubmitting || isReactivating}
-            >
-              Excluir usuário
-            </Button>
-          ) : null}
         </div>
       </FieldGroup>
     </form>
   );
 }
-

@@ -5,7 +5,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Pencil, Trash2 } from "lucide-react";
+import { Mail, Pencil, RotateCcw, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { PaginationControls } from "@/components/ui/pagination-controls";
@@ -14,6 +14,7 @@ import type { UserListItem } from "@/schemas/user";
 type UsersTableProps = {
   data: UserListItem[];
   isLoading: boolean;
+  actionUserId: string | null;
   isAdmin: boolean;
   canManageUsers: boolean;
   pageIndex: number;
@@ -21,6 +22,9 @@ type UsersTableProps = {
   totalPages: number;
   onPageChange: (pageIndex: number) => void;
   onEditUser: (user: UserListItem) => void;
+  canResendActivationForUser: (user: UserListItem) => boolean;
+  onResendActivation: (user: UserListItem) => void;
+  onReactivateUser: (user: UserListItem) => void;
   onDeleteUser: (user: UserListItem) => void;
 };
 
@@ -57,6 +61,7 @@ function formatPhone(value: string) {
 export function UsersTable({
   data,
   isLoading,
+  actionUserId,
   isAdmin,
   canManageUsers,
   pageIndex,
@@ -64,6 +69,9 @@ export function UsersTable({
   totalPages,
   onPageChange,
   onEditUser,
+  canResendActivationForUser,
+  onResendActivation,
+  onReactivateUser,
   onDeleteUser,
 }: UsersTableProps) {
   const columns = React.useMemo<ColumnDef<UserListItem>[]>(() => {
@@ -72,7 +80,9 @@ export function UsersTable({
         accessorKey: "fullName",
         header: "Usuários",
         cell: ({ row }) => (
-          <span className="font-medium text-foreground">{row.original.fullName}</span>
+          <span className="font-medium text-foreground">
+            {row.original.fullName}
+          </span>
         ),
       },
       {
@@ -128,6 +138,9 @@ export function UsersTable({
         header: "Ações",
         cell: ({ row }) => {
           const isDeleted = Boolean(row.original.deletedAt);
+          const isInactive = !row.original.isActive;
+          const isPendingAction = actionUserId === row.original.id;
+          const canResendActivation = canResendActivationForUser(row.original);
 
           return (
             <div className="flex items-center gap-2">
@@ -137,22 +150,53 @@ export function UsersTable({
                 size="sm"
                 className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
                 onClick={() => onEditUser(row.original)}
-                disabled={isLoading}
+                disabled={isLoading || isPendingAction}
+                title={`Editar usuário ${row.original.fullName}`}
               >
                 <Pencil className="size-3.5" />
                 Editar
               </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                onClick={() => onDeleteUser(row.original)}
-                disabled={isDeleted || isLoading}
-                aria-label={`Excluir usuário ${row.original.fullName}`}
-              >
-                <Trash2 className="size-4" />
-              </Button>
+              {canResendActivation ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className="text-emerald-700 hover:bg-emerald-100 hover:text-emerald-700"
+                  onClick={() => onResendActivation(row.original)}
+                  disabled={isLoading || isPendingAction}
+                  title={`Reenviar ativação`}
+                  aria-label={`Reenviar ativação`}
+                >
+                  <Mail className="size-4" />
+                </Button>
+              ) : null}
+              {isInactive ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className="text-emerald-700 hover:bg-emerald-100 hover:text-emerald-700"
+                  onClick={() => onReactivateUser(row.original)}
+                  disabled={isLoading || isPendingAction}
+                  title={`Reativar usuário ${row.original.fullName}`}
+                  aria-label={`Reativar usuário ${row.original.fullName}`}
+                >
+                  <RotateCcw className="size-4" />
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => onDeleteUser(row.original)}
+                  disabled={isDeleted || isLoading || isPendingAction}
+                  title={`Excluir usuário ${row.original.fullName}`}
+                  aria-label={`Excluir usuário ${row.original.fullName}`}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+              )}
             </div>
           );
         },
@@ -160,7 +204,17 @@ export function UsersTable({
     }
 
     return baseColumns;
-  }, [canManageUsers, isAdmin, isLoading, onDeleteUser, onEditUser]);
+  }, [
+    actionUserId,
+    canManageUsers,
+    isAdmin,
+    isLoading,
+    canResendActivationForUser,
+    onDeleteUser,
+    onEditUser,
+    onResendActivation,
+    onReactivateUser,
+  ]);
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -220,7 +274,10 @@ export function UsersTable({
                     <tr key={row.id} className="border-t">
                       {row.getVisibleCells().map((cell) => (
                         <td key={cell.id} className="px-4 py-4">
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
                         </td>
                       ))}
                     </tr>
@@ -250,4 +307,3 @@ export function UsersTable({
     </div>
   );
 }
-

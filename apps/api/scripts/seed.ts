@@ -1,5 +1,5 @@
-import bcrypt from 'bcrypt';
 import { UserRole } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 import { prisma } from '../src/lib/prisma.js';
 import { normalizePhone } from '../src/utils/normalizers.js';

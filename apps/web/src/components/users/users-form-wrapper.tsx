@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { useAuthHydrated, useAuthUser } from "@/hooks/use-auth-user";
+import { canResendActivationInvite } from "@/lib/activation-invite";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
 import {
@@ -13,6 +14,7 @@ import {
 } from "@/lib/pagination";
 import { tryApiDelete } from "@/lib/try-api";
 import {
+  userDetailsApiResponseSchema,
   usersApiResponseSchema,
   type UserListItem,
   type UserListMeta,
@@ -56,6 +58,7 @@ export function UsersFormWrapper() {
   >("ALL");
   const [statusFilterValue, setStatusFilterValue] =
     React.useState<UserStatusFilter>("ALL");
+  const [actionUserId, setActionUserId] = React.useState<string | null>(null);
 
   const usersRequestIdRef = React.useRef(0);
 
@@ -227,40 +230,160 @@ export function UsersFormWrapper() {
     [canManageUsers, router],
   );
 
-  const handleDeleteUser = React.useCallback(
-    async (user: UserListItem) => {
-      if (!canManageUsers) {
-        toast.error("Perfil sem permissão para excluir usuários.");
-        return;
-      }
+  const canResendActivationForUser = React.useCallback(
+    (user: UserListItem) =>
+      canResendActivationInvite(authUser, {
+        role: user.role,
+        companyId: user.companyId,
+        managerId: user.managerId,
+        email: user.email,
+        isActive: user.isActive,
+        deletedAt: user.deletedAt,
+        passwordStatus: user.passwordStatus,
+      }),
+    [authUser],
+  );
 
-      if (user.deletedAt) {
-        toast.error("Usuário já está excluído.");
+  const handleResendActivation = React.useCallback(
+    async (user: UserListItem) => {
+      if (!canResendActivationForUser(user)) {
+        toast.error("Usuario sem permissao ou inelegivel para reenvio de ativacao.");
         return;
       }
 
       const confirmed = window.confirm(
-        `Confirma a exclusão do usuário "${user.fullName}"? Esta ação é irreversível.`,
+        `Confirma reenviar o link de ativacao para "${user.fullName}"?`,
+      );
+      if (!confirmed) {
+        return;
+      }
+
+      setActionUserId(user.id);
+
+      try {
+        await apiFetch<unknown>("/auth/resend-activation", {
+          method: "POST",
+          body: {
+            userId: user.id,
+          },
+        });
+
+        toast.success("Link de ativacao reenviado com sucesso.");
+      } catch (error) {
+        toast.error(parseApiError(error));
+      } finally {
+        setActionUserId((currentUserId) =>
+          currentUserId === user.id ? null : currentUserId,
+        );
+      }
+    },
+    [canResendActivationForUser],
+  );
+
+  const handleDeleteUser = React.useCallback(
+    async (user: UserListItem) => {
+      if (!canManageUsers) {
+        toast.error("Perfil sem permissao para excluir usuarios.");
+        return;
+      }
+
+      if (user.deletedAt) {
+        toast.error("Usuario ja esta excluido.");
+        return;
+      }
+
+      const confirmed = window.confirm(
+        `Confirma a exclusao do usuario "${user.fullName}"? Esta acao e irreversivel.`,
       );
 
       if (!confirmed) {
         return;
       }
 
-      const deleted = await tryApiDelete(
-        `/users/${user.id}`,
-        "Usuário excluído com sucesso.",
+      setActionUserId(user.id);
+
+      try {
+        const deleted = await tryApiDelete(
+          `/users/${user.id}`,
+          "Usuario excluido com sucesso.",
+        );
+        if (!deleted) {
+          return;
+        }
+
+        if (
+          users.length === 1 &&
+          pageIndex > 0 &&
+          statusFilterValue !== "ALL"
+        ) {
+          setPageIndex((currentPage) => Math.max(0, currentPage - 1));
+          return;
+        }
+
+        void loadUsers();
+      } finally {
+        setActionUserId((currentUserId) =>
+          currentUserId === user.id ? null : currentUserId,
+        );
+      }
+    },
+    [canManageUsers, loadUsers, pageIndex, statusFilterValue, users.length],
+  );
+
+  const handleReactivateUser = React.useCallback(
+    async (user: UserListItem) => {
+      if (!canManageUsers) {
+        toast.error("Perfil sem permissao para reativar usuarios.");
+        return;
+      }
+
+      if (user.isActive) {
+        toast.error("Usuario ja esta ativo.");
+        return;
+      }
+
+      const confirmed = window.confirm(
+        `Confirma reativar o usuario "${user.fullName}"?`,
       );
-      if (!deleted) {
+      if (!confirmed) {
         return;
       }
 
-      if (users.length === 1 && pageIndex > 0 && statusFilterValue !== "ALL") {
-        setPageIndex((currentPage) => Math.max(0, currentPage - 1));
-        return;
-      }
+      setActionUserId(user.id);
 
-      void loadUsers();
+      try {
+        const response = await apiFetch<unknown>(`/users/${user.id}`, {
+          method: "PATCH",
+          body: {
+            isActive: true,
+          },
+        });
+
+        const parsed = userDetailsApiResponseSchema.safeParse(response);
+        if (!parsed.success) {
+          toast.error("Resposta inesperada ao reativar usuario.");
+          return;
+        }
+
+        toast.success("Usuario reativado com sucesso.");
+
+        if (
+          users.length === 1 &&
+          pageIndex > 0 &&
+          statusFilterValue === "INACTIVE"
+        ) {
+          setPageIndex((currentPage) => Math.max(0, currentPage - 1));
+          return;
+        }
+
+        void loadUsers();
+      } catch (error) {
+        toast.error(parseApiError(error));
+      } finally {
+        setActionUserId((currentUserId) =>
+          currentUserId === user.id ? null : currentUserId,
+        );
+      }
     },
     [canManageUsers, loadUsers, pageIndex, statusFilterValue, users.length],
   );
@@ -294,6 +417,7 @@ export function UsersFormWrapper() {
         <UsersTable
           data={users}
           isLoading={isLoadingUsers}
+          actionUserId={actionUserId}
           isAdmin={isAdmin}
           canManageUsers={canManageUsers}
           pageIndex={pageIndex}
@@ -301,6 +425,9 @@ export function UsersFormWrapper() {
           totalPages={meta.totalPages}
           onPageChange={setPageIndex}
           onEditUser={handleEditUser}
+          canResendActivationForUser={canResendActivationForUser}
+          onResendActivation={handleResendActivation}
+          onReactivateUser={handleReactivateUser}
           onDeleteUser={handleDeleteUser}
         />
       )}

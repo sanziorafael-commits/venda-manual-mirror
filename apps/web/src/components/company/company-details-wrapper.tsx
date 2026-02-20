@@ -4,6 +4,8 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import { useAuthUser } from "@/hooks/use-auth-user";
+import { canResendActivationInvite } from "@/lib/activation-invite";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
 import {
@@ -18,6 +20,7 @@ import {
   type CompanyListMeta,
   type CompanyUserItem,
 } from "@/schemas/company";
+import { userDetailsApiResponseSchema } from "@/schemas/user";
 
 import { CompanyDetailsCard } from "./company-details-card";
 import { CompanyUsersFilterForm } from "./company-users-filter-form";
@@ -31,6 +34,7 @@ export function CompanyDetailsWrapper({
   companyId,
 }: CompanyDetailsWrapperProps) {
   const router = useRouter();
+  const authUser = useAuthUser();
   const [company, setCompany] = React.useState<CompanyDetails | null>(null);
   const [companyLoadError, setCompanyLoadError] = React.useState<string | null>(
     null,
@@ -46,6 +50,7 @@ export function CompanyDetailsWrapper({
   );
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
+  const [actionUserId, setActionUserId] = React.useState<string | null>(null);
   const usersRequestIdRef = React.useRef(0);
 
   const loadCompany = React.useCallback(async () => {
@@ -156,6 +161,56 @@ export function CompanyDetailsWrapper({
     [companyId, router],
   );
 
+  const canResendActivationForUser = React.useCallback(
+    (user: CompanyUserItem) =>
+      canResendActivationInvite(authUser, {
+        role: user.role,
+        companyId: user.companyId,
+        managerId: user.managerId,
+        email: user.email,
+        isActive: user.isActive,
+        deletedAt: user.deletedAt,
+        passwordStatus: user.passwordStatus,
+      }),
+    [authUser],
+  );
+
+  const handleResendActivation = React.useCallback(
+    async (user: CompanyUserItem) => {
+      if (!canResendActivationForUser(user)) {
+        toast.error("Usuário sem permissão ou inelegível para reenvio de ativação.");
+        return;
+      }
+
+      const confirmed = window.confirm(
+        `Confirma reenviar o link de ativação para "${user.fullName}"?`,
+      );
+      if (!confirmed) {
+        return;
+      }
+
+      setActionUserId(user.id);
+
+      try {
+        await apiFetch<unknown>("/auth/resend-activation", {
+          method: "POST",
+          body: {
+            userId: user.id,
+          },
+        });
+
+        toast.success("Link de ativação reenviado com sucesso.");
+      } catch (error) {
+        toast.error(parseApiError(error));
+      } finally {
+        setActionUserId((currentUserId) =>
+          currentUserId === user.id ? null : currentUserId,
+        );
+      }
+    },
+    [canResendActivationForUser],
+  );
+
   const handleDeleteUser = React.useCallback(
     async (user: CompanyUserItem) => {
       if (user.deletedAt) {
@@ -171,19 +226,73 @@ export function CompanyDetailsWrapper({
         return;
       }
 
-      const deleted = await tryApiDelete(`/users/${user.id}`, "Usuário excluído com sucesso.");
-      if (!deleted) {
-        return;
-      }
+      setActionUserId(user.id);
 
-      if (users.length === 1 && pageIndex > 0) {
-        setPageIndex((currentPage) => Math.max(0, currentPage - 1));
-        return;
-      }
+      try {
+        const deleted = await tryApiDelete(
+          `/users/${user.id}`,
+          "Usuário excluído com sucesso.",
+        );
+        if (!deleted) {
+          return;
+        }
 
-      void loadUsers();
+        if (users.length === 1 && pageIndex > 0) {
+          setPageIndex((currentPage) => Math.max(0, currentPage - 1));
+          return;
+        }
+
+        void loadUsers();
+      } finally {
+        setActionUserId((currentUserId) =>
+          currentUserId === user.id ? null : currentUserId,
+        );
+      }
     },
     [loadUsers, pageIndex, users.length],
+  );
+
+  const handleReactivateUser = React.useCallback(
+    async (user: CompanyUserItem) => {
+      if (user.isActive) {
+        toast.error("Usuário já está ativo.");
+        return;
+      }
+
+      const confirmed = window.confirm(
+        `Confirma reativar o usuário "${user.fullName}"?`,
+      );
+      if (!confirmed) {
+        return;
+      }
+
+      setActionUserId(user.id);
+
+      try {
+        const response = await apiFetch<unknown>(`/users/${user.id}`, {
+          method: "PATCH",
+          body: {
+            isActive: true,
+          },
+        });
+
+        const parsed = userDetailsApiResponseSchema.safeParse(response);
+        if (!parsed.success) {
+          toast.error("Resposta inesperada ao reativar usuário.");
+          return;
+        }
+
+        toast.success("Usuário reativado com sucesso.");
+        void loadUsers();
+      } catch (error) {
+        toast.error(parseApiError(error));
+      } finally {
+        setActionUserId((currentUserId) =>
+          currentUserId === user.id ? null : currentUserId,
+        );
+      }
+    },
+    [loadUsers],
   );
 
   if (isCompanyLoading) {
@@ -221,11 +330,15 @@ export function CompanyDetailsWrapper({
         <CompanyUsersTable
           data={users}
           isLoading={isUsersLoading}
+          actionUserId={actionUserId}
           pageIndex={pageIndex}
           pageSize={pageSize}
           totalPages={meta.totalPages}
           onPageChange={setPageIndex}
           onEditUser={handleEditUser}
+          canResendActivationForUser={canResendActivationForUser}
+          onResendActivation={handleResendActivation}
+          onReactivateUser={handleReactivateUser}
           onDeleteUser={handleDeleteUser}
         />
       </div>

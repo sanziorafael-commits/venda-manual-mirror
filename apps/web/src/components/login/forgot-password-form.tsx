@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import { AuthSubmitButton } from "@/components/auth/auth-submit-button";
 import {
@@ -28,7 +28,7 @@ export function ForgotPasswordForm({
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     reset,
     formState: { errors },
   } = useForm<ForgotSchema>({
@@ -38,7 +38,7 @@ export function ForgotPasswordForm({
     },
   });
 
-  const email = watch("email", "");
+  const email = useWatch({ control, name: "email", defaultValue: "" });
   const isSubmitEnabled = email.trim().length > 0;
 
   const { loading, submit } = useAuthSubmit<ForgotSchema, AuthOkResult>({

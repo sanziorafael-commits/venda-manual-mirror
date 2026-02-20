@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { format } from "date-fns";
-import { Search } from "lucide-react";
+import { Eye, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
@@ -341,6 +341,7 @@ export function ConversationsHistoryWrapper() {
                               )
                             }
                           >
+                            <Eye className="size-3.5" />
                             Ver conversa
                           </Button>
                         </td>

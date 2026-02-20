@@ -311,6 +311,7 @@ export function CompanyCreateForm() {
                 size="sm"
                 onClick={() => setLogoFile(null)}
                 disabled={isSubmitting}
+                title="Remover logo selecionada"
               >
                 Remover logo selecionada
               </Button>

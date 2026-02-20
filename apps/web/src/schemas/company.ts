@@ -72,9 +72,16 @@ export const companyUserRoleSchema = z.enum([
   "VENDEDOR",
 ]);
 
+export const companyUserPasswordStatusSchema = z.enum([
+  "NOT_APPLICABLE",
+  "PENDING",
+  "SET",
+]);
+
 export const companyUserItemSchema = z.object({
   id: z.string().min(1),
   companyId: z.string().nullable(),
+  managerId: z.string().nullable().optional(),
   role: companyUserRoleSchema,
   fullName: z.string().min(1),
   cpf: z.string().min(1),
@@ -82,6 +89,7 @@ export const companyUserItemSchema = z.object({
   phone: z.string().min(1),
   isActive: z.boolean(),
   deletedAt: z.string().nullable().optional(),
+  passwordStatus: companyUserPasswordStatusSchema.optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

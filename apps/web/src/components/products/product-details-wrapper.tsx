@@ -188,6 +188,7 @@ export function ProductDetailsWrapper({
               variant="ghost"
               className="text-destructive hover:bg-destructive/10 hover:text-destructive"
               onClick={() => void handleDeleteProduct()}
+              title={`Excluir produto ${product.nome}`}
             >
               Excluir produto
             </Button>
