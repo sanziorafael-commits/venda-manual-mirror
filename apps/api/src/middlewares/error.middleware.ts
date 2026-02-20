@@ -20,14 +20,16 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
     return res.status(400).json({
       error: {
         code: 'validation_error',
-        message: 'Dados da requisição inválidos',
+        message: 'Dados da requisi\u00e7\u00e3o inv\u00e1lidos',
         details: err.flatten(),
       },
     });
   }
 
   if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-    const target = Array.isArray(err.meta?.target) ? err.meta.target.map(String) : [];
+    const target = Array.isArray(err.meta?.target)
+      ? err.meta.target.map((field) => normalizeTargetField(String(field)))
+      : [];
 
     return res.status(409).json({
       error: {
@@ -51,25 +53,31 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
 }
 
 function mapUniqueConstraintMessage(target: string[]) {
-  if (target.includes('cnpj')) {
-    return 'CNPJ já cadastrado';
+  const normalizedTarget = target.map((field) => field.toLowerCase());
+
+  if (normalizedTarget.includes('cnpj')) {
+    return 'CNPJ j\u00e1 cadastrado';
   }
 
-  if (target.includes('cpf')) {
-    return 'CPF já cadastrado';
+  if (normalizedTarget.includes('cpf')) {
+    return 'CPF j\u00e1 cadastrado';
   }
 
-  if (target.includes('email')) {
-    return 'E-mail já cadastrado';
+  if (normalizedTarget.includes('email')) {
+    return 'E-mail j\u00e1 cadastrado';
   }
 
-  if (target.includes('phone') && target.includes('companyId')) {
-    return 'Celular já cadastrado para esta empresa';
+  if (normalizedTarget.includes('phone') && normalizedTarget.includes('companyid')) {
+    return 'Celular j\u00e1 cadastrado para esta empresa';
   }
 
-  if (target.includes('phone')) {
-    return 'Celular já cadastrado';
+  if (normalizedTarget.includes('phone')) {
+    return 'Celular j\u00e1 cadastrado';
   }
 
-  return 'Já existe um registro com os dados informados';
+  return 'J\u00e1 existe um registro com os dados informados';
+}
+
+function normalizeTargetField(field: string) {
+  return field.replace(/['"`]/g, '').trim();
 }

@@ -104,7 +104,7 @@ export function CompanyTable({
     <div className="flex flex-col gap-4">
       <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
         <div className="overflow-x-auto">
-          <table className="min-w-[720px] w-full border-collapse text-left text-sm">
+          <table className="min-w-180 w-full border-collapse text-left text-sm">
             <thead className="bg-muted text-muted-foreground">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
@@ -176,4 +176,3 @@ export function CompanyTable({
     </div>
   );
 }
-

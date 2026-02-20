@@ -1566,7 +1566,7 @@ function ProductStepHeader({ currentStep }: { currentStep: ProductStep }) {
                   }`}
                 >
                   {isDone ? (
-                    <Check className="size-4 stroke-[3]" />
+                    <Check className="size-4 stroke-3" />
                   ) : isCurrent ? (
                     <span className="text-[14px] font-bold leading-none">
                       ...
@@ -1575,7 +1575,7 @@ function ProductStepHeader({ currentStep }: { currentStep: ProductStep }) {
                 </span>
 
                 {index < STEP_ITEMS.length - 1 ? (
-                  <span className="mx-2 h-[2px] flex-1 bg-[#9ec4bc]" />
+                  <span className="mx-2 h-0.5 flex-1 bg-[#9ec4bc]" />
                 ) : null}
               </li>
             );
@@ -1675,5 +1675,3 @@ async function uploadFileToSignedUrl(
     throw new Error("Falha ao enviar arquivo para o storage.");
   }
 }
-
-

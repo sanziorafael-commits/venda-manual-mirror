@@ -111,32 +111,61 @@ export function UsersFilterForm({
             </div>
           </form>
 
-          <div className="flex w-full flex-col gap-2 lg:w-[220px] lg:shrink-0">
-            <label htmlFor="users-status-filter" className="text-sm font-medium">
-              Status
-            </label>
-            <select
-              id="users-status-filter"
-              className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-              value={statusFilterValue}
-              onChange={(event) =>
-                onStatusFilterChange(event.target.value as UserStatusFilter)
-              }
-              disabled={isLoading}
-            >
-              {STATUS_OPTIONS.map((statusOption) => (
-                <option key={statusOption.value} value={statusOption.value}>
-                  {statusOption.label}
-                </option>
-              ))}
-            </select>
+          <div className="flex w-full items-end gap-2 lg:w-55 lg:shrink-0 lg:flex-col lg:gap-2">
+            <div className="flex min-w-0 flex-1 flex-col gap-2 lg:w-full">
+              <label
+                htmlFor="users-status-filter"
+                className="text-sm font-medium"
+              >
+                Status
+              </label>
+              <select
+                id="users-status-filter"
+                className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                value={statusFilterValue}
+                onChange={(event) =>
+                  onStatusFilterChange(event.target.value as UserStatusFilter)
+                }
+                disabled={isLoading}
+              >
+                {STATUS_OPTIONS.map((statusOption) => (
+                  <option key={statusOption.value} value={statusOption.value}>
+                    {statusOption.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex w-24 shrink-0 flex-col gap-2 lg:hidden">
+              <label
+                htmlFor="users-page-size-mobile"
+                className="text-sm font-medium"
+              >
+                Itens
+              </label>
+              <select
+                id="users-page-size-mobile"
+                className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+                value={String(pageSize)}
+                onChange={(event) =>
+                  onPageSizeChange(Number(event.target.value))
+                }
+                disabled={isLoading}
+              >
+                {PAGE_SIZE_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="hidden items-center gap-2 lg:flex">
           <Button
             type="button"
-            className="min-w-[170px]"
+            className="min-w-42.5"
             onClick={onAddUser}
             disabled={isLoading || !canAddUser}
           >

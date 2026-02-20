@@ -270,7 +270,7 @@ export function DashboardOverviewPanel() {
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div className="flex flex-wrap items-end gap-3">
           {canSelectScope ? (
-            <label className="text-muted-foreground flex min-w-[240px] flex-col gap-1.5 text-xs font-medium">
+            <label className="text-muted-foreground flex w-full flex-col gap-1.5 text-xs font-medium sm:w-auto sm:min-w-60">
               Escopo
               <select
                 value={scope}
@@ -311,13 +311,13 @@ export function DashboardOverviewPanel() {
             </button>
           ))}
 
-          <div className="ml-1 flex items-end gap-2">
-            <div className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">
+          <div className="ml-0 flex w-full flex-wrap items-end gap-2 sm:ml-1 sm:w-auto">
+            <div className="flex w-full flex-col gap-1 text-xs font-medium text-muted-foreground sm:w-auto">
               <DateRangePicker
                 value={dateRange}
                 onChange={setDateRange}
                 disabled={isLoadingOptions || isLoadingData}
-                className="min-w-[240px]"
+                className="w-full sm:min-w-60"
                 placeholder="Selecione o período"
               />
             </div>
@@ -326,7 +326,7 @@ export function DashboardOverviewPanel() {
                 type="button"
                 onClick={() => setDateRange(undefined)}
                 disabled={isLoadingOptions || isLoadingData}
-                className="cursor-pointer rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                className="w-full cursor-pointer rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted sm:w-auto"
               >
                 Limpar
               </button>
@@ -398,12 +398,12 @@ export function DashboardOverviewPanel() {
 function DashboardSkeleton() {
   return (
     <>
-      <div className="h-[390px] animate-pulse rounded-xl border bg-muted/40" />
+      <div className="h-97.5 animate-pulse rounded-xl border bg-muted/40" />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {Array.from({ length: 6 }, (_, index) => (
           <div
             key={`dashboard-skeleton-${index}`}
-            className="h-[250px] animate-pulse rounded-xl border bg-muted/40"
+            className="h-62.5 animate-pulse rounded-xl border bg-muted/40"
           />
         ))}
       </div>

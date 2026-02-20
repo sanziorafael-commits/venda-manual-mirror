@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useAuthHydrated, useAuthUser } from "@/hooks/use-auth-user";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
+import { formatPhoneInput } from "@/lib/phone";
 import {
   companiesApiResponseSchema,
   type CompanyListItem,
@@ -85,18 +86,6 @@ function formatCpfInput(value: string) {
   }
 
   return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
-}
-
-function formatPhoneInput(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, 11);
-
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-  if (digits.length <= 10) {
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
-  }
-
-  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
 async function fetchAllCompaniesForSelect(): Promise<SelectOption[] | null> {
@@ -576,7 +565,7 @@ export function UserCreateForm() {
           <Input
             id="user-phone"
             inputMode="numeric"
-            placeholder="(00) 99999-9990"
+            placeholder="+55 (00) 99999-9999"
             value={watch("phone")}
             onChange={(event) => setValue("phone", formatPhoneInput(event.target.value))}
             disabled={isSubmitting}

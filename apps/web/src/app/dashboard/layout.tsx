@@ -23,7 +23,9 @@ export default async function DashboardLayout({
       <AppSidebarServer initialUser={authUser} />
       <SidebarInset>
         <SiteHeader />
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
+        <div className="flex flex-1 flex-col gap-4 p-0 pt-0 sm:p-4 sm:pt-0">
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

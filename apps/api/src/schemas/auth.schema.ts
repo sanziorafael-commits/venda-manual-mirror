@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+const phoneSchema = z.string().min(1).refine((value) => {
+  const digits = value.replace(/\D/g, '');
+  return digits.length >= 10 && digits.length <= 13;
+}, 'Celular deve conter entre 10 e 13 digitos');
+
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
@@ -31,7 +36,7 @@ export const bootstrapAdminSchema = z.object({
   fullName: z.string().min(2),
   cpf: z.string().min(11),
   email: z.string().email(),
-  phone: z.string().min(8),
+  phone: phoneSchema,
   password: z.string().min(6),
 });
 

@@ -56,7 +56,7 @@ export function CompanyFilterForm({
       <div className="flex items-center gap-2">
         <Button
           type="button"
-          className="min-w-[170px]"
+          className="min-w-42.5"
           onClick={onAddCompany}
           disabled={isLoading}
         >
@@ -84,4 +84,3 @@ export function CompanyFilterForm({
     </div>
   );
 }
-

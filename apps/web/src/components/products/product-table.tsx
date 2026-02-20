@@ -74,7 +74,9 @@ export function ProductTable({
         header: "Produto",
         cell: ({ row }) => (
           <div className="flex flex-col">
-            <span className="font-medium text-foreground">{row.original.nome}</span>
+            <span className="font-medium text-foreground">
+              {row.original.nome}
+            </span>
             <span className="text-xs text-muted-foreground">
               SKU: {row.original.codigoInternoSku ?? "-"}
             </span>
@@ -150,7 +152,13 @@ export function ProductTable({
     ];
 
     return baseColumns;
-  }, [canManageProducts, isLoading, onDeleteProduct, onEditProduct, onViewDetails]);
+  }, [
+    canManageProducts,
+    isLoading,
+    onDeleteProduct,
+    onEditProduct,
+    onViewDetails,
+  ]);
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
@@ -171,7 +179,7 @@ export function ProductTable({
     <div className="flex flex-col gap-4">
       <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
         <div className="overflow-x-auto">
-          <table className="min-w-[1040px] w-full border-collapse text-left text-sm">
+          <table className="min-w-260 w-full border-collapse text-left text-sm">
             <thead className="bg-muted text-muted-foreground">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>
@@ -209,7 +217,10 @@ export function ProductTable({
                     <tr key={row.id} className="border-t">
                       {row.getVisibleCells().map((cell) => (
                         <td key={cell.id} className="px-4 py-4">
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
                         </td>
                       ))}
                     </tr>

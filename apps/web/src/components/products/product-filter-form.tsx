@@ -56,33 +56,59 @@ export function ProductFilterForm({
           </div>
         </form>
 
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            className="min-w-[180px]"
-            onClick={onAddProduct}
-            disabled={isLoading || !canAddProduct}
-          >
-            Adicionar produto
-            <Plus className="size-4" />
-          </Button>
+        <div className="flex items-end justify-end gap-2">
+          <div className="flex w-24 shrink-0 flex-col gap-1 lg:hidden">
+            <label
+              htmlFor="products-page-size-mobile"
+              className="text-sm font-medium"
+            >
+              Itens
+            </label>
+            <select
+              id="products-page-size-mobile"
+              className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+              value={String(pageSize)}
+              onChange={(event) =>
+                onPageSizeChange(Number(event.target.value))
+              }
+              disabled={isLoading}
+            >
+              {PAGE_SIZE_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
 
-          <label htmlFor="products-page-size" className="sr-only">
-            Itens por página
-          </label>
-          <select
-            id="products-page-size"
-            className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-            value={String(pageSize)}
-            onChange={(event) => onPageSizeChange(Number(event.target.value))}
-            disabled={isLoading}
-          >
-            {PAGE_SIZE_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
+          <div className="hidden items-center gap-2 lg:flex">
+            <Button
+              type="button"
+              className="min-w-45"
+              onClick={onAddProduct}
+              disabled={isLoading || !canAddProduct}
+            >
+              Adicionar produto
+              <Plus className="size-4" />
+            </Button>
+
+            <label htmlFor="products-page-size" className="sr-only">
+              Itens por pagina
+            </label>
+            <select
+              id="products-page-size"
+              className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+              value={String(pageSize)}
+              onChange={(event) => onPageSizeChange(Number(event.target.value))}
+              disabled={isLoading}
+            >
+              {PAGE_SIZE_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,11 @@
 import { UserRole } from '@prisma/client';
 import { z } from 'zod';
 
+const phoneSchema = z.string().min(1).refine((value) => {
+  const digits = value.replace(/\D/g, '');
+  return digits.length >= 10 && digits.length <= 13;
+}, 'Celular deve conter entre 10 e 13 digitos');
+
 const booleanQueryParamSchema = z.preprocess((value) => {
   if (value === undefined || value === null || value === '') {
     return undefined;
@@ -38,7 +43,7 @@ export const createUserSchema = z.object({
   fullName: z.string().min(2),
   cpf: z.string().min(11),
   email: z.string().email().optional(),
-  phone: z.string().min(8),
+  phone: phoneSchema,
   password: z.string().min(6).optional(),
   managerId: z.string().cuid().nullable().optional(),
   supervisorId: z.string().cuid().nullable().optional(),
@@ -51,7 +56,7 @@ export const updateUserSchema = z
     fullName: z.string().min(2).optional(),
     cpf: z.string().min(11).optional(),
     email: z.string().email().nullable().optional(),
-    phone: z.string().min(8).optional(),
+    phone: phoneSchema.optional(),
     password: z.string().min(6).optional(),
     isActive: z.boolean().optional(),
     managerId: z.string().cuid().nullable().optional(),

@@ -9,6 +9,7 @@ import { Mail, Pencil, RotateCcw, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { formatPhoneDisplay } from "@/lib/phone";
 import type { UserListItem } from "@/schemas/user";
 
 type UsersTableProps = {
@@ -43,19 +44,6 @@ function formatCpf(value: string) {
   }
 
   return digits.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
-}
-
-function formatPhone(value: string) {
-  const digits = value.replace(/\D/g, "");
-  if (digits.length === 11) {
-    return digits.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
-  }
-
-  if (digits.length === 10) {
-    return digits.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3");
-  }
-
-  return value;
 }
 
 export function UsersTable({
@@ -98,7 +86,7 @@ export function UsersTable({
       {
         accessorKey: "phone",
         header: "Celular",
-        cell: ({ row }) => formatPhone(row.original.phone),
+        cell: ({ row }) => formatPhoneDisplay(row.original.phone),
       },
       {
         accessorKey: "role",
@@ -235,7 +223,7 @@ export function UsersTable({
     <div className="flex flex-col gap-4">
       <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
         <div className="overflow-x-auto">
-          <table className="min-w-[1020px] w-full border-collapse text-left text-sm">
+          <table className="min-w-255 w-full border-collapse text-left text-sm">
             <thead className="bg-muted text-muted-foreground">
               {table.getHeaderGroups().map((headerGroup) => (
                 <tr key={headerGroup.id}>

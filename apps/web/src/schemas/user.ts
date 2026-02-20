@@ -77,9 +77,9 @@ export const createUserFormSchema = z
       .min(1, { message: "Celular obrigatório." })
       .refine((value) => {
         const digits = value.replace(/\D/g, "");
-        return digits.length === 10 || digits.length === 11;
+        return digits.length >= 10 && digits.length <= 13;
       }, {
-        message: "Celular deve conter 10 ou 11 dígitos.",
+        message: "Celular deve conter entre 10 e 13 dígitos.",
       }),
     role: userRoleSchema,
     companyId: z.string().trim().optional(),
@@ -144,9 +144,9 @@ export const updateUserFormSchema = z
       .min(1, { message: "Celular obrigatório." })
       .refine((value) => {
         const digits = value.replace(/\D/g, "");
-        return digits.length === 10 || digits.length === 11;
+        return digits.length >= 10 && digits.length <= 13;
       }, {
-        message: "Celular deve conter 10 ou 11 dígitos.",
+        message: "Celular deve conter entre 10 e 13 dígitos.",
       }),
     role: userRoleSchema,
     companyId: z.string().trim().optional(),

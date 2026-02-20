@@ -139,7 +139,7 @@ export function ConversationDetailWrapper({
         </div>
       </div>
 
-      <div className="max-h-[620px] space-y-3 overflow-y-auto rounded-xl border bg-muted/20 p-5">
+      <div className="max-h-155 space-y-3 overflow-y-auto rounded-xl border bg-muted/20 p-5">
         {isLoadingConversationDetail ? (
           Array.from({ length: 6 }, (_, index) => (
             <div

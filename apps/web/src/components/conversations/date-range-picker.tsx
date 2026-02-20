@@ -7,7 +7,11 @@ import type { DateRange } from "react-day-picker";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
 type DateRangePickerProps = {
@@ -48,7 +52,7 @@ export function DateRangePicker({
           variant="outline"
           disabled={disabled}
           className={cn(
-            "min-w-[220px] justify-start text-left font-normal",
+            "min-w-55 justify-start text-left font-normal",
             !value?.from && "text-muted-foreground",
             className,
           )}

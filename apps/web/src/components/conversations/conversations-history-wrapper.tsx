@@ -13,6 +13,7 @@ import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useAuthHydrated, useAuthUser } from "@/hooks/use-auth-user";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
+import { formatPhoneDisplay } from "@/lib/phone";
 import {
   createEmptyPaginationMeta,
   DEFAULT_PAGE_SIZE,
@@ -205,7 +206,7 @@ export function ConversationsHistoryWrapper() {
   );
 
   return (
-    <section className="flex flex-col gap-5 max-w-6xl">
+    <section className="flex max-w-6xl flex-col gap-5">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <form
           className="flex w-full max-w-2xl flex-col gap-2"
@@ -236,21 +237,21 @@ export function ConversationsHistoryWrapper() {
           </div>
         </form>
 
-        <div className="flex items-center gap-2">
-          <div className="flex flex-col gap-1 text-sm">
+        <div className="flex w-full items-end gap-2 xl:w-auto xl:justify-end">
+          <div className="flex min-w-0 flex-1 flex-col gap-1 text-sm xl:flex-none">
             <span>Data</span>
             <DateRangePicker
               value={dateRange}
               onChange={handleDateRangeChange}
               disabled={isLoadingConversations}
-              className="min-w-[230px]"
+              className="w-full xl:min-w-57.5"
             />
           </div>
 
-          <label className="flex flex-col gap-1 text-sm">
+          <label className="flex w-24 shrink-0 flex-col gap-1 text-sm xl:w-auto">
             Itens
             <select
-              className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+              className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] xl:w-auto"
               value={String(pageSize)}
               onChange={(event) =>
                 handlePageSizeChange(Number(event.target.value))
@@ -274,7 +275,7 @@ export function ConversationsHistoryWrapper() {
       ) : (
         <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[920px] border-collapse text-left text-sm">
+            <table className="w-full min-w-230 border-collapse text-left text-sm">
               <thead className="bg-muted text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Nome do vendedor</th>
@@ -314,7 +315,7 @@ export function ConversationsHistoryWrapper() {
                           </p>
                           {conversation.vendedorTelefone ? (
                             <p className="text-xs text-muted-foreground">
-                              {formatPhone(conversation.vendedorTelefone)}
+                              {formatPhoneDisplay(conversation.vendedorTelefone)}
                             </p>
                           ) : null}
                         </td>
@@ -391,22 +392,5 @@ function formatDateTime(value: string | null) {
     hour: "2-digit",
     minute: "2-digit",
   });
-}
-
-function formatPhone(phone: string) {
-  const digits = phone.replace(/\D/g, "");
-  if (digits.length === 13) {
-    return digits.replace(/^(\d{2})(\d{2})(\d{5})(\d{4})$/, "+$1 ($2) $3-$4");
-  }
-
-  if (digits.length === 11) {
-    return digits.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
-  }
-
-  if (digits.length === 10) {
-    return digits.replace(/^(\d{2})(\d{4})(\d{4})$/, "($1) $2-$3");
-  }
-
-  return phone;
 }
 

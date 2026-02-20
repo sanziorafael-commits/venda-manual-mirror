@@ -6,7 +6,7 @@ export function OverviewLocatedClientsCard({ value }: { value: number }) {
   return (
     <OverviewCardFrame>
       <div className="flex items-start justify-between gap-4">
-        <h4 className="text-foreground max-w-[220px] text-[1.15rem] font-semibold leading-tight md:text-[1.2rem]">
+        <h4 className="text-foreground max-w-55 text-[1.15rem] font-semibold leading-tight md:text-[1.2rem]">
           Novos clientes localizados
         </h4>
         <span className="inline-flex size-24 items-center justify-center rounded-full bg-[#dceceb] text-[2.9rem] font-semibold leading-none text-[#1f2733]">

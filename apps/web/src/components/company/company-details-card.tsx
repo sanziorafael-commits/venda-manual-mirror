@@ -31,19 +31,27 @@ function formatCnpj(value: string) {
 
 export function CompanyDetailsCard({ company, onEditCompany }: CompanyDetailsCardProps) {
   return (
-    <div className="flex w-full max-w-xl items-center justify-between rounded-xl border bg-card p-5 shadow-xs">
-      <div className="flex items-center gap-4">
+    <div className="flex w-full max-w-xl items-center justify-between gap-3 rounded-xl border bg-card p-5 shadow-xs">
+      <div className="flex min-w-0 items-center gap-4">
         <div className="flex size-12 items-center justify-center rounded-full bg-[#212a38] text-xl font-semibold text-white">
           {getCompanyInitial(company.name)}
         </div>
 
-        <div className="flex flex-col">
-          <p className="text-2xl font-semibold">{company.name}</p>
-          <p className="text-sm text-muted-foreground">{formatCnpj(company.cnpj)}</p>
+        <div className="flex min-w-0 flex-col">
+          <p className="truncate text-2xl font-semibold">{company.name}</p>
+          <p className="truncate text-sm text-muted-foreground">
+            {formatCnpj(company.cnpj)}
+          </p>
         </div>
       </div>
 
-      <Button type="button" variant="ghost" size="icon" onClick={onEditCompany}>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={onEditCompany}
+        className="shrink-0"
+      >
         <Pencil className="size-5" />
       </Button>
     </div>
