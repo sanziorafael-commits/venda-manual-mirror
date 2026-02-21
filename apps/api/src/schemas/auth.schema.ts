@@ -11,7 +11,7 @@ export const loginSchema = z.object({
 });
 
 export const refreshTokenSchema = z.object({
-  refreshToken: z.string().min(20),
+  refresh_token: z.string().min(20),
 });
 
 export const activateAccountSchema = z.object({
@@ -20,7 +20,7 @@ export const activateAccountSchema = z.object({
 });
 
 export const resendActivationSchema = z.object({
-  userId: z.string().cuid(),
+  user_id: z.string().uuid(),
 });
 
 export const forgotPasswordSchema = z.object({
@@ -33,7 +33,7 @@ export const resetPasswordSchema = z.object({
 });
 
 export const bootstrapAdminSchema = z.object({
-  fullName: z.string().min(2),
+  full_name: z.string().min(2),
   cpf: z.string().min(11),
   email: z.string().email(),
   phone: phoneSchema,
@@ -41,7 +41,9 @@ export const bootstrapAdminSchema = z.object({
 });
 
 export const updateMeSchema = z.object({
-  fullName: z.string().min(2).optional(),
+  full_name: z.string().min(2).optional(),
   email: z.string().email().optional(),
-  newPassword: z.string().min(6).optional(),
+  new_password: z.string().min(6).optional(),
 });
+
+

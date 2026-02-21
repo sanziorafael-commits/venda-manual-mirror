@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -41,12 +41,12 @@ export function NavMain({ items }: { items: NavItem[] }) {
           const hasActiveChild =
             item.items?.some((subItem) => isRouteActive(subItem.url)) ?? false;
           const isItemActive =
-            item.isActive ?? (isRouteActive(item.url) || hasActiveChild);
+            item.is_active ?? (isRouteActive(item.url) || hasActiveChild);
 
           if (!hasChildren) {
             return (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild tooltip={item.title} isActive={isItemActive}>
+                <SidebarMenuButton asChild tooltip={item.title} is_active={isItemActive}>
                   <Link href={item.url}>
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
@@ -65,7 +65,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
             >
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
-                  <SidebarMenuButton tooltip={item.title} isActive={isItemActive}>
+                  <SidebarMenuButton tooltip={item.title} is_active={isItemActive}>
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
@@ -79,7 +79,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
 
                       return (
                         <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild isActive={isSubItemActive}>
+                          <SidebarMenuSubButton asChild is_active={isSubItemActive}>
                             <Link href={subItem.url}>
                               <span>{subItem.title}</span>
                             </Link>
@@ -97,3 +97,4 @@ export function NavMain({ items }: { items: NavItem[] }) {
     </SidebarGroup>
   );
 }
+

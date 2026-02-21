@@ -38,7 +38,7 @@ export function ProductListWrapper() {
 
   const selectedCompanyId = React.useMemo(() => {
     if (!isAdmin) {
-      return authUser?.companyId ?? null;
+      return authUser?.company_id ?? null;
     }
 
     if (
@@ -49,7 +49,7 @@ export function ProductListWrapper() {
     }
 
     return selectedCompanyContext;
-  }, [authUser?.companyId, isAdmin, selectedCompanyContext]);
+  }, [authUser?.company_id, isAdmin, selectedCompanyContext]);
 
   const [searchDraft, setSearchDraft] = React.useState("");
   const [query, setQuery] = React.useState("");
@@ -59,7 +59,7 @@ export function ProductListWrapper() {
     createEmptyPaginationMeta<ProductListMeta>(),
   );
   const [pageIndex, setPageIndex] = React.useState(0);
-  const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
+  const [page_size, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
   const requestIdRef = React.useRef(0);
 
   const loadProducts = React.useCallback(async () => {
@@ -69,21 +69,21 @@ export function ProductListWrapper() {
 
     if (isAdmin && !selectedCompanyId) {
       setProducts([]);
-      setMeta(createEmptyPaginationMeta<ProductListMeta>(pageSize));
+      setMeta(createEmptyPaginationMeta<ProductListMeta>(page_size));
       setIsLoading(false);
       return;
     }
 
     const params = new URLSearchParams();
     params.set("page", String(pageIndex + 1));
-    params.set("pageSize", String(pageSize));
+    params.set("page_size", String(page_size));
 
     if (query.trim().length > 0) {
       params.set("q", query.trim());
     }
 
     if (isAdmin && selectedCompanyId) {
-      params.set("companyId", selectedCompanyId);
+      params.set("company_id", selectedCompanyId);
     }
 
     const currentRequestId = ++requestIdRef.current;
@@ -99,7 +99,7 @@ export function ProductListWrapper() {
       if (!parsed.success) {
         toast.error("Resposta inesperada ao carregar produtos.");
         setProducts([]);
-        setMeta(createEmptyPaginationMeta<ProductListMeta>(pageSize));
+        setMeta(createEmptyPaginationMeta<ProductListMeta>(page_size));
         return;
       }
 
@@ -117,13 +117,13 @@ export function ProductListWrapper() {
 
       toast.error(parseApiError(error));
       setProducts([]);
-      setMeta(createEmptyPaginationMeta<ProductListMeta>(pageSize));
+      setMeta(createEmptyPaginationMeta<ProductListMeta>(page_size));
     } finally {
       if (currentRequestId === requestIdRef.current) {
         setIsLoading(false);
       }
     }
-  }, [authHydrated, isAdmin, pageIndex, pageSize, query, selectedCompanyId]);
+  }, [authHydrated, isAdmin, pageIndex, page_size, query, selectedCompanyId]);
 
   React.useEffect(() => {
     void loadProducts();
@@ -220,7 +220,7 @@ export function ProductListWrapper() {
 
       <ProductFilterForm
         searchValue={searchDraft}
-        pageSize={pageSize}
+        page_size={page_size}
         isLoading={isLoading}
         canAddProduct={canManageProducts}
         onSearchValueChange={setSearchDraft}
@@ -239,8 +239,8 @@ export function ProductListWrapper() {
           isLoading={isLoading}
           canManageProducts={canManageProducts}
           pageIndex={pageIndex}
-          pageSize={pageSize}
-          totalPages={meta.totalPages}
+          page_size={page_size}
+          total_pages={meta.total_pages}
           onPageChange={setPageIndex}
           onViewDetails={handleViewDetails}
           onEditProduct={handleEditProduct}
@@ -250,3 +250,4 @@ export function ProductListWrapper() {
     </section>
   );
 }
+

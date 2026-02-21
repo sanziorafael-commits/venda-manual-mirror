@@ -20,3 +20,4 @@ export function OverviewLocatedClientsCard({ value }: { value: number }) {
     </OverviewCardFrame>
   );
 }
+

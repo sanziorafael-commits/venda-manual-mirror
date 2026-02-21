@@ -2,9 +2,10 @@ export interface NavItem {
   title: string;
   url: string;
   icon?: React.ElementType;
-  isActive?: boolean;
+  is_active?: boolean;
   items?: {
     title: string;
     url: string;
   }[];
 }
+

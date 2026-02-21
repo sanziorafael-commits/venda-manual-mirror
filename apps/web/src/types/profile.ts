@@ -4,3 +4,4 @@ export interface roleLabelMap {
   GERENTE_COMERCIAL: "Gerente Comercial";
   SUPERVISOR: "Supervisor";
 }
+

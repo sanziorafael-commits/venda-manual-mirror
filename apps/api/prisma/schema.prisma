@@ -21,39 +21,39 @@ enum LocatedClientStatus {
 }
 
 model Company {
-  id                  String                         @id @default(cuid())
+  id                  String                         @id @db.Uuid
   name                String
   cnpj                String                         @unique
-  logoUrl             String?
+  logo_url             String?
   users               User[]
   locatedClients      LocatedClient[]
   products            produtos[]                     @relation("ProdutoCompany")
   conversationHistory historico_conversas[]          @relation("HistoricoConversaCompany")
   citedProducts       historico_conversas_produtos[] @relation("HistoricoConversaProdutoCompany")
   userDeletionAudits  UserDeletionAudit[]
-  deletedAt           DateTime?
-  createdAt           DateTime                       @default(now())
-  updatedAt           DateTime                       @updatedAt
+  deleted_at           DateTime?
+  created_at           DateTime                       @default(now())
+  updated_at           DateTime                       @updatedAt
 }
 
 model User {
-  id                         String                   @id @default(cuid())
-  companyId                  String?
-  company                    Company?                 @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  managerId                  String?
-  manager                    User?                    @relation("ManagerToSupervisor", fields: [managerId], references: [id], onDelete: SetNull)
+  id                         String                   @id @db.Uuid
+  company_id                  String?                  @db.Uuid
+  company                    Company?                 @relation(fields: [company_id], references: [id], onDelete: SetNull)
+  manager_id                  String?                  @db.Uuid
+  manager                    User?                    @relation("ManagerToSupervisor", fields: [manager_id], references: [id], onDelete: SetNull)
   managedSupervisors         User[]                   @relation("ManagerToSupervisor")
-  supervisorId               String?
-  supervisor                 User?                    @relation("SupervisorToVendor", fields: [supervisorId], references: [id], onDelete: SetNull)
+  supervisor_id               String?                  @db.Uuid
+  supervisor                 User?                    @relation("SupervisorToVendor", fields: [supervisor_id], references: [id], onDelete: SetNull)
   managedVendors             User[]                   @relation("SupervisorToVendor")
   role                       UserRole
-  fullName                   String
+  full_name                   String
   cpf                        String                   @unique
   email                      String?                  @unique
   phone                      String
   passwordHash               String?
-  isActive                   Boolean                  @default(true)
-  deletedAt                  DateTime?
+  is_active                   Boolean                  @default(true)
+  deleted_at                  DateTime?
   sessions                   Session[]
   conversationHistory        historico_conversas[]    @relation("HistoricoConversaUser")
   activationTokens           AccountActivationToken[]
@@ -62,115 +62,115 @@ model User {
   userDeletionAuditsAsActor  UserDeletionAudit[]      @relation("UserDeletionActor")
   identifiedLocatedClients   LocatedClient[]          @relation("LocatedClientIdentifiedBy")
   visitedLocatedClients      LocatedClient[]          @relation("LocatedClientVisitedBy")
-  createdAt                  DateTime                 @default(now())
-  updatedAt                  DateTime                 @updatedAt
+  created_at                  DateTime                 @default(now())
+  updated_at                  DateTime                 @updatedAt
 
-  @@unique([companyId, phone], map: "users_company_phone_key")
-  @@index([companyId, role], map: "users_company_role_idx")
-  @@index([companyId, managerId], map: "users_company_manager_idx")
-  @@index([companyId, supervisorId], map: "users_company_supervisor_idx")
+  @@unique([company_id, phone], map: "users_company_phone_key")
+  @@index([company_id, role], map: "users_company_role_idx")
+  @@index([company_id, manager_id], map: "users_company_manager_idx")
+  @@index([company_id, supervisor_id], map: "users_company_supervisor_idx")
 }
 
 model LocatedClient {
-  id                 String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  companyId          String?             @map("company_id")
-  company            Company?            @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  identifiedByUserId String?             @map("identified_by_user_id")
-  identifiedByUser   User?               @relation("LocatedClientIdentifiedBy", fields: [identifiedByUserId], references: [id], onDelete: SetNull)
-  sourceSellerPhone  String              @map("source_seller_phone")
-  customerName       String              @map("customer_name")
+  id                 String              @id @db.Uuid
+  company_id          String?             @map("company_id") @db.Uuid
+  company            Company?            @relation(fields: [company_id], references: [id], onDelete: SetNull)
+  identified_by_user_id String?             @map("identified_by_user_id") @db.Uuid
+  identifiedByUser   User?               @relation("LocatedClientIdentifiedBy", fields: [identified_by_user_id], references: [id], onDelete: SetNull)
+  source_seller_phone  String              @map("source_seller_phone")
+  customer_name       String              @map("customer_name")
   city               String
   state              String
   address            String
-  mapUrl             String?             @map("map_url")
-  identifiedAt       DateTime            @map("identified_at") @db.Timestamptz(6)
+  map_url             String?             @map("map_url")
+  identified_at       DateTime            @map("identified_at") @db.Timestamptz(6)
   status             LocatedClientStatus @default(PENDENTE_VISITA)
-  visitedAt          DateTime?           @map("visited_at") @db.Timestamptz(6)
-  visitedByUserId    String?             @map("visited_by_user_id")
-  visitedByUser      User?               @relation("LocatedClientVisitedBy", fields: [visitedByUserId], references: [id], onDelete: SetNull)
-  deletedAt          DateTime?           @map("deleted_at") @db.Timestamptz(6)
-  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  visited_at          DateTime?           @map("visited_at") @db.Timestamptz(6)
+  visited_by_user_id    String?             @map("visited_by_user_id") @db.Uuid
+  visitedByUser      User?               @relation("LocatedClientVisitedBy", fields: [visited_by_user_id], references: [id], onDelete: SetNull)
+  deleted_at          DateTime?           @map("deleted_at") @db.Timestamptz(6)
+  created_at          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updated_at          DateTime            @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  @@index([companyId], map: "idx_located_clients_company_id")
-  @@index([identifiedByUserId], map: "idx_located_clients_identified_by_user_id")
-  @@index([sourceSellerPhone], map: "idx_located_clients_source_seller_phone")
+  @@index([company_id], map: "idx_located_clients_company_id")
+  @@index([identified_by_user_id], map: "idx_located_clients_identified_by_user_id")
+  @@index([source_seller_phone], map: "idx_located_clients_source_seller_phone")
   @@index([status], map: "idx_located_clients_status")
-  @@index([identifiedAt(sort: Desc)], map: "idx_located_clients_identified_at")
-  @@index([companyId, identifiedAt(sort: Desc)], map: "idx_located_clients_company_identified_at")
-  @@index([visitedByUserId], map: "idx_located_clients_visited_by_user_id")
+  @@index([identified_at(sort: Desc)], map: "idx_located_clients_identified_at")
+  @@index([company_id, identified_at(sort: Desc)], map: "idx_located_clients_company_identified_at")
+  @@index([visited_by_user_id], map: "idx_located_clients_visited_by_user_id")
   @@map("located_clients")
 }
 
 model UserDeletionAudit {
-  id              String   @id @default(cuid())
-  targetUserId    String
+  id              String   @id @db.Uuid
+  targetUserId    String   @db.Uuid
   targetUser      User     @relation("UserDeletionTarget", fields: [targetUserId], references: [id], onDelete: Restrict)
-  targetCompanyId String?
+  targetCompanyId String?  @db.Uuid
   targetCompany   Company? @relation(fields: [targetCompanyId], references: [id], onDelete: SetNull)
-  actorUserId     String
+  actorUserId     String   @db.Uuid
   actorUser       User     @relation("UserDeletionActor", fields: [actorUserId], references: [id], onDelete: Restrict)
   actorRole       UserRole
-  deletedAt       DateTime
-  createdAt       DateTime @default(now())
+  deleted_at       DateTime
+  created_at       DateTime @default(now())
 
   @@index([targetUserId], map: "user_deletion_audit_target_user_idx")
   @@index([actorUserId], map: "user_deletion_audit_actor_user_idx")
   @@index([targetCompanyId], map: "user_deletion_audit_target_company_idx")
-  @@index([deletedAt], map: "user_deletion_audit_deleted_at_idx")
+  @@index([deleted_at], map: "user_deletion_audit_deleted_at_idx")
 }
 
 model Session {
-  id               String    @id @default(cuid())
-  userId           String
-  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String    @id @db.Uuid
+  user_id           String    @db.Uuid
+  user             User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
   refreshTokenHash String
   userAgent        String?
   ipAddress        String?
   expiresAt        DateTime
   revokedAt        DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
 
-  @@unique([userId, refreshTokenHash], map: "sessions_user_refresh_hash_key")
-  @@index([userId, revokedAt], map: "sessions_user_revoked_idx")
+  @@unique([user_id, refreshTokenHash], map: "sessions_user_refresh_hash_key")
+  @@index([user_id, revokedAt], map: "sessions_user_revoked_idx")
 }
 
 model AccountActivationToken {
-  id        String    @id @default(cuid())
-  userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String    @id @db.Uuid
+  user_id    String    @db.Uuid
+  user      User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
   tokenHash String    @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
 
-  @@index([userId, usedAt], map: "activation_tokens_user_used_idx")
+  @@index([user_id, usedAt], map: "activation_tokens_user_used_idx")
   @@index([expiresAt], map: "activation_tokens_expires_idx")
 }
 
 model PasswordResetToken {
-  id        String    @id @default(cuid())
-  userId    String
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String    @id @db.Uuid
+  user_id    String    @db.Uuid
+  user      User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
   tokenHash String    @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
 
-  @@index([userId, usedAt], map: "password_reset_tokens_user_used_idx")
+  @@index([user_id, usedAt], map: "password_reset_tokens_user_used_idx")
   @@index([expiresAt], map: "password_reset_tokens_expires_idx")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model historico_conversas {
-  id                String                         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                String                         @id @db.Uuid
   created_at        DateTime?                      @default(now()) @db.Timestamptz(6)
   timestamp_iso     DateTime?                      @db.Timestamptz(6)
-  user_id           String?
-  company_id        String?
+  user_id           String?                        @db.Uuid
+  company_id        String?                        @db.Uuid
   user              User?                          @relation("HistoricoConversaUser", fields: [user_id], references: [id], onDelete: SetNull)
   company           Company?                       @relation("HistoricoConversaCompany", fields: [company_id], references: [id], onDelete: SetNull)
   sender_id         String?
@@ -200,10 +200,10 @@ model historico_conversas {
 }
 
 model historico_conversas_produtos {
-  id           String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id           String              @id @db.Uuid
   historico_id String              @db.Uuid
   produto_id   String              @db.Uuid
-  company_id   String?
+  company_id   String?             @db.Uuid
   cited_at     DateTime            @default(now()) @db.Timestamptz(6)
   source       String?
   historico    historico_conversas @relation("HistoricoConversaProdutoHistorico", fields: [historico_id], references: [id], onDelete: Cascade)
@@ -221,11 +221,11 @@ model historico_conversas_produtos {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model produtos {
-  id                                  String                         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                                  String                         @id @db.Uuid
   created_at                          DateTime                       @default(now()) @db.Timestamptz(6)
   updated_at                          DateTime                       @default(now()) @db.Timestamptz(6)
   deleted_at                          DateTime?                      @db.Timestamptz(6)
-  company_id                          String?
+  company_id                          String?                        @db.Uuid
   company                             Company?                       @relation("ProdutoCompany", fields: [company_id], references: [id], onDelete: SetNull)
   nome                                String
   descricao_comercial                 String?
@@ -281,3 +281,5 @@ model produtos {
   @@index([nome], map: "idx_produtos_nome")
   @@index([objecoes_argumentacoes], map: "idx_produtos_objecoes", type: Gin)
 }
+
+

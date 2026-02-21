@@ -21,6 +21,7 @@ import {
   resolveActorCompanyScope,
 } from '../utils/rbac-scope-policy.js';
 import { isInvitableRole, isRoleWithDashboardAccess } from '../utils/user-role-policy.js';
+import { createUuidV7 } from '../utils/uuid.js';
 
 import { createActivationInviteForUser } from './account-activation.service.js';
 import { linkConversationHistoryByPhone } from './historico-conversas-link.service.js';
@@ -42,14 +43,14 @@ import {
 } from './user-rbac.service.js';
 
 export async function listUsers(actor: AuthActor, input: UserListInput) {
-  const pagination = getPagination(input.page, input.pageSize);
-  const companyId = resolveActorCompanyScope(actor, input.companyId);
+  const pagination = getPagination(input.page, input.page_size);
+  const company_id = resolveActorCompanyScope(actor, input.company_id);
   const roleScopeWhere = getUserReadScopeWhere(actor, 'users');
 
   const andFilters: Prisma.UserWhereInput[] = [];
 
-  if (companyId) {
-    andFilters.push({ companyId });
+  if (company_id) {
+    andFilters.push({ company_id });
   }
 
   if (Object.keys(roleScopeWhere).length > 0) {
@@ -60,7 +61,7 @@ export async function listUsers(actor: AuthActor, input: UserListInput) {
     const normalizedCpfQuery = normalizeCpf(input.q);
     const normalizedPhoneQuery = normalizePhone(input.q);
     const queryFilters: Prisma.UserWhereInput[] = [
-      { fullName: { contains: input.q, mode: 'insensitive' as const } },
+      { full_name: { contains: input.q, mode: 'insensitive' as const } },
       { email: { contains: input.q, mode: 'insensitive' as const } },
     ];
 
@@ -81,16 +82,16 @@ export async function listUsers(actor: AuthActor, input: UserListInput) {
     andFilters.push({ role: input.role });
   }
 
-  if (input.managerId) {
-    andFilters.push({ managerId: input.managerId });
+  if (input.manager_id) {
+    andFilters.push({ manager_id: input.manager_id });
   }
 
-  if (input.supervisorId) {
-    andFilters.push({ supervisorId: input.supervisorId });
+  if (input.supervisor_id) {
+    andFilters.push({ supervisor_id: input.supervisor_id });
   }
 
-  if (input.isActive !== undefined) {
-    andFilters.push({ isActive: input.isActive });
+  if (input.is_active !== undefined) {
+    andFilters.push({ is_active: input.is_active });
   }
 
   const where: Prisma.UserWhereInput = {
@@ -102,16 +103,16 @@ export async function listUsers(actor: AuthActor, input: UserListInput) {
       where,
       skip: pagination.skip,
       take: pagination.take,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { created_at: 'desc' },
       include: {
         company: {
           select: { id: true, name: true },
         },
         manager: {
-          select: { id: true, fullName: true },
+          select: { id: true, full_name: true },
         },
         supervisor: {
-          select: { id: true, fullName: true },
+          select: { id: true, full_name: true },
         },
       },
     }),
@@ -122,27 +123,27 @@ export async function listUsers(actor: AuthActor, input: UserListInput) {
     items: items.map((user) => mapPublicUser(user)),
     meta: {
       page: pagination.page,
-      pageSize: pagination.pageSize,
+      page_size: pagination.page_size,
       total,
-      totalPages: Math.max(1, Math.ceil(total / pagination.pageSize)),
+      total_pages: Math.max(1, Math.ceil(total / pagination.page_size)),
     },
   };
 }
 
-export async function getUserById(actor: AuthActor, userId: string) {
+export async function getUserById(actor: AuthActor, user_id: string) {
   const user = await prisma.user.findFirst({
     where: {
-      id: userId,
+      id: user_id,
     },
     include: {
       company: {
         select: { id: true, name: true },
       },
       manager: {
-        select: { id: true, fullName: true },
+        select: { id: true, full_name: true },
       },
       supervisor: {
-        select: { id: true, fullName: true, managerId: true },
+        select: { id: true, full_name: true, manager_id: true },
       },
     },
   });
@@ -151,7 +152,7 @@ export async function getUserById(actor: AuthActor, userId: string) {
     throw notFound('Usuário não encontrado');
   }
 
-  assertActorCompanyScope(actor, user.companyId);
+  assertActorCompanyScope(actor, user.company_id);
   if (!canReadUserByHierarchy(actor, user)) {
     throw forbidden('Você não tem permissão para visualizar este usuário');
   }
@@ -160,27 +161,28 @@ export async function getUserById(actor: AuthActor, userId: string) {
 }
 
 export async function createUser(actor: AuthActor, input: CreateUserInput) {
-  const companyId = resolveActorCompanyScope(actor, input.companyId);
+  const company_id = resolveActorCompanyScope(actor, input.company_id);
   validateCreatePermissions(actor, input.role);
-  validateCompanyForRole(input.role, companyId);
+  validateCompanyForRole(input.role, company_id);
   validateCredentialsForRole(input.role, input.email, input.password);
 
-  await assertCompanyExistsIfRequired(companyId);
+  await assertCompanyExistsIfRequired(company_id);
 
   const hierarchy = await resolveHierarchyForCreate(actor, {
     role: input.role,
-    companyId,
-    managerId: input.managerId,
-    supervisorId: input.supervisorId,
+    company_id,
+    manager_id: input.manager_id,
+    supervisor_id: input.supervisor_id,
   });
 
   const user = await prisma.user.create({
     data: {
-      companyId,
+      id: createUuidV7(),
+      company_id,
       role: input.role,
-      managerId: hierarchy.managerId,
-      supervisorId: hierarchy.supervisorId,
-      fullName: input.fullName.trim(),
+      manager_id: hierarchy.manager_id,
+      supervisor_id: hierarchy.supervisor_id,
+      full_name: input.full_name.trim(),
       cpf: normalizeCpf(input.cpf),
       email: input.email ? normalizeEmail(input.email) : null,
       phone: normalizePhone(input.phone),
@@ -191,10 +193,10 @@ export async function createUser(actor: AuthActor, input: CreateUserInput) {
         select: { id: true, name: true },
       },
       manager: {
-        select: { id: true, fullName: true },
+        select: { id: true, full_name: true },
       },
       supervisor: {
-        select: { id: true, fullName: true },
+        select: { id: true, full_name: true },
       },
     },
   });
@@ -205,8 +207,8 @@ export async function createUser(actor: AuthActor, input: CreateUserInput) {
 
   if (user.role === UserRole.VENDEDOR) {
     await linkConversationHistoryByPhone({
-      userId: user.id,
-      companyId: user.companyId,
+      user_id: user.id,
+      company_id: user.company_id,
       phone: user.phone,
     });
   }
@@ -216,23 +218,23 @@ export async function createUser(actor: AuthActor, input: CreateUserInput) {
 
 export async function createUserForCompany(
   actor: AuthActor,
-  companyId: string,
+  company_id: string,
   input: CreateUserByCompanyInput,
 ) {
   return createUser(actor, {
     ...input,
-    companyId,
+    company_id,
   });
 }
 
-export async function updateUser(actor: AuthActor, userId: string, input: UpdateUserInput) {
+export async function updateUser(actor: AuthActor, user_id: string, input: UpdateUserInput) {
   const existing = await prisma.user.findFirst({
     where: {
-      id: userId,
+      id: user_id,
     },
     include: {
       supervisor: {
-        select: { id: true, managerId: true },
+        select: { id: true, manager_id: true },
       },
     },
   });
@@ -241,7 +243,7 @@ export async function updateUser(actor: AuthActor, userId: string, input: Update
     throw notFound('Usuário não encontrado');
   }
 
-  assertActorCompanyScope(actor, existing.companyId);
+  assertActorCompanyScope(actor, existing.company_id);
   assertManageScope(actor, existing);
   validateUpdatePermissions(actor, existing.role, input.role);
 
@@ -261,29 +263,29 @@ export async function updateUser(actor: AuthActor, userId: string, input: Update
     throw badRequest('Senha obrigatória para admin');
   }
 
-  const companyId = resolveActorCompanyScope(
+  const company_id = resolveActorCompanyScope(
     actor,
-    input.companyId ?? existing.companyId ?? undefined,
+    input.company_id ?? existing.company_id ?? undefined,
   );
-  validateCompanyForRole(nextRole, companyId);
-  await assertCompanyExistsIfRequired(companyId);
+  validateCompanyForRole(nextRole, company_id);
+  await assertCompanyExistsIfRequired(company_id);
 
   const hierarchy = await resolveHierarchyForUpdate(actor, {
     existing,
     nextRole,
-    companyId,
-    managerId: input.managerId,
-    supervisorId: input.supervisorId,
+    company_id,
+    manager_id: input.manager_id,
+    supervisor_id: input.supervisor_id,
   });
 
   const user = await prisma.user.update({
-    where: { id: userId },
+    where: { id: user_id },
     data: {
-      companyId,
+      company_id,
       role: nextRole,
-      managerId: hierarchy.managerId,
-      supervisorId: hierarchy.supervisorId,
-      fullName: input.fullName?.trim(),
+      manager_id: hierarchy.manager_id,
+      supervisor_id: hierarchy.supervisor_id,
+      full_name: input.full_name?.trim(),
       cpf: input.cpf ? normalizeCpf(input.cpf) : undefined,
       email:
         input.email === undefined ? undefined : input.email ? normalizeEmail(input.email) : null,
@@ -294,18 +296,18 @@ export async function updateUser(actor: AuthActor, userId: string, input: Update
           : hasNewPassword
             ? await hashPassword(input.password!)
             : undefined,
-      isActive: input.isActive,
-      deletedAt: input.isActive === true ? null : undefined,
+      is_active: input.is_active,
+      deleted_at: input.is_active === true ? null : undefined,
     },
     include: {
       company: {
         select: { id: true, name: true },
       },
       manager: {
-        select: { id: true, fullName: true },
+        select: { id: true, full_name: true },
       },
       supervisor: {
-        select: { id: true, fullName: true },
+        select: { id: true, full_name: true },
       },
     },
   });
@@ -316,8 +318,8 @@ export async function updateUser(actor: AuthActor, userId: string, input: Update
 
   if (user.role === UserRole.VENDEDOR) {
     await linkConversationHistoryByPhone({
-      userId: user.id,
-      companyId: user.companyId,
+      user_id: user.id,
+      company_id: user.company_id,
       phone: user.phone,
     });
   }
@@ -325,19 +327,19 @@ export async function updateUser(actor: AuthActor, userId: string, input: Update
   return mapPublicUser(user);
 }
 
-export async function deleteUser(actor: AuthActor, userId: string) {
-  if (actor.userId === userId) {
+export async function deleteUser(actor: AuthActor, user_id: string) {
+  if (actor.user_id === user_id) {
     throw badRequest('Você não pode excluir o próprio usuário');
   }
 
   const existing = await prisma.user.findFirst({
     where: {
-      id: userId,
-      deletedAt: null,
+      id: user_id,
+      deleted_at: null,
     },
     include: {
       supervisor: {
-        select: { id: true, managerId: true },
+        select: { id: true, manager_id: true },
       },
     },
   });
@@ -346,22 +348,22 @@ export async function deleteUser(actor: AuthActor, userId: string) {
     throw notFound('Usuário não encontrado');
   }
 
-  assertActorCompanyScope(actor, existing.companyId);
+  assertActorCompanyScope(actor, existing.company_id);
   assertManageScope(actor, existing);
 
   if (existing.role === UserRole.SUPERVISOR) {
     const activeVendorsCount = await prisma.user.count({
       where: {
-        deletedAt: null,
-        isActive: true,
+        deleted_at: null,
+        is_active: true,
         role: UserRole.VENDEDOR,
-        supervisorId: existing.id,
+        supervisor_id: existing.id,
       },
     });
 
     if (activeVendorsCount > 0) {
       throw conflict('Supervisor possui vendedores ativos vinculados', {
-        activeVendorsCount,
+        active_vendors_count: activeVendorsCount,
       });
     }
   }
@@ -369,16 +371,16 @@ export async function deleteUser(actor: AuthActor, userId: string) {
   if (existing.role === UserRole.GERENTE_COMERCIAL) {
     const activeSupervisorsCount = await prisma.user.count({
       where: {
-        deletedAt: null,
-        isActive: true,
+        deleted_at: null,
+        is_active: true,
         role: UserRole.SUPERVISOR,
-        managerId: existing.id,
+        manager_id: existing.id,
       },
     });
 
     if (activeSupervisorsCount > 0) {
       throw conflict('Gerente comercial possui supervisores ativos vinculados', {
-        activeSupervisorsCount,
+        active_supervisors_count: activeSupervisorsCount,
       });
     }
   }
@@ -387,15 +389,15 @@ export async function deleteUser(actor: AuthActor, userId: string) {
 
   await prisma.$transaction([
     prisma.user.update({
-      where: { id: userId },
+      where: { id: user_id },
       data: {
-        deletedAt: now,
-        isActive: false,
+        deleted_at: now,
+        is_active: false,
       },
     }),
     prisma.session.updateMany({
       where: {
-        userId,
+        user_id,
         revokedAt: null,
       },
       data: {
@@ -404,7 +406,7 @@ export async function deleteUser(actor: AuthActor, userId: string) {
     }),
     prisma.accountActivationToken.updateMany({
       where: {
-        userId,
+        user_id,
         usedAt: null,
       },
       data: {
@@ -413,36 +415,37 @@ export async function deleteUser(actor: AuthActor, userId: string) {
     }),
     prisma.userDeletionAudit.create({
       data: {
-        targetUserId: userId,
-        targetCompanyId: existing.companyId,
-        actorUserId: actor.userId,
+        id: createUuidV7(),
+        targetUserId: user_id,
+        targetCompanyId: existing.company_id,
+        actorUserId: actor.user_id,
         actorRole: actor.role,
-        deletedAt: now,
+        deleted_at: now,
       },
     }),
   ]);
 }
 
 export async function reassignSupervisor(actor: AuthActor, input: ReassignSupervisorInput) {
-  if (input.fromSupervisorId === input.toSupervisorId) {
+  if (input.from_supervisor_id === input.to_supervisor_id) {
     throw badRequest('Supervisor de origem e destino não podem ser iguais');
   }
 
   const [fromSupervisor, toSupervisor] = await Promise.all([
-    getSupervisorForReassign(input.fromSupervisorId),
-    getSupervisorForReassign(input.toSupervisorId),
+    getSupervisorForReassign(input.from_supervisor_id),
+    getSupervisorForReassign(input.to_supervisor_id),
   ]);
 
-  if (fromSupervisor.companyId !== toSupervisor.companyId) {
+  if (fromSupervisor.company_id !== toSupervisor.company_id) {
     throw badRequest('Supervisores devem pertencer à mesma empresa');
   }
 
   if (actor.role === UserRole.GERENTE_COMERCIAL) {
-    if (!actor.companyId || actor.companyId !== fromSupervisor.companyId) {
+    if (!actor.company_id || actor.company_id !== fromSupervisor.company_id) {
       throw forbidden('Você não tem acesso ao escopo desta empresa');
     }
 
-    if (fromSupervisor.managerId !== actor.userId || toSupervisor.managerId !== actor.userId) {
+    if (fromSupervisor.manager_id !== actor.user_id || toSupervisor.manager_id !== actor.user_id) {
       throw forbidden('Você só pode reatribuir vendedores entre supervisores do seu escopo');
     }
   }
@@ -450,19 +453,19 @@ export async function reassignSupervisor(actor: AuthActor, input: ReassignSuperv
   const moved = await prisma.user.updateMany({
     where: {
       role: UserRole.VENDEDOR,
-      deletedAt: null,
-      supervisorId: fromSupervisor.id,
+      deleted_at: null,
+      supervisor_id: fromSupervisor.id,
     },
     data: {
-      supervisorId: toSupervisor.id,
+      supervisor_id: toSupervisor.id,
     },
   });
 
   return {
-    fromSupervisorId: fromSupervisor.id,
-    toSupervisorId: toSupervisor.id,
-    companyId: fromSupervisor.companyId,
-    movedVendors: moved.count,
+    from_supervisor_id: fromSupervisor.id,
+    to_supervisor_id: toSupervisor.id,
+    company_id: fromSupervisor.company_id,
+    moved_vendors: moved.count,
   };
 }
 
@@ -471,16 +474,16 @@ export async function reassignManagerTeam(actor: AuthActor, input: ReassignManag
     throw forbidden('Somente admin pode reatribuir equipes entre gerentes');
   }
 
-  if (input.fromManagerId === input.toManagerId) {
+  if (input.from_manager_id === input.to_manager_id) {
     throw badRequest('Gerente de origem e destino não podem ser iguais');
   }
 
   const [fromManager, toManager] = await Promise.all([
-    getManagerForReassign(input.fromManagerId),
-    getManagerForReassign(input.toManagerId),
+    getManagerForReassign(input.from_manager_id),
+    getManagerForReassign(input.to_manager_id),
   ]);
 
-  if (fromManager.companyId !== toManager.companyId) {
+  if (fromManager.company_id !== toManager.company_id) {
     throw badRequest('Gerentes devem pertencer à mesma empresa');
   }
 
@@ -488,12 +491,12 @@ export async function reassignManagerTeam(actor: AuthActor, input: ReassignManag
     const vendorsImpacted = await tx.user.count({
       where: {
         role: UserRole.VENDEDOR,
-        deletedAt: null,
+        deleted_at: null,
         supervisor: {
           is: {
-            deletedAt: null,
+            deleted_at: null,
             role: UserRole.SUPERVISOR,
-            managerId: fromManager.id,
+            manager_id: fromManager.id,
           },
         },
       },
@@ -502,49 +505,51 @@ export async function reassignManagerTeam(actor: AuthActor, input: ReassignManag
     const supervisorsMoved = await tx.user.updateMany({
       where: {
         role: UserRole.SUPERVISOR,
-        deletedAt: null,
-        managerId: fromManager.id,
+        deleted_at: null,
+        manager_id: fromManager.id,
       },
       data: {
-        managerId: toManager.id,
+        manager_id: toManager.id,
       },
     });
 
     return {
-      supervisorsMoved: supervisorsMoved.count,
-      vendorsImpacted,
+      supervisors_moved: supervisorsMoved.count,
+      vendors_impacted: vendorsImpacted,
     };
   });
 
   return {
-    fromManagerId: fromManager.id,
-    toManagerId: toManager.id,
-    companyId: fromManager.companyId,
-    supervisorsMoved: result.supervisorsMoved,
-    vendorsImpacted: result.vendorsImpacted,
+    from_manager_id: fromManager.id,
+    to_manager_id: toManager.id,
+    company_id: fromManager.company_id,
+    supervisors_moved: result.supervisors_moved,
+    vendors_impacted: result.vendors_impacted,
   };
 }
 
 function mapPublicUser(user: PublicUserViewInput) {
   return {
     id: user.id,
-    companyId: user.companyId,
+    company_id: user.company_id,
     company: user.company ?? null,
-    managerId: user.managerId ?? null,
+    manager_id: user.manager_id ?? null,
     manager: user.manager ?? null,
-    supervisorId: user.supervisorId ?? null,
+    supervisor_id: user.supervisor_id ?? null,
     supervisor: user.supervisor ?? null,
     role: user.role,
-    fullName: user.fullName,
+    full_name: user.full_name,
     cpf: user.cpf,
     email: user.email,
     phone: user.phone,
-    isActive: user.isActive,
-    deletedAt: user.deletedAt ?? null,
-    passwordStatus:
+    is_active: user.is_active,
+    deleted_at: user.deleted_at ?? null,
+    password_status:
       user.role === UserRole.VENDEDOR ? 'NOT_APPLICABLE' : user.passwordHash ? 'SET' : 'PENDING',
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
+    created_at: user.created_at,
+    updated_at: user.updated_at,
   };
 }
+
+
 

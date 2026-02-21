@@ -8,14 +8,14 @@ export const metadata = createPageMetadata("Detalhes da Conversa");
 
 type DashboardConversationDetailsPageProps = {
   params: Promise<{
-    conversationId: string;
+    conversation_id: string;
   }>;
 };
 
 export default async function DashboardConversationDetailsPage({
   params,
 }: DashboardConversationDetailsPageProps) {
-  const { conversationId } = await params;
+  const { conversation_id } = await params;
 
   return (
     <div className="flex w-full max-w-6xl flex-col gap-6 p-6">
@@ -38,7 +38,7 @@ export default async function DashboardConversationDetailsPage({
         Histórico de Conversas
       </h2>
 
-      <ConversationDetailWrapper conversationId={conversationId} />
+      <ConversationDetailWrapper conversation_id={conversation_id} />
     </div>
   );
 }

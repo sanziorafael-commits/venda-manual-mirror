@@ -16,6 +16,8 @@ router.use(
   authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
 );
 router.get('/', listConversationsHandler);
-router.get('/:conversationId', getConversationByIdHandler);
+router.get('/:conversation_id', getConversationByIdHandler);
 
 export default router;
+
+

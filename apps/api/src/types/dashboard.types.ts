@@ -4,36 +4,36 @@ export type DashboardScope = 'all' | 'vendors' | 'supervisors';
 
 export type DashboardOverviewInput = {
   period?: DashboardPeriod;
-  startDate?: string;
-  endDate?: string;
-  companyId?: string;
-  rankLimit?: number;
-  viewBy?: DashboardViewBy;
+  start_date?: string;
+  end_date?: string;
+  company_id?: string;
+  rank_limit?: number;
+  view_by?: DashboardViewBy;
   scope?: DashboardScope;
 };
 
 export type DashboardInteractionsSeriesInput = {
   period?: DashboardPeriod;
-  startDate?: string;
-  endDate?: string;
-  companyId?: string;
-  viewBy?: DashboardViewBy;
+  start_date?: string;
+  end_date?: string;
+  company_id?: string;
+  view_by?: DashboardViewBy;
   scope?: DashboardScope;
 };
 
 export type DashboardFilterOptionsInput = {
-  companyId?: string;
+  company_id?: string;
 };
 
 export type DashboardRankingItem = {
-  userName: string;
-  userPhone: string | null;
+  user_name: string;
+  user_phone: string | null;
   interactions: number;
 };
 
 export type DashboardProductRankingItem = {
-  productId: string;
-  productName: string;
+  product_id: string;
+  product_name: string;
   citations: number;
 };
 
@@ -41,3 +41,5 @@ export type DashboardFilterOption<T extends string = string> = {
   value: T;
   label: string;
 };
+
+

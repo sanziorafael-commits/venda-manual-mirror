@@ -51,3 +51,5 @@ export function assertTokenType(payload: JwtPayload, type: JwtTokenType) {
     throw unauthorized('Tipo de token inválido');
   }
 }
+
+

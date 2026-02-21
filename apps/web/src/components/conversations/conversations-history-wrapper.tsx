@@ -38,7 +38,7 @@ export function ConversationsHistoryWrapper() {
 
   const selectedCompanyId = React.useMemo(() => {
     if (!isAdmin) {
-      return authUser?.companyId ?? null;
+      return authUser?.company_id ?? null;
     }
 
     if (
@@ -49,7 +49,7 @@ export function ConversationsHistoryWrapper() {
     }
 
     return selectedCompanyContext;
-  }, [authUser?.companyId, isAdmin, selectedCompanyContext]);
+  }, [authUser?.company_id, isAdmin, selectedCompanyContext]);
 
   const [searchDraft, setSearchDraft] = React.useState("");
   const [query, setQuery] = React.useState("");
@@ -57,7 +57,7 @@ export function ConversationsHistoryWrapper() {
     undefined,
   );
   const [pageIndex, setPageIndex] = React.useState(0);
-  const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
+  const [page_size, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
   const [isLoadingConversations, setIsLoadingConversations] =
     React.useState(true);
   const [conversations, setConversations] = React.useState<
@@ -69,7 +69,7 @@ export function ConversationsHistoryWrapper() {
 
   const conversationsRequestRef = React.useRef(0);
 
-  const startDate = React.useMemo(() => {
+  const start_date = React.useMemo(() => {
     if (!dateRange?.from) {
       return null;
     }
@@ -77,7 +77,7 @@ export function ConversationsHistoryWrapper() {
     return format(dateRange.from, "yyyy-MM-dd");
   }, [dateRange?.from]);
 
-  const endDate = React.useMemo(() => {
+  const end_date = React.useMemo(() => {
     const endSource = dateRange?.to ?? dateRange?.from;
     if (!endSource) {
       return null;
@@ -93,29 +93,29 @@ export function ConversationsHistoryWrapper() {
 
     if (isAdmin && !selectedCompanyId) {
       setConversations([]);
-      setMeta(createEmptyPaginationMeta<ConversationListMeta>(pageSize));
+      setMeta(createEmptyPaginationMeta<ConversationListMeta>(page_size));
       setIsLoadingConversations(false);
       return;
     }
 
     const params = new URLSearchParams();
     params.set("page", String(pageIndex + 1));
-    params.set("pageSize", String(pageSize));
+    params.set("page_size", String(page_size));
 
     if (query.trim().length > 0) {
       params.set("q", query.trim());
     }
 
-    if (startDate) {
-      params.set("startDate", startDate);
+    if (start_date) {
+      params.set("start_date", start_date);
     }
 
-    if (endDate) {
-      params.set("endDate", endDate);
+    if (end_date) {
+      params.set("end_date", end_date);
     }
 
     if (isAdmin && selectedCompanyId) {
-      params.set("companyId", selectedCompanyId);
+      params.set("company_id", selectedCompanyId);
     }
 
     const currentRequestId = ++conversationsRequestRef.current;
@@ -133,7 +133,7 @@ export function ConversationsHistoryWrapper() {
       if (!parsed.success) {
         toast.error("Resposta inesperada ao carregar histórico.");
         setConversations([]);
-        setMeta(createEmptyPaginationMeta<ConversationListMeta>(pageSize));
+        setMeta(createEmptyPaginationMeta<ConversationListMeta>(page_size));
         return;
       }
 
@@ -151,7 +151,7 @@ export function ConversationsHistoryWrapper() {
 
       toast.error(parseApiError(error));
       setConversations([]);
-      setMeta(createEmptyPaginationMeta<ConversationListMeta>(pageSize));
+      setMeta(createEmptyPaginationMeta<ConversationListMeta>(page_size));
     } finally {
       if (currentRequestId === conversationsRequestRef.current) {
         setIsLoadingConversations(false);
@@ -159,13 +159,13 @@ export function ConversationsHistoryWrapper() {
     }
   }, [
     authHydrated,
-    endDate,
+    end_date,
     isAdmin,
     pageIndex,
-    pageSize,
+    page_size,
     query,
     selectedCompanyId,
-    startDate,
+    start_date,
   ]);
 
   React.useEffect(() => {
@@ -252,7 +252,7 @@ export function ConversationsHistoryWrapper() {
             Itens
             <select
               className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] xl:w-auto"
-              value={String(pageSize)}
+              value={String(page_size)}
               onChange={(event) =>
                 handlePageSizeChange(Number(event.target.value))
               }
@@ -290,7 +290,7 @@ export function ConversationsHistoryWrapper() {
               <tbody>
                 {isLoadingConversations
                   ? Array.from(
-                      { length: Math.max(4, Math.min(pageSize, 8)) },
+                      { length: Math.max(4, Math.min(page_size, 8)) },
                       (_, rowIndex) => (
                         <tr key={`loading-${rowIndex}`} className="border-t">
                           {Array.from(
@@ -311,24 +311,24 @@ export function ConversationsHistoryWrapper() {
                       <tr key={conversation.id} className="border-t">
                         <td className="px-4 py-4">
                           <p className="font-medium">
-                            {conversation.vendedorNome}
+                            {conversation.vendedor_nome}
                           </p>
-                          {conversation.vendedorTelefone ? (
+                          {conversation.vendedor_telefone ? (
                             <p className="text-xs text-muted-foreground">
-                              {formatPhoneDisplay(conversation.vendedorTelefone)}
+                              {formatPhoneDisplay(conversation.vendedor_telefone)}
                             </p>
                           ) : null}
                         </td>
                         {isAdmin ? (
                           <td className="px-4 py-4">
-                            {conversation.companyName ?? "Sem empresa"}
+                            {conversation.company_name ?? "Sem empresa"}
                           </td>
                         ) : null}
                         <td className="px-4 py-4">
-                          {conversation.totalInteracoes}
+                          {conversation.total_interacoes}
                         </td>
                         <td className="px-4 py-4">
-                          {formatDateTime(conversation.ultimaInteracaoEm)}
+                          {formatDateTime(conversation.ultima_interacao_em)}
                         </td>
                         <td className="px-4 py-4">
                           <Button
@@ -367,7 +367,7 @@ export function ConversationsHistoryWrapper() {
 
       <PaginationControls
         pageIndex={pageIndex}
-        totalPages={meta.totalPages}
+        total_pages={meta.total_pages}
         isLoading={isLoadingConversations}
         onPageChange={setPageIndex}
       />
@@ -393,4 +393,5 @@ function formatDateTime(value: string | null) {
     minute: "2-digit",
   });
 }
+
 

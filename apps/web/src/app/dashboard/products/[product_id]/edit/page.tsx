@@ -8,20 +8,20 @@ export const metadata = createPageMetadata("Editar Produto");
 
 type DashboardProductEditPageProps = {
   params: Promise<{
-    productId: string;
+    product_id: string;
   }>;
 };
 
 export default async function DashboardProductEditPage({
   params,
 }: DashboardProductEditPageProps) {
-  const { productId } = await params;
+  const { product_id } = await params;
 
   return (
     <div className="flex w-full max-w-full flex-col gap-6 p-6">
       <div className="flex flex-wrap items-center gap-3 text-sm">
         <Link
-          href={`/dashboard/products/${productId}`}
+          href={`/dashboard/products/${product_id}`}
           className="inline-flex items-center gap-2 font-medium text-foreground hover:text-foreground/80"
         >
           <ArrowLeft className="size-4" />
@@ -38,7 +38,7 @@ export default async function DashboardProductEditPage({
         Cadastro de Produtos
       </h2>
 
-      <ProductFormWizard mode="edit" productId={productId} />
+      <ProductFormWizard mode="edit" product_id={product_id} />
     </div>
   );
 }

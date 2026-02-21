@@ -1,17 +1,19 @@
 export type CompanyListInput = {
   q?: string;
   page?: number;
-  pageSize?: number;
+  page_size?: number;
 };
 
 export type CreateCompanyInput = {
   name: string;
   cnpj: string;
-  logoUrl?: string;
+  logo_url?: string;
 };
 
 export type UpdateCompanyInput = {
   name?: string;
   cnpj?: string;
-  logoUrl?: string | null;
+  logo_url?: string | null;
 };
+
+

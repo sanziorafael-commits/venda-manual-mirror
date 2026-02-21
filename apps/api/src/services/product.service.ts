@@ -6,6 +6,7 @@ import type { AuthActor } from '../types/auth.types.js';
 import type { CreateProductInput, ProductListInput, ProductObjectionInput, UpdateProductInput } from '../types/product.types.js';
 import { badRequest, forbidden, notFound } from '../utils/app-error.js';
 import { getPagination } from '../utils/pagination.js';
+import { createUuidV7 } from '../utils/uuid.js';
 
 import {
   createStorageSignedReadUrlByPublicUrl,
@@ -13,16 +14,16 @@ import {
 } from './storage.service.js';
 
 type PublicProductObjection = {
-  objecaoCliente: string;
-  tipoObjecao: string;
-  tipoObjecaoOutro: string | null;
-  respostaArgumento: string;
-  quandoUsar: string | null;
+  objecao_cliente: string;
+  tipo_objecao: string;
+  tipo_objecao_outro: string | null;
+  resposta_argumento: string;
+  quando_usar: string | null;
 };
 
 export async function listProducts(actor: AuthActor, input: ProductListInput) {
-  const pagination = getPagination(input.page, input.pageSize);
-  const scopedCompanyId = resolveListCompanyScope(actor, input.companyId);
+  const pagination = getPagination(input.page, input.page_size);
+  const scopedCompanyId = resolveListCompanyScope(actor, input.company_id);
 
   const where: Prisma.produtosWhereInput = {
     deleted_at: null,
@@ -80,23 +81,23 @@ export async function listProducts(actor: AuthActor, input: ProductListInput) {
   return {
     items: items.map((item) => ({
       id: item.id,
-      companyId: item.company_id ?? null,
+      company_id: item.company_id ?? null,
       nome: item.nome,
       marca: item.marca ?? null,
-      codigoInternoSku: item.codigo_interno_sku ?? null,
+      codigo_interno_sku: item.codigo_interno_sku ?? null,
       categorias: item.categorias ?? [],
-      tipologiasClientes: item.tipologias_clientes ?? [],
-      totalObjecoes: parseProductObjections(item.objecoes_argumentacoes).length,
-      totalFotos: item.fotos_produto.length,
-      totalVideos: item.videos_material.length,
-      createdAt: item.created_at,
-      updatedAt: item.updated_at,
+      tipologias_clientes: item.tipologias_clientes ?? [],
+      total_objecoes: parseProductObjections(item.objecoes_argumentacoes).length,
+      total_fotos: item.fotos_produto.length,
+      total_videos: item.videos_material.length,
+      created_at: item.created_at,
+      updated_at: item.updated_at,
     })),
     meta: {
       page: pagination.page,
-      pageSize: pagination.pageSize,
+      page_size: pagination.page_size,
       total,
-      totalPages: Math.max(1, Math.ceil(total / pagination.pageSize)),
+      total_pages: Math.max(1, Math.ceil(total / pagination.page_size)),
     },
   };
 }
@@ -127,52 +128,52 @@ export async function createProduct(actor: AuthActor, input: CreateProductInput)
 
   const now = new Date();
   const data: Prisma.produtosUncheckedCreateInput = {
-    ...(input.id ? { id: input.id } : {}),
-    company_id: actor.companyId!,
+    id: input.id ?? createUuidV7(),
+    company_id: actor.company_id!,
     nome: input.nome.trim(),
-    descricao_comercial: normalizeOptionalText(input.descricaoComercial),
-    codigo_interno_sku: normalizeOptionalShortText(input.codigoInternoSku),
+    descricao_comercial: normalizeOptionalText(input.descricao_comercial),
+    codigo_interno_sku: normalizeOptionalShortText(input.codigo_interno_sku),
     marca: normalizeOptionalShortText(input.marca),
     categorias: normalizeStringList(input.categorias),
-    categoria_outro: normalizeOptionalText(input.categoriaOutro),
-    tipologias_clientes: normalizeStringList(input.tipologiasClientes),
-    tipologia_cliente_outro: normalizeOptionalText(input.tipologiaClienteOutro),
-    sugestoes_receitas: normalizeOptionalText(input.sugestoesReceitas),
-    codigo_barras_ean: normalizeOptionalShortText(input.codigoBarrasEan),
-    codigo_barras_dun: normalizeOptionalShortText(input.codigoBarrasDun),
-    codigo_fiscal_ncm: normalizeOptionalShortText(input.codigoFiscalNcm),
-    tipo_conservacao: input.tipoConservacao ?? null,
-    tipo_conservacao_outro: normalizeOptionalText(input.tipoConservacaoOutro),
-    validade_embalagem_fechada: normalizeOptionalShortText(input.validadeEmbalagemFechada),
-    validade_apos_abertura: normalizeOptionalShortText(input.validadeAposAbertura),
-    validade_apos_preparo: normalizeOptionalShortText(input.validadeAposPreparo),
-    instrucoes_conservacao_produto: normalizeOptionalText(input.instrucoesConservacaoProduto),
-    restricoes_produto: normalizeOptionalText(input.restricoesProduto),
-    unidade_venda: input.unidadeVenda ?? null,
-    unidade_venda_outro: normalizeOptionalText(input.unidadeVendaOutro),
-    peso_liquido_volume: normalizeOptionalShortText(input.pesoLiquidoVolume),
-    peso_bruto: normalizeOptionalShortText(input.pesoBruto),
-    qtd_unidades_por_caixa: normalizeOptionalShortText(input.qtdUnidadesPorCaixa),
-    instrucoes_conservacao_embalagem: normalizeOptionalText(input.instrucoesConservacaoEmbalagem),
-    restricoes_embalagem: normalizeOptionalText(input.restricoesEmbalagem),
-    possui_ingredientes: input.possuiIngredientes ?? null,
+    categoria_outro: normalizeOptionalText(input.categoria_outro),
+    tipologias_clientes: normalizeStringList(input.tipologias_clientes),
+    tipologia_cliente_outro: normalizeOptionalText(input.tipologia_cliente_outro),
+    sugestoes_receitas: normalizeOptionalText(input.sugestoes_receitas),
+    codigo_barras_ean: normalizeOptionalShortText(input.codigo_barras_ean),
+    codigo_barras_dun: normalizeOptionalShortText(input.codigo_barras_dun),
+    codigo_fiscal_ncm: normalizeOptionalShortText(input.codigo_fiscal_ncm),
+    tipo_conservacao: input.tipo_conservacao ?? null,
+    tipo_conservacao_outro: normalizeOptionalText(input.tipo_conservacao_outro),
+    validade_embalagem_fechada: normalizeOptionalShortText(input.validade_embalagem_fechada),
+    validade_apos_abertura: normalizeOptionalShortText(input.validade_apos_abertura),
+    validade_apos_preparo: normalizeOptionalShortText(input.validade_apos_preparo),
+    instrucoes_conservacao_produto: normalizeOptionalText(input.instrucoes_conservacao_produto),
+    restricoes_produto: normalizeOptionalText(input.restricoes_produto),
+    unidade_venda: input.unidade_venda ?? null,
+    unidade_venda_outro: normalizeOptionalText(input.unidade_venda_outro),
+    peso_liquido_volume: normalizeOptionalShortText(input.peso_liquido_volume),
+    peso_bruto: normalizeOptionalShortText(input.peso_bruto),
+    qtd_unidades_por_caixa: normalizeOptionalShortText(input.qtd_unidades_por_caixa),
+    instrucoes_conservacao_embalagem: normalizeOptionalText(input.instrucoes_conservacao_embalagem),
+    restricoes_embalagem: normalizeOptionalText(input.restricoes_embalagem),
+    possui_ingredientes: input.possui_ingredientes ?? null,
     ingredientes: normalizeOptionalText(input.ingredientes),
     alergenos: normalizeOptionalText(input.alergenos),
-    produto_pronto_uso: input.produtoProntoUso ?? null,
-    produto_pronto_uso_outro: normalizeOptionalText(input.produtoProntoUsoOutro),
-    modo_preparo: normalizeOptionalText(input.modoPreparo),
-    observacoes_uso: normalizeOptionalText(input.observacoesUso),
-    objecoes_argumentacoes: normalizeProductObjections(input.objecoesArgumentacoes),
-    fotos_produto: normalizeUrlList(input.fotosProduto),
-    videos_material: normalizeUrlList(input.videosMaterial),
-    observacoes_imagens: normalizeOptionalText(input.observacoesImagens),
+    produto_pronto_uso: input.produto_pronto_uso ?? null,
+    produto_pronto_uso_outro: normalizeOptionalText(input.produto_pronto_uso_outro),
+    modo_preparo: normalizeOptionalText(input.modo_preparo),
+    observacoes_uso: normalizeOptionalText(input.observacoes_uso),
+    objecoes_argumentacoes: normalizeProductObjections(input.objecoes_argumentacoes),
+    fotos_produto: normalizeUrlList(input.fotos_produto),
+    videos_material: normalizeUrlList(input.videos_material),
+    observacoes_imagens: normalizeOptionalText(input.observacoes_imagens),
     informacoes_tecnicas_complementares: normalizeOptionalText(
-      input.informacoesTecnicasComplementares,
+      input.informacoes_tecnicas_complementares,
     ),
-    certificacoes_registros: normalizeOptionalText(input.certificacoesRegistros),
-    observacoes_comerciais: normalizeOptionalText(input.observacoesComerciais),
-    diferenciais_produto: normalizeOptionalText(input.diferenciaisProduto),
-    observacoes_gerais: normalizeOptionalText(input.observacoesGerais),
+    certificacoes_registros: normalizeOptionalText(input.certificacoes_registros),
+    observacoes_comerciais: normalizeOptionalText(input.observacoes_comerciais),
+    diferenciais_produto: normalizeOptionalText(input.diferenciais_produto),
+    observacoes_gerais: normalizeOptionalText(input.observacoes_gerais),
     created_at: now,
     updated_at: now,
   };
@@ -204,11 +205,11 @@ export async function updateProduct(actor: AuthActor, productId: string, input: 
   if (input.nome !== undefined) {
     data.nome = input.nome.trim();
   }
-  if (input.descricaoComercial !== undefined) {
-    data.descricao_comercial = normalizeOptionalText(input.descricaoComercial);
+  if (input.descricao_comercial !== undefined) {
+    data.descricao_comercial = normalizeOptionalText(input.descricao_comercial);
   }
-  if (input.codigoInternoSku !== undefined) {
-    data.codigo_interno_sku = normalizeOptionalShortText(input.codigoInternoSku);
+  if (input.codigo_interno_sku !== undefined) {
+    data.codigo_interno_sku = normalizeOptionalShortText(input.codigo_interno_sku);
   }
   if (input.marca !== undefined) {
     data.marca = normalizeOptionalShortText(input.marca);
@@ -216,73 +217,73 @@ export async function updateProduct(actor: AuthActor, productId: string, input: 
   if (input.categorias !== undefined) {
     data.categorias = normalizeStringList(input.categorias);
   }
-  if (input.categoriaOutro !== undefined) {
-    data.categoria_outro = normalizeOptionalText(input.categoriaOutro);
+  if (input.categoria_outro !== undefined) {
+    data.categoria_outro = normalizeOptionalText(input.categoria_outro);
   }
-  if (input.tipologiasClientes !== undefined) {
-    data.tipologias_clientes = normalizeStringList(input.tipologiasClientes);
+  if (input.tipologias_clientes !== undefined) {
+    data.tipologias_clientes = normalizeStringList(input.tipologias_clientes);
   }
-  if (input.tipologiaClienteOutro !== undefined) {
-    data.tipologia_cliente_outro = normalizeOptionalText(input.tipologiaClienteOutro);
+  if (input.tipologia_cliente_outro !== undefined) {
+    data.tipologia_cliente_outro = normalizeOptionalText(input.tipologia_cliente_outro);
   }
-  if (input.sugestoesReceitas !== undefined) {
-    data.sugestoes_receitas = normalizeOptionalText(input.sugestoesReceitas);
+  if (input.sugestoes_receitas !== undefined) {
+    data.sugestoes_receitas = normalizeOptionalText(input.sugestoes_receitas);
   }
-  if (input.codigoBarrasEan !== undefined) {
-    data.codigo_barras_ean = normalizeOptionalShortText(input.codigoBarrasEan);
+  if (input.codigo_barras_ean !== undefined) {
+    data.codigo_barras_ean = normalizeOptionalShortText(input.codigo_barras_ean);
   }
-  if (input.codigoBarrasDun !== undefined) {
-    data.codigo_barras_dun = normalizeOptionalShortText(input.codigoBarrasDun);
+  if (input.codigo_barras_dun !== undefined) {
+    data.codigo_barras_dun = normalizeOptionalShortText(input.codigo_barras_dun);
   }
-  if (input.codigoFiscalNcm !== undefined) {
-    data.codigo_fiscal_ncm = normalizeOptionalShortText(input.codigoFiscalNcm);
+  if (input.codigo_fiscal_ncm !== undefined) {
+    data.codigo_fiscal_ncm = normalizeOptionalShortText(input.codigo_fiscal_ncm);
   }
-  if (input.tipoConservacao !== undefined) {
-    data.tipo_conservacao = input.tipoConservacao;
+  if (input.tipo_conservacao !== undefined) {
+    data.tipo_conservacao = input.tipo_conservacao;
   }
-  if (input.tipoConservacaoOutro !== undefined) {
-    data.tipo_conservacao_outro = normalizeOptionalText(input.tipoConservacaoOutro);
+  if (input.tipo_conservacao_outro !== undefined) {
+    data.tipo_conservacao_outro = normalizeOptionalText(input.tipo_conservacao_outro);
   }
-  if (input.validadeEmbalagemFechada !== undefined) {
-    data.validade_embalagem_fechada = normalizeOptionalShortText(input.validadeEmbalagemFechada);
+  if (input.validade_embalagem_fechada !== undefined) {
+    data.validade_embalagem_fechada = normalizeOptionalShortText(input.validade_embalagem_fechada);
   }
-  if (input.validadeAposAbertura !== undefined) {
-    data.validade_apos_abertura = normalizeOptionalShortText(input.validadeAposAbertura);
+  if (input.validade_apos_abertura !== undefined) {
+    data.validade_apos_abertura = normalizeOptionalShortText(input.validade_apos_abertura);
   }
-  if (input.validadeAposPreparo !== undefined) {
-    data.validade_apos_preparo = normalizeOptionalShortText(input.validadeAposPreparo);
+  if (input.validade_apos_preparo !== undefined) {
+    data.validade_apos_preparo = normalizeOptionalShortText(input.validade_apos_preparo);
   }
-  if (input.instrucoesConservacaoProduto !== undefined) {
-    data.instrucoes_conservacao_produto = normalizeOptionalText(input.instrucoesConservacaoProduto);
+  if (input.instrucoes_conservacao_produto !== undefined) {
+    data.instrucoes_conservacao_produto = normalizeOptionalText(input.instrucoes_conservacao_produto);
   }
-  if (input.restricoesProduto !== undefined) {
-    data.restricoes_produto = normalizeOptionalText(input.restricoesProduto);
+  if (input.restricoes_produto !== undefined) {
+    data.restricoes_produto = normalizeOptionalText(input.restricoes_produto);
   }
-  if (input.unidadeVenda !== undefined) {
-    data.unidade_venda = input.unidadeVenda;
+  if (input.unidade_venda !== undefined) {
+    data.unidade_venda = input.unidade_venda;
   }
-  if (input.unidadeVendaOutro !== undefined) {
-    data.unidade_venda_outro = normalizeOptionalText(input.unidadeVendaOutro);
+  if (input.unidade_venda_outro !== undefined) {
+    data.unidade_venda_outro = normalizeOptionalText(input.unidade_venda_outro);
   }
-  if (input.pesoLiquidoVolume !== undefined) {
-    data.peso_liquido_volume = normalizeOptionalShortText(input.pesoLiquidoVolume);
+  if (input.peso_liquido_volume !== undefined) {
+    data.peso_liquido_volume = normalizeOptionalShortText(input.peso_liquido_volume);
   }
-  if (input.pesoBruto !== undefined) {
-    data.peso_bruto = normalizeOptionalShortText(input.pesoBruto);
+  if (input.peso_bruto !== undefined) {
+    data.peso_bruto = normalizeOptionalShortText(input.peso_bruto);
   }
-  if (input.qtdUnidadesPorCaixa !== undefined) {
-    data.qtd_unidades_por_caixa = normalizeOptionalShortText(input.qtdUnidadesPorCaixa);
+  if (input.qtd_unidades_por_caixa !== undefined) {
+    data.qtd_unidades_por_caixa = normalizeOptionalShortText(input.qtd_unidades_por_caixa);
   }
-  if (input.instrucoesConservacaoEmbalagem !== undefined) {
+  if (input.instrucoes_conservacao_embalagem !== undefined) {
     data.instrucoes_conservacao_embalagem = normalizeOptionalText(
-      input.instrucoesConservacaoEmbalagem,
+      input.instrucoes_conservacao_embalagem,
     );
   }
-  if (input.restricoesEmbalagem !== undefined) {
-    data.restricoes_embalagem = normalizeOptionalText(input.restricoesEmbalagem);
+  if (input.restricoes_embalagem !== undefined) {
+    data.restricoes_embalagem = normalizeOptionalText(input.restricoes_embalagem);
   }
-  if (input.possuiIngredientes !== undefined) {
-    data.possui_ingredientes = input.possuiIngredientes;
+  if (input.possui_ingredientes !== undefined) {
+    data.possui_ingredientes = input.possui_ingredientes;
   }
   if (input.ingredientes !== undefined) {
     data.ingredientes = normalizeOptionalText(input.ingredientes);
@@ -290,46 +291,46 @@ export async function updateProduct(actor: AuthActor, productId: string, input: 
   if (input.alergenos !== undefined) {
     data.alergenos = normalizeOptionalText(input.alergenos);
   }
-  if (input.produtoProntoUso !== undefined) {
-    data.produto_pronto_uso = input.produtoProntoUso;
+  if (input.produto_pronto_uso !== undefined) {
+    data.produto_pronto_uso = input.produto_pronto_uso;
   }
-  if (input.produtoProntoUsoOutro !== undefined) {
-    data.produto_pronto_uso_outro = normalizeOptionalText(input.produtoProntoUsoOutro);
+  if (input.produto_pronto_uso_outro !== undefined) {
+    data.produto_pronto_uso_outro = normalizeOptionalText(input.produto_pronto_uso_outro);
   }
-  if (input.modoPreparo !== undefined) {
-    data.modo_preparo = normalizeOptionalText(input.modoPreparo);
+  if (input.modo_preparo !== undefined) {
+    data.modo_preparo = normalizeOptionalText(input.modo_preparo);
   }
-  if (input.observacoesUso !== undefined) {
-    data.observacoes_uso = normalizeOptionalText(input.observacoesUso);
+  if (input.observacoes_uso !== undefined) {
+    data.observacoes_uso = normalizeOptionalText(input.observacoes_uso);
   }
-  if (input.objecoesArgumentacoes !== undefined) {
-    data.objecoes_argumentacoes = normalizeProductObjections(input.objecoesArgumentacoes);
+  if (input.objecoes_argumentacoes !== undefined) {
+    data.objecoes_argumentacoes = normalizeProductObjections(input.objecoes_argumentacoes);
   }
-  if (input.fotosProduto !== undefined) {
-    data.fotos_produto = normalizeUrlList(input.fotosProduto);
+  if (input.fotos_produto !== undefined) {
+    data.fotos_produto = normalizeUrlList(input.fotos_produto);
   }
-  if (input.videosMaterial !== undefined) {
-    data.videos_material = normalizeUrlList(input.videosMaterial);
+  if (input.videos_material !== undefined) {
+    data.videos_material = normalizeUrlList(input.videos_material);
   }
-  if (input.observacoesImagens !== undefined) {
-    data.observacoes_imagens = normalizeOptionalText(input.observacoesImagens);
+  if (input.observacoes_imagens !== undefined) {
+    data.observacoes_imagens = normalizeOptionalText(input.observacoes_imagens);
   }
-  if (input.informacoesTecnicasComplementares !== undefined) {
+  if (input.informacoes_tecnicas_complementares !== undefined) {
     data.informacoes_tecnicas_complementares = normalizeOptionalText(
-      input.informacoesTecnicasComplementares,
+      input.informacoes_tecnicas_complementares,
     );
   }
-  if (input.certificacoesRegistros !== undefined) {
-    data.certificacoes_registros = normalizeOptionalText(input.certificacoesRegistros);
+  if (input.certificacoes_registros !== undefined) {
+    data.certificacoes_registros = normalizeOptionalText(input.certificacoes_registros);
   }
-  if (input.observacoesComerciais !== undefined) {
-    data.observacoes_comerciais = normalizeOptionalText(input.observacoesComerciais);
+  if (input.observacoes_comerciais !== undefined) {
+    data.observacoes_comerciais = normalizeOptionalText(input.observacoes_comerciais);
   }
-  if (input.diferenciaisProduto !== undefined) {
-    data.diferenciais_produto = normalizeOptionalText(input.diferenciaisProduto);
+  if (input.diferenciais_produto !== undefined) {
+    data.diferenciais_produto = normalizeOptionalText(input.diferenciais_produto);
   }
-  if (input.observacoesGerais !== undefined) {
-    data.observacoes_gerais = normalizeOptionalText(input.observacoesGerais);
+  if (input.observacoes_gerais !== undefined) {
+    data.observacoes_gerais = normalizeOptionalText(input.observacoes_gerais);
   }
 
   const updated = await prisma.produtos.update({
@@ -337,12 +338,12 @@ export async function updateProduct(actor: AuthActor, productId: string, input: 
     data,
   });
 
-  if (input.fotosProduto !== undefined || input.videosMaterial !== undefined) {
+  if (input.fotos_produto !== undefined || input.videos_material !== undefined) {
     const removedMedia = [
-      ...(input.fotosProduto !== undefined
+      ...(input.fotos_produto !== undefined
         ? existing.fotos_produto.filter((url) => !updated.fotos_produto.includes(url))
         : []),
-      ...(input.videosMaterial !== undefined
+      ...(input.videos_material !== undefined
         ? existing.videos_material.filter((url) => !updated.videos_material.includes(url))
         : []),
     ];
@@ -414,17 +415,17 @@ export async function deleteProduct(actor: AuthActor, productId: string) {
 function resolveListCompanyScope(actor: AuthActor, requestedCompanyId?: string) {
   if (actor.role === UserRole.ADMIN) {
     if (!requestedCompanyId) {
-      throw badRequest('companyId e obrigatorio para admin na listagem de produtos');
+      throw badRequest('company_id e obrigatorio para admin na listagem de produtos');
     }
 
     return requestedCompanyId;
   }
 
-  if (!actor.companyId) {
+  if (!actor.company_id) {
     throw forbidden('Usuario nao vinculado a empresa');
   }
 
-  return actor.companyId;
+  return actor.company_id;
 }
 
 function assertReadProductScope(
@@ -434,7 +435,7 @@ function assertReadProductScope(
 ) {
   if (actor.role === UserRole.ADMIN) {
     if (!requestedCompanyId) {
-      throw badRequest('companyId e obrigatorio para admin na visualizacao de produto');
+      throw badRequest('company_id e obrigatorio para admin na visualizacao de produto');
     }
 
     if (requestedCompanyId !== targetCompanyId) {
@@ -444,13 +445,13 @@ function assertReadProductScope(
     return;
   }
 
-  if (!actor.companyId || actor.companyId !== targetCompanyId) {
+  if (!actor.company_id || actor.company_id !== targetCompanyId) {
     throw forbidden('Voce nao tem acesso a este produto');
   }
 }
 
 function assertMutateProductScope(actor: AuthActor, targetCompanyId: string | null) {
-  if (!actor.companyId || actor.companyId !== targetCompanyId) {
+  if (!actor.company_id || actor.company_id !== targetCompanyId) {
     throw forbidden('Voce nao pode alterar produtos de outra empresa');
   }
 }
@@ -464,7 +465,7 @@ function assertCanMutateProducts(actor: AuthActor) {
     throw forbidden('Perfil sem permissao para alterar produtos');
   }
 
-  if (!actor.companyId) {
+  if (!actor.company_id) {
     throw forbidden('Usuario nao vinculado a empresa');
   }
 }
@@ -482,8 +483,8 @@ async function mapProductToDetail(
   }
 
   const [fotos, videos] = await Promise.all([
-    buildSignedMediaEntries(base.fotosProduto),
-    buildSignedMediaEntries(base.videosMaterial),
+    buildSignedMediaEntries(base.fotos_produto),
+    buildSignedMediaEntries(base.videos_material),
   ]);
 
   return {
@@ -498,51 +499,51 @@ async function mapProductToDetail(
 function mapProductToPublicData(product: produtos) {
   return {
     id: product.id,
-    companyId: product.company_id ?? null,
+    company_id: product.company_id ?? null,
     nome: product.nome,
-    descricaoComercial: product.descricao_comercial ?? null,
-    codigoInternoSku: product.codigo_interno_sku ?? null,
+    descricao_comercial: product.descricao_comercial ?? null,
+    codigo_interno_sku: product.codigo_interno_sku ?? null,
     marca: product.marca ?? null,
     categorias: product.categorias ?? [],
-    categoriaOutro: product.categoria_outro ?? null,
-    tipologiasClientes: product.tipologias_clientes ?? [],
-    tipologiaClienteOutro: product.tipologia_cliente_outro ?? null,
-    sugestoesReceitas: product.sugestoes_receitas ?? null,
-    codigoBarrasEan: product.codigo_barras_ean ?? null,
-    codigoBarrasDun: product.codigo_barras_dun ?? null,
-    codigoFiscalNcm: product.codigo_fiscal_ncm ?? null,
-    tipoConservacao: product.tipo_conservacao ?? null,
-    tipoConservacaoOutro: product.tipo_conservacao_outro ?? null,
-    validadeEmbalagemFechada: product.validade_embalagem_fechada ?? null,
-    validadeAposAbertura: product.validade_apos_abertura ?? null,
-    validadeAposPreparo: product.validade_apos_preparo ?? null,
-    instrucoesConservacaoProduto: product.instrucoes_conservacao_produto ?? null,
-    restricoesProduto: product.restricoes_produto ?? null,
-    unidadeVenda: product.unidade_venda ?? null,
-    unidadeVendaOutro: product.unidade_venda_outro ?? null,
-    pesoLiquidoVolume: product.peso_liquido_volume ?? null,
-    pesoBruto: product.peso_bruto ?? null,
-    qtdUnidadesPorCaixa: product.qtd_unidades_por_caixa ?? null,
-    instrucoesConservacaoEmbalagem: product.instrucoes_conservacao_embalagem ?? null,
-    restricoesEmbalagem: product.restricoes_embalagem ?? null,
-    possuiIngredientes: product.possui_ingredientes ?? null,
+    categoria_outro: product.categoria_outro ?? null,
+    tipologias_clientes: product.tipologias_clientes ?? [],
+    tipologia_cliente_outro: product.tipologia_cliente_outro ?? null,
+    sugestoes_receitas: product.sugestoes_receitas ?? null,
+    codigo_barras_ean: product.codigo_barras_ean ?? null,
+    codigo_barras_dun: product.codigo_barras_dun ?? null,
+    codigo_fiscal_ncm: product.codigo_fiscal_ncm ?? null,
+    tipo_conservacao: product.tipo_conservacao ?? null,
+    tipo_conservacao_outro: product.tipo_conservacao_outro ?? null,
+    validade_embalagem_fechada: product.validade_embalagem_fechada ?? null,
+    validade_apos_abertura: product.validade_apos_abertura ?? null,
+    validade_apos_preparo: product.validade_apos_preparo ?? null,
+    instrucoes_conservacao_produto: product.instrucoes_conservacao_produto ?? null,
+    restricoes_produto: product.restricoes_produto ?? null,
+    unidade_venda: product.unidade_venda ?? null,
+    unidade_venda_outro: product.unidade_venda_outro ?? null,
+    peso_liquido_volume: product.peso_liquido_volume ?? null,
+    peso_bruto: product.peso_bruto ?? null,
+    qtd_unidades_por_caixa: product.qtd_unidades_por_caixa ?? null,
+    instrucoes_conservacao_embalagem: product.instrucoes_conservacao_embalagem ?? null,
+    restricoes_embalagem: product.restricoes_embalagem ?? null,
+    possui_ingredientes: product.possui_ingredientes ?? null,
     ingredientes: product.ingredientes ?? null,
     alergenos: product.alergenos ?? null,
-    produtoProntoUso: product.produto_pronto_uso ?? null,
-    produtoProntoUsoOutro: product.produto_pronto_uso_outro ?? null,
-    modoPreparo: product.modo_preparo ?? null,
-    observacoesUso: product.observacoes_uso ?? null,
-    objecoesArgumentacoes: parseProductObjections(product.objecoes_argumentacoes),
-    fotosProduto: product.fotos_produto ?? [],
-    videosMaterial: product.videos_material ?? [],
-    observacoesImagens: product.observacoes_imagens ?? null,
-    informacoesTecnicasComplementares: product.informacoes_tecnicas_complementares ?? null,
-    certificacoesRegistros: product.certificacoes_registros ?? null,
-    observacoesComerciais: product.observacoes_comerciais ?? null,
-    diferenciaisProduto: product.diferenciais_produto ?? null,
-    observacoesGerais: product.observacoes_gerais ?? null,
-    createdAt: product.created_at,
-    updatedAt: product.updated_at,
+    produto_pronto_uso: product.produto_pronto_uso ?? null,
+    produto_pronto_uso_outro: product.produto_pronto_uso_outro ?? null,
+    modo_preparo: product.modo_preparo ?? null,
+    observacoes_uso: product.observacoes_uso ?? null,
+    objecoes_argumentacoes: parseProductObjections(product.objecoes_argumentacoes),
+    fotos_produto: product.fotos_produto ?? [],
+    videos_material: product.videos_material ?? [],
+    observacoes_imagens: product.observacoes_imagens ?? null,
+    informacoes_tecnicas_complementares: product.informacoes_tecnicas_complementares ?? null,
+    certificacoes_registros: product.certificacoes_registros ?? null,
+    observacoes_comerciais: product.observacoes_comerciais ?? null,
+    diferenciais_produto: product.diferenciais_produto ?? null,
+    observacoes_gerais: product.observacoes_gerais ?? null,
+    created_at: product.created_at,
+    updated_at: product.updated_at,
   };
 }
 
@@ -552,8 +553,8 @@ async function buildSignedMediaEntries(publicUrls: string[]) {
       try {
         const signedRead = await createStorageSignedReadUrlByPublicUrl(publicUrl);
         return {
-          publicUrl,
-          signedUrl: signedRead?.readUrl ?? null,
+          public_url: publicUrl,
+          signed_url: signedRead?.readUrl ?? null,
         };
       } catch (error) {
         logger.warn(
@@ -565,8 +566,8 @@ async function buildSignedMediaEntries(publicUrls: string[]) {
         );
 
         return {
-          publicUrl,
-          signedUrl: null,
+          public_url: publicUrl,
+          signed_url: null,
         };
       }
     }),
@@ -575,11 +576,11 @@ async function buildSignedMediaEntries(publicUrls: string[]) {
 
 function normalizeProductObjections(input: ProductObjectionInput[]) {
   return input.map((item) => ({
-    objecaoCliente: item.objecaoCliente.trim(),
-    tipoObjecao: item.tipoObjecao,
-    tipoObjecaoOutro: normalizeOptionalText(item.tipoObjecaoOutro),
-    respostaArgumento: item.respostaArgumento.trim(),
-    quandoUsar: normalizeOptionalText(item.quandoUsar),
+    objecao_cliente: item.objecao_cliente.trim(),
+    tipo_objecao: item.tipo_objecao,
+    tipo_objecao_outro: normalizeOptionalText(item.tipo_objecao_outro),
+    resposta_argumento: item.resposta_argumento.trim(),
+    quando_usar: normalizeOptionalText(item.quando_usar),
   })) as Prisma.InputJsonValue;
 }
 
@@ -595,20 +596,20 @@ function parseProductObjections(value: Prisma.JsonValue | null | undefined): Pub
     }
 
     const record = item as Record<string, unknown>;
-    const objecaoCliente = normalizeUnknownString(record.objecaoCliente);
-    const tipoObjecao = normalizeUnknownString(record.tipoObjecao);
-    const respostaArgumento = normalizeUnknownString(record.respostaArgumento);
+    const objecao_cliente = normalizeUnknownString(record.objecao_cliente);
+    const tipo_objecao = normalizeUnknownString(record.tipo_objecao);
+    const resposta_argumento = normalizeUnknownString(record.resposta_argumento);
 
-    if (!objecaoCliente || !tipoObjecao || !respostaArgumento) {
+    if (!objecao_cliente || !tipo_objecao || !resposta_argumento) {
       continue;
     }
 
     parsed.push({
-      objecaoCliente,
-      tipoObjecao,
-      tipoObjecaoOutro: normalizeUnknownString(record.tipoObjecaoOutro),
-      respostaArgumento,
-      quandoUsar: normalizeUnknownString(record.quandoUsar),
+      objecao_cliente,
+      tipo_objecao,
+      tipo_objecao_outro: normalizeUnknownString(record.tipo_objecao_outro),
+      resposta_argumento,
+      quando_usar: normalizeUnknownString(record.quando_usar),
     });
   }
 
@@ -661,3 +662,5 @@ function normalizeUrlList(values: string[]) {
     ),
   );
 }
+
+

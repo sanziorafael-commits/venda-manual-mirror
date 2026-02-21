@@ -78,3 +78,4 @@ function isNetworkFetchMessage(message: string) {
     normalized.includes("load failed")
   );
 }
+

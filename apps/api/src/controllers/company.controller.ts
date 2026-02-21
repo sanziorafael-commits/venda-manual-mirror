@@ -27,8 +27,8 @@ export async function listCompaniesHandler(req: Request, res: Response) {
 }
 
 export async function getCompanyByIdHandler(req: Request, res: Response) {
-  const { companyId } = companyParamSchema.parse(req.params);
-  const data = await getCompanyById(companyId);
+  const { company_id } = companyParamSchema.parse(req.params);
+  const data = await getCompanyById(company_id);
 
   res.status(200).json({ data });
 }
@@ -41,25 +41,27 @@ export async function createCompanyHandler(req: Request, res: Response) {
 }
 
 export async function updateCompanyHandler(req: Request, res: Response) {
-  const { companyId } = companyParamSchema.parse(req.params);
+  const { company_id } = companyParamSchema.parse(req.params);
   const payload = updateCompanySchema.parse(req.body);
-  const data = await updateCompany(companyId, payload);
+  const data = await updateCompany(company_id, payload);
 
   res.status(200).json({ data });
 }
 
 export async function deleteCompanyHandler(req: Request, res: Response) {
-  const { companyId } = companyParamSchema.parse(req.params);
-  await deleteCompany(companyId);
+  const { company_id } = companyParamSchema.parse(req.params);
+  await deleteCompany(company_id);
 
   res.status(200).json({ data: { ok: true } });
 }
 
 export async function createCompanyUserHandler(req: Request, res: Response) {
   const authUser = req.authUser!;
-  const { companyId } = companyParamSchema.parse(req.params);
+  const { company_id } = companyParamSchema.parse(req.params);
   const payload = createCompanyUserSchema.parse(req.body);
-  const data = await createUserForCompany(authUser, companyId, payload);
+  const data = await createUserForCompany(authUser, company_id, payload);
 
   res.status(201).json({ data });
 }
+
+

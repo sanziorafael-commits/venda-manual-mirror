@@ -33,3 +33,4 @@ export function clearCompanyContextStore() {
 export function isPlatformAdminContext(value: string | null) {
   return value === PLATFORM_ADMIN_CONTEXT;
 }
+

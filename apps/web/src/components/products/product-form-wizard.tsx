@@ -39,7 +39,7 @@ import { useAuthUser } from "@/hooks/use-auth-user";
 
 type ProductFormWizardProps = {
   mode: "create" | "edit";
-  productId?: string;
+  product_id?: string;
 };
 
 type ProductStep = 1 | 2 | 3 | 4 | 5;
@@ -88,21 +88,21 @@ function formatFileSize(sizeInBytes: number) {
 function buildMediaPreviewMap(product: ProductDetail) {
   const map: Record<string, string> = {};
   product.media?.fotos.forEach((item) => {
-    if (item.signedUrl) {
-      map[item.publicUrl] = item.signedUrl;
+    if (item.signed_url) {
+      map[item.public_url] = item.signed_url;
     }
   });
 
   product.media?.videos.forEach((item) => {
-    if (item.signedUrl) {
-      map[item.publicUrl] = item.signedUrl;
+    if (item.signed_url) {
+      map[item.public_url] = item.signed_url;
     }
   });
 
   return map;
 }
 
-export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
+export function ProductFormWizard({ mode, product_id }: ProductFormWizardProps) {
   const router = useRouter();
   const authUser = useAuthUser();
   const canManageProducts =
@@ -146,7 +146,7 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
 
   const objectionFieldArray = useFieldArray({
     control,
-    name: "objecoesArgumentacoes",
+    name: "objecoes_argumentacoes",
   });
 
   React.useEffect(() => {
@@ -159,7 +159,7 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
   }, []);
 
   React.useEffect(() => {
-    if (mode !== "edit" || !productId) {
+    if (mode !== "edit" || !product_id) {
       return;
     }
 
@@ -168,7 +168,7 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
       setLoadError(null);
 
       try {
-        const response = await apiFetch<unknown>(`/products/${productId}`);
+        const response = await apiFetch<unknown>(`/products/${product_id}`);
         const parsed = productDetailApiResponseSchema.safeParse(response);
         if (!parsed.success) {
           setLoadError("Não foi possível carregar os dados do produto.");
@@ -186,19 +186,19 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
     };
 
     void loadProduct();
-  }, [mode, productId, reset]);
+  }, [mode, product_id, reset]);
 
   const categorias = watch("categorias");
-  const tipologiasClientes = watch("tipologiasClientes");
-  const tipoConservacao = watch("tipoConservacao");
-  const unidadeVenda = watch("unidadeVenda");
-  const produtoProntoUso = watch("produtoProntoUso");
-  const possuiIngredientes = watch("possuiIngredientes");
-  const fotosProduto = watch("fotosProduto");
-  const videosMaterial = watch("videosMaterial");
+  const tipologias_clientes = watch("tipologias_clientes");
+  const tipo_conservacao = watch("tipo_conservacao");
+  const unidade_venda = watch("unidade_venda");
+  const produto_pronto_uso = watch("produto_pronto_uso");
+  const possui_ingredientes = watch("possui_ingredientes");
+  const fotos_produto = watch("fotos_produto");
+  const videos_material = watch("videos_material");
 
   const toggleMultiSelect = React.useCallback(
-    (fieldName: "categorias" | "tipologiasClientes", value: string) => {
+    (fieldName: "categorias" | "tipologias_clientes", value: string) => {
       const current = getValues(fieldName);
       const nextValues = current.includes(value)
         ? current.filter((item) => item !== value)
@@ -225,9 +225,9 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
 
         if (
           values.categorias.includes("OUTRO") &&
-          !values.categoriaOutro.trim()
+          !values.categoria_outro.trim()
         ) {
-          setError("categoriaOutro", {
+          setError("categoria_outro", {
             type: "manual",
             message: "Preencha a categoria 'Outro'.",
           });
@@ -235,10 +235,10 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
         }
 
         if (
-          values.tipologiasClientes.includes("OUTRO") &&
-          !values.tipologiaClienteOutro.trim()
+          values.tipologias_clientes.includes("OUTRO") &&
+          !values.tipologia_cliente_outro.trim()
         ) {
-          setError("tipologiaClienteOutro", {
+          setError("tipologia_cliente_outro", {
             type: "manual",
             message: "Preencha a tipologia 'Outro'.",
           });
@@ -248,10 +248,10 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
 
       if (step === 2) {
         if (
-          values.tipoConservacao === "OUTRO" &&
-          !values.tipoConservacaoOutro.trim()
+          values.tipo_conservacao === "OUTRO" &&
+          !values.tipo_conservacao_outro.trim()
         ) {
-          setError("tipoConservacaoOutro", {
+          setError("tipo_conservacao_outro", {
             type: "manual",
             message: "Preencha o tipo de conservação 'Outro'.",
           });
@@ -259,10 +259,10 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
         }
 
         if (
-          values.unidadeVenda === "OUTRO" &&
-          !values.unidadeVendaOutro.trim()
+          values.unidade_venda === "OUTRO" &&
+          !values.unidade_venda_outro.trim()
         ) {
-          setError("unidadeVendaOutro", {
+          setError("unidade_venda_outro", {
             type: "manual",
             message: "Preencha a unidade de venda 'Outro'.",
           });
@@ -270,10 +270,10 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
         }
 
         if (
-          values.produtoProntoUso === "OUTRO" &&
-          !values.produtoProntoUsoOutro.trim()
+          values.produto_pronto_uso === "OUTRO" &&
+          !values.produto_pronto_uso_outro.trim()
         ) {
-          setError("produtoProntoUsoOutro", {
+          setError("produto_pronto_uso_outro", {
             type: "manual",
             message: "Preencha o campo 'Outro'.",
           });
@@ -282,37 +282,37 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
       }
 
       if (step === 3) {
-        values.objecoesArgumentacoes.forEach((item, index) => {
+        values.objecoes_argumentacoes.forEach((item, index) => {
           if (isProductObjectionEmpty(item)) {
             return;
           }
 
-          if (!item.objecaoCliente.trim()) {
-            setError(`objecoesArgumentacoes.${index}.objecaoCliente`, {
+          if (!item.objecao_cliente.trim()) {
+            setError(`objecoes_argumentacoes.${index}.objecao_cliente`, {
               type: "manual",
               message: "Informe a objecao do cliente.",
             });
             hasError = true;
           }
 
-          if (!item.respostaArgumento.trim()) {
-            setError(`objecoesArgumentacoes.${index}.respostaArgumento`, {
+          if (!item.resposta_argumento.trim()) {
+            setError(`objecoes_argumentacoes.${index}.resposta_argumento`, {
               type: "manual",
               message: "Informe a resposta/argumento.",
             });
             hasError = true;
           }
 
-          if (item.tipoObjecao === "OUTRO" && !item.tipoObjecaoOutro.trim()) {
-            setError(`objecoesArgumentacoes.${index}.tipoObjecaoOutro`, {
+          if (item.tipo_objecao === "OUTRO" && !item.tipo_objecao_outro.trim()) {
+            setError(`objecoes_argumentacoes.${index}.tipo_objecao_outro`, {
               type: "manual",
               message: "Preencha o tipo de objecao 'Outro'.",
             });
             hasError = true;
           }
 
-          if (item.tipoObjecao !== "OUTRO" && item.tipoObjecaoOutro.trim()) {
-            setError(`objecoesArgumentacoes.${index}.tipoObjecaoOutro`, {
+          if (item.tipo_objecao !== "OUTRO" && item.tipo_objecao_outro.trim()) {
+            setError(`objecoes_argumentacoes.${index}.tipo_objecao_outro`, {
               type: "manual",
               message:
                 "Campo deve ficar vazio quando o tipo de objecao nao e 'Outro'.",
@@ -400,34 +400,34 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
         for (const file of validFiles) {
           const signedUrlData = await requestSignedUrl({
             target,
-            entityId: currentEntityId,
+            entity_id: currentEntityId,
             file,
           });
 
           await uploadFileToSignedUrl(signedUrlData, file);
-          uploadedPublicUrls.push(signedUrlData.publicUrl);
+          uploadedPublicUrls.push(signedUrlData.public_url);
 
           const localPreviewUrl = URL.createObjectURL(file);
           localPreviewUrlsRef.current.push(localPreviewUrl);
           setMediaPreviewByPublicUrl((currentMap) => ({
             ...currentMap,
-            [signedUrlData.publicUrl]: localPreviewUrl,
+            [signedUrlData.public_url]: localPreviewUrl,
           }));
         }
 
         if (target === "PRODUCT_IMAGE") {
           setValue(
-            "fotosProduto",
+            "fotos_produto",
             Array.from(
-              new Set([...getValues("fotosProduto"), ...uploadedPublicUrls]),
+              new Set([...getValues("fotos_produto"), ...uploadedPublicUrls]),
             ),
             { shouldDirty: true, shouldTouch: true },
           );
         } else {
           setValue(
-            "videosMaterial",
+            "videos_material",
             Array.from(
-              new Set([...getValues("videosMaterial"), ...uploadedPublicUrls]),
+              new Set([...getValues("videos_material"), ...uploadedPublicUrls]),
             ),
             { shouldDirty: true, shouldTouch: true },
           );
@@ -452,15 +452,15 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
   );
 
   const handleRemovePhoto = React.useCallback(
-    (publicUrl: string) => {
+    (public_url: string) => {
       setValue(
-        "fotosProduto",
-        getValues("fotosProduto").filter((item) => item !== publicUrl),
+        "fotos_produto",
+        getValues("fotos_produto").filter((item) => item !== public_url),
         { shouldDirty: true, shouldTouch: true },
       );
       setMediaPreviewByPublicUrl((currentMap) => {
         const next = { ...currentMap };
-        delete next[publicUrl];
+        delete next[public_url];
         return next;
       });
     },
@@ -468,15 +468,15 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
   );
 
   const handleRemoveVideo = React.useCallback(
-    (publicUrl: string) => {
+    (public_url: string) => {
       setValue(
-        "videosMaterial",
-        getValues("videosMaterial").filter((item) => item !== publicUrl),
+        "videos_material",
+        getValues("videos_material").filter((item) => item !== public_url),
         { shouldDirty: true, shouldTouch: true },
       );
       setMediaPreviewByPublicUrl((currentMap) => {
         const next = { ...currentMap };
-        delete next[publicUrl];
+        delete next[public_url];
         return next;
       });
     },
@@ -518,14 +518,14 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
           return;
         }
 
-        if (!productId) {
+        if (!product_id) {
           toast.error("Produto inválido para edição.");
           return;
         }
 
         const updatePayload = { ...payload };
         delete updatePayload.id;
-        const response = await apiFetch<unknown>(`/products/${productId}`, {
+        const response = await apiFetch<unknown>(`/products/${product_id}`, {
           method: "PATCH",
           body: updatePayload,
         });
@@ -538,12 +538,12 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
         }
 
         toast.success("Produto atualizado com sucesso!");
-        router.push(`/dashboard/products/${productId}`);
+        router.push(`/dashboard/products/${product_id}`);
       } catch (error) {
         toast.error(parseApiError(error));
       }
     },
-    [currentStep, mode, productId, router, validateCurrentStep],
+    [currentStep, mode, product_id, router, validateCurrentStep],
   );
 
   const submitCurrentForm = React.useMemo(
@@ -602,23 +602,23 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
               />
               <FormField
                 label="Descrição comercial do produto"
-                error={errors.descricaoComercial?.message}
+                error={errors.descricao_comercial?.message}
                 input={
                   <Textarea
                     rows={3}
                     placeholder="Descrição comercial"
-                    {...register("descricaoComercial")}
+                    {...register("descricao_comercial")}
                     disabled={isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Código interno do produto (SKU/ERP)"
-                error={errors.codigoInternoSku?.message}
+                error={errors.codigo_interno_sku?.message}
                 input={
                   <Input
                     placeholder="Código interno"
-                    {...register("codigoInternoSku")}
+                    {...register("codigo_interno_sku")}
                     disabled={isSubmitting}
                   />
                 }
@@ -659,12 +659,12 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
               <div className="mt-3">
                 <Input
                   placeholder="Outro"
-                  {...register("categoriaOutro")}
+                  {...register("categoria_outro")}
                   disabled={!categorias.includes("OUTRO") || isSubmitting}
                 />
-                {errors.categoriaOutro ? (
+                {errors.categoria_outro ? (
                   <p className="mt-1 text-sm text-destructive">
-                    {errors.categoriaOutro.message}
+                    {errors.categoria_outro.message}
                   </p>
                 ) : null}
               </div>
@@ -681,9 +681,9 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
                 >
                   <input
                     type="checkbox"
-                    checked={tipologiasClientes.includes(option.value)}
+                    checked={tipologias_clientes.includes(option.value)}
                     onChange={() =>
-                      toggleMultiSelect("tipologiasClientes", option.value)
+                      toggleMultiSelect("tipologias_clientes", option.value)
                     }
                     disabled={isSubmitting}
                   />
@@ -695,12 +695,12 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
             <div className="mt-3">
               <Input
                 placeholder="Outro"
-                {...register("tipologiaClienteOutro")}
-                disabled={!tipologiasClientes.includes("OUTRO") || isSubmitting}
+                {...register("tipologia_cliente_outro")}
+                disabled={!tipologias_clientes.includes("OUTRO") || isSubmitting}
               />
-              {errors.tipologiaClienteOutro ? (
+              {errors.tipologia_cliente_outro ? (
                 <p className="mt-1 text-sm text-destructive">
-                  {errors.tipologiaClienteOutro.message}
+                  {errors.tipologia_cliente_outro.message}
                 </p>
               ) : null}
             </div>
@@ -708,12 +708,12 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
             <div className="mt-4">
               <FormField
                 label="Sugestões de receitas / pratos indicados"
-                error={errors.sugestoesReceitas?.message}
+                error={errors.sugestoes_receitas?.message}
                 input={
                   <Textarea
                     rows={4}
                     placeholder="Exemplos de pratos e aplicações"
-                    {...register("sugestoesReceitas")}
+                    {...register("sugestoes_receitas")}
                     disabled={isSubmitting}
                   />
                 }
@@ -730,33 +730,33 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
             <div className="mt-4 space-y-4">
               <FormField
                 label="Código de barras do item (EAN / GTIN-13)"
-                error={errors.codigoBarrasEan?.message}
+                error={errors.codigo_barras_ean?.message}
                 input={
                   <Input
                     placeholder="EAN / GTIN-13"
-                    {...register("codigoBarrasEan")}
+                    {...register("codigo_barras_ean")}
                     disabled={isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Código de barras da caixa (DUN / GTIN-14)"
-                error={errors.codigoBarrasDun?.message}
+                error={errors.codigo_barras_dun?.message}
                 input={
                   <Input
                     placeholder="DUN / GTIN-14"
-                    {...register("codigoBarrasDun")}
+                    {...register("codigo_barras_dun")}
                     disabled={isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Código fiscal (NCM)"
-                error={errors.codigoFiscalNcm?.message}
+                error={errors.codigo_fiscal_ncm?.message}
                 input={
                   <Input
                     placeholder="NCM"
-                    {...register("codigoFiscalNcm")}
+                    {...register("codigo_fiscal_ncm")}
                     disabled={isSubmitting}
                   />
                 }
@@ -769,16 +769,16 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
             <div className="mt-4 space-y-4">
               <FormField
                 label="Tipo de conservação"
-                error={errors.tipoConservacao?.message}
+                error={errors.tipo_conservacao?.message}
                 input={
                   <select
                     className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                    value={tipoConservacao ?? ""}
+                    value={tipo_conservacao ?? ""}
                     onChange={(event) =>
                       setValue(
-                        "tipoConservacao",
+                        "tipo_conservacao",
                         (event.target.value ||
-                          null) as ProductFormValues["tipoConservacao"],
+                          null) as ProductFormValues["tipo_conservacao"],
                         { shouldDirty: true, shouldTouch: true },
                       )
                     }
@@ -795,44 +795,44 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
               />
               <FormField
                 label="Tipo de conservação - Outro"
-                error={errors.tipoConservacaoOutro?.message}
+                error={errors.tipo_conservacao_outro?.message}
                 input={
                   <Input
                     placeholder="Outro"
-                    {...register("tipoConservacaoOutro")}
-                    disabled={tipoConservacao !== "OUTRO" || isSubmitting}
+                    {...register("tipo_conservacao_outro")}
+                    disabled={tipo_conservacao !== "OUTRO" || isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Validade (embalagem fechada)"
-                error={errors.validadeEmbalagemFechada?.message}
+                error={errors.validade_embalagem_fechada?.message}
                 input={
                   <Input
                     placeholder="Ex.: 365 dias"
-                    {...register("validadeEmbalagemFechada")}
+                    {...register("validade_embalagem_fechada")}
                     disabled={isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Validade após abertura"
-                error={errors.validadeAposAbertura?.message}
+                error={errors.validade_apos_abertura?.message}
                 input={
                   <Input
                     placeholder="Ex.: 2 dias"
-                    {...register("validadeAposAbertura")}
+                    {...register("validade_apos_abertura")}
                     disabled={isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Validade após preparo/descongelamento"
-                error={errors.validadeAposPreparo?.message}
+                error={errors.validade_apos_preparo?.message}
                 input={
                   <Input
                     placeholder="Ex.: 2 dias"
-                    {...register("validadeAposPreparo")}
+                    {...register("validade_apos_preparo")}
                     disabled={isSubmitting}
                   />
                 }
@@ -845,16 +845,16 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
             <div className="mt-4 space-y-4">
               <FormField
                 label="Unidade de venda"
-                error={errors.unidadeVenda?.message}
+                error={errors.unidade_venda?.message}
                 input={
                   <select
                     className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                    value={unidadeVenda ?? ""}
+                    value={unidade_venda ?? ""}
                     onChange={(event) =>
                       setValue(
-                        "unidadeVenda",
+                        "unidade_venda",
                         (event.target.value ||
-                          null) as ProductFormValues["unidadeVenda"],
+                          null) as ProductFormValues["unidade_venda"],
                         { shouldDirty: true, shouldTouch: true },
                       )
                     }
@@ -871,68 +871,68 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
               />
               <FormField
                 label="Unidade de venda - Outro"
-                error={errors.unidadeVendaOutro?.message}
+                error={errors.unidade_venda_outro?.message}
                 input={
                   <Input
                     placeholder="Outro"
-                    {...register("unidadeVendaOutro")}
-                    disabled={unidadeVenda !== "OUTRO" || isSubmitting}
+                    {...register("unidade_venda_outro")}
+                    disabled={unidade_venda !== "OUTRO" || isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Peso líquido ou volume por unidade"
-                error={errors.pesoLiquidoVolume?.message}
+                error={errors.peso_liquido_volume?.message}
                 input={
                   <Input
                     placeholder="Ex.: 2 kg, 5 L"
-                    {...register("pesoLiquidoVolume")}
+                    {...register("peso_liquido_volume")}
                     disabled={isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Peso bruto da unidade/embalagem"
-                error={errors.pesoBruto?.message}
+                error={errors.peso_bruto?.message}
                 input={
                   <Input
                     placeholder="Peso bruto"
-                    {...register("pesoBruto")}
+                    {...register("peso_bruto")}
                     disabled={isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Quantidade por caixa/embalagem"
-                error={errors.qtdUnidadesPorCaixa?.message}
+                error={errors.qtd_unidades_por_caixa?.message}
                 input={
                   <Input
                     placeholder="Quantidade"
-                    {...register("qtdUnidadesPorCaixa")}
+                    {...register("qtd_unidades_por_caixa")}
                     disabled={isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Instruções de conservação (embalagem)"
-                error={errors.instrucoesConservacaoEmbalagem?.message}
+                error={errors.instrucoes_conservacao_embalagem?.message}
                 input={
                   <Textarea
                     rows={3}
                     placeholder="Orientações importantes"
-                    {...register("instrucoesConservacaoEmbalagem")}
+                    {...register("instrucoes_conservacao_embalagem")}
                     disabled={isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Restrições importantes (embalagem)"
-                error={errors.restricoesEmbalagem?.message}
+                error={errors.restricoes_embalagem?.message}
                 input={
                   <Textarea
                     rows={3}
                     placeholder="Restrições relevantes"
-                    {...register("restricoesEmbalagem")}
+                    {...register("restricoes_embalagem")}
                     disabled={isSubmitting}
                   />
                 }
@@ -945,20 +945,20 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
             <div className="mt-4 space-y-4">
               <FormField
                 label="Produto possui ingredientes/composição?"
-                error={errors.possuiIngredientes?.message}
+                error={errors.possui_ingredientes?.message}
                 input={
                   <select
                     className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                     value={
-                      possuiIngredientes === null
+                      possui_ingredientes === null
                         ? ""
-                        : possuiIngredientes
+                        : possui_ingredientes
                           ? "SIM"
                           : "NAO"
                     }
                     onChange={(event) =>
                       setValue(
-                        "possuiIngredientes",
+                        "possui_ingredientes",
                         event.target.value === ""
                           ? null
                           : event.target.value === "SIM",
@@ -999,16 +999,16 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
               />
               <FormField
                 label="Produto pronto para uso?"
-                error={errors.produtoProntoUso?.message}
+                error={errors.produto_pronto_uso?.message}
                 input={
                   <select
                     className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                    value={produtoProntoUso ?? ""}
+                    value={produto_pronto_uso ?? ""}
                     onChange={(event) =>
                       setValue(
-                        "produtoProntoUso",
+                        "produto_pronto_uso",
                         (event.target.value ||
-                          null) as ProductFormValues["produtoProntoUso"],
+                          null) as ProductFormValues["produto_pronto_uso"],
                         { shouldDirty: true, shouldTouch: true },
                       )
                     }
@@ -1025,59 +1025,59 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
               />
               <FormField
                 label="Produto pronto para uso - Outro"
-                error={errors.produtoProntoUsoOutro?.message}
+                error={errors.produto_pronto_uso_outro?.message}
                 input={
                   <Input
                     placeholder="Outro"
-                    {...register("produtoProntoUsoOutro")}
-                    disabled={produtoProntoUso !== "OUTRO" || isSubmitting}
+                    {...register("produto_pronto_uso_outro")}
+                    disabled={produto_pronto_uso !== "OUTRO" || isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Modo de preparo / uso recomendado"
-                error={errors.modoPreparo?.message}
+                error={errors.modo_preparo?.message}
                 input={
                   <Textarea
                     rows={3}
                     placeholder="Modo de preparo"
-                    {...register("modoPreparo")}
+                    {...register("modo_preparo")}
                     disabled={isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Observações de uso"
-                error={errors.observacoesUso?.message}
+                error={errors.observacoes_uso?.message}
                 input={
                   <Textarea
                     rows={3}
                     placeholder="Observações de uso"
-                    {...register("observacoesUso")}
+                    {...register("observacoes_uso")}
                     disabled={isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Instruções de conservação (produto)"
-                error={errors.instrucoesConservacaoProduto?.message}
+                error={errors.instrucoes_conservacao_produto?.message}
                 input={
                   <Textarea
                     rows={3}
                     placeholder="Instruções de conservação"
-                    {...register("instrucoesConservacaoProduto")}
+                    {...register("instrucoes_conservacao_produto")}
                     disabled={isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Restrições importantes (produto)"
-                error={errors.restricoesProduto?.message}
+                error={errors.restricoes_produto?.message}
                 input={
                   <Textarea
                     rows={3}
                     placeholder="Restrições importantes"
-                    {...register("restricoesProduto")}
+                    {...register("restricoes_produto")}
                     disabled={isSubmitting}
                   />
                 }
@@ -1115,7 +1115,7 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
                   <FormField
                     label="Objeção comum do cliente"
                     error={
-                      errors.objecoesArgumentacoes?.[index]?.objecaoCliente
+                      errors.objecoes_argumentacoes?.[index]?.objecao_cliente
                         ?.message
                     }
                     input={
@@ -1123,7 +1123,7 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
                         rows={3}
                         placeholder="Principais objeções"
                         {...register(
-                          `objecoesArgumentacoes.${index}.objecaoCliente`,
+                          `objecoes_argumentacoes.${index}.objecao_cliente`,
                         )}
                         disabled={isSubmitting}
                       />
@@ -1133,20 +1133,20 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
                     <FormField
                       label="Tipo de objeção"
                       error={
-                        errors.objecoesArgumentacoes?.[index]?.tipoObjecao
+                        errors.objecoes_argumentacoes?.[index]?.tipo_objecao
                           ?.message
                       }
                       input={
                         <select
                           className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                           value={watch(
-                            `objecoesArgumentacoes.${index}.tipoObjecao`,
+                            `objecoes_argumentacoes.${index}.tipo_objecao`,
                           )}
                           onChange={(event) =>
                             setValue(
-                              `objecoesArgumentacoes.${index}.tipoObjecao`,
+                              `objecoes_argumentacoes.${index}.tipo_objecao`,
                               event.target
-                                .value as ProductFormValues["objecoesArgumentacoes"][number]["tipoObjecao"],
+                                .value as ProductFormValues["objecoes_argumentacoes"][number]["tipo_objecao"],
                               { shouldDirty: true, shouldTouch: true },
                             )
                           }
@@ -1163,18 +1163,18 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
                     <FormField
                       label="Tipo de objeção - Outro"
                       error={
-                        errors.objecoesArgumentacoes?.[index]?.tipoObjecaoOutro
+                        errors.objecoes_argumentacoes?.[index]?.tipo_objecao_outro
                           ?.message
                       }
                       input={
                         <Input
                           placeholder="Outro"
                           {...register(
-                            `objecoesArgumentacoes.${index}.tipoObjecaoOutro`,
+                            `objecoes_argumentacoes.${index}.tipo_objecao_outro`,
                           )}
                           disabled={
                             watch(
-                              `objecoesArgumentacoes.${index}.tipoObjecao`,
+                              `objecoes_argumentacoes.${index}.tipo_objecao`,
                             ) !== "OUTRO" || isSubmitting
                           }
                         />
@@ -1187,7 +1187,7 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
                   <FormField
                     label="Resposta / argumento sugerido"
                     error={
-                      errors.objecoesArgumentacoes?.[index]?.respostaArgumento
+                      errors.objecoes_argumentacoes?.[index]?.resposta_argumento
                         ?.message
                     }
                     input={
@@ -1195,7 +1195,7 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
                         rows={3}
                         placeholder="Resposta sugerida"
                         {...register(
-                          `objecoesArgumentacoes.${index}.respostaArgumento`,
+                          `objecoes_argumentacoes.${index}.resposta_argumento`,
                         )}
                         disabled={isSubmitting}
                       />
@@ -1204,14 +1204,14 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
                   <FormField
                     label="Quando usar esse argumento?"
                     error={
-                      errors.objecoesArgumentacoes?.[index]?.quandoUsar?.message
+                      errors.objecoes_argumentacoes?.[index]?.quando_usar?.message
                     }
                     input={
                       <Textarea
                         rows={3}
                         placeholder="Quando usar"
                         {...register(
-                          `objecoesArgumentacoes.${index}.quandoUsar`,
+                          `objecoes_argumentacoes.${index}.quando_usar`,
                         )}
                         disabled={isSubmitting}
                       />
@@ -1262,20 +1262,20 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
             />
 
             <div className="mt-4 space-y-2">
-              {fotosProduto.length === 0 ? (
+              {fotos_produto.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Nenhuma foto enviada.
                 </p>
               ) : (
-                fotosProduto.map((publicUrl) => (
+                fotos_produto.map((public_url) => (
                   <div
-                    key={publicUrl}
+                    key={public_url}
                     className="flex items-center justify-between rounded-md border p-2"
                   >
                     <div className="flex items-center gap-2">
-                      {mediaPreviewByPublicUrl[publicUrl] ? (
+                      {mediaPreviewByPublicUrl[public_url] ? (
                         <img
-                          src={mediaPreviewByPublicUrl[publicUrl]}
+                          src={mediaPreviewByPublicUrl[public_url]}
                           alt="Foto do produto"
                           className="h-10 w-10 rounded object-cover"
                         />
@@ -1283,7 +1283,7 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
                         <ImageUp className="size-4 text-muted-foreground" />
                       )}
                       <span className="line-clamp-1 text-xs text-muted-foreground">
-                        {publicUrl}
+                        {public_url}
                       </span>
                     </div>
                     <Button
@@ -1291,7 +1291,7 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
                       variant="ghost"
                       size="icon-sm"
                       className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => handleRemovePhoto(publicUrl)}
+                      onClick={() => handleRemovePhoto(public_url)}
                       disabled={isSubmitting}
                       title="Remover foto"
                     >
@@ -1327,14 +1327,14 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
             />
 
             <div className="mt-4 space-y-2">
-              {videosMaterial.length === 0 ? (
+              {videos_material.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Nenhum vídeo/material enviado.
                 </p>
               ) : (
-                videosMaterial.map((publicUrl, index) => (
+                videos_material.map((public_url, index) => (
                   <div
-                    key={publicUrl}
+                    key={public_url}
                     className="flex items-center justify-between rounded-md border p-2"
                   >
                     <div className="flex flex-col">
@@ -1342,7 +1342,7 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
                         Material {index + 1}
                       </span>
                       <span className="line-clamp-1 text-xs text-muted-foreground">
-                        {publicUrl}
+                        {public_url}
                       </span>
                     </div>
                     <Button
@@ -1350,7 +1350,7 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
                       variant="ghost"
                       size="icon-sm"
                       className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => handleRemoveVideo(publicUrl)}
+                      onClick={() => handleRemoveVideo(public_url)}
                       disabled={isSubmitting}
                       title="Remover material"
                     >
@@ -1370,12 +1370,12 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
               <Textarea
                 rows={11}
                 placeholder="Informações importantes sobre o material visual."
-                {...register("observacoesImagens")}
+                {...register("observacoes_imagens")}
                 disabled={isSubmitting}
               />
-              {errors.observacoesImagens ? (
+              {errors.observacoes_imagens ? (
                 <p className="mt-1 text-sm text-destructive">
-                  {errors.observacoesImagens.message}
+                  {errors.observacoes_imagens.message}
                 </p>
               ) : null}
             </div>
@@ -1392,24 +1392,24 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
             <div className="mt-4 space-y-4">
               <FormField
                 label="Informações técnicas complementares"
-                error={errors.informacoesTecnicasComplementares?.message}
+                error={errors.informacoes_tecnicas_complementares?.message}
                 input={
                   <Textarea
                     rows={4}
                     placeholder="Detalhes técnicos adicionais"
-                    {...register("informacoesTecnicasComplementares")}
+                    {...register("informacoes_tecnicas_complementares")}
                     disabled={isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Certificações / registros"
-                error={errors.certificacoesRegistros?.message}
+                error={errors.certificacoes_registros?.message}
                 input={
                   <Textarea
                     rows={4}
                     placeholder="Ex.: SIF, MAPA, ISO"
-                    {...register("certificacoesRegistros")}
+                    {...register("certificacoes_registros")}
                     disabled={isSubmitting}
                   />
                 }
@@ -1424,36 +1424,36 @@ export function ProductFormWizard({ mode, productId }: ProductFormWizardProps) {
             <div className="mt-4 space-y-4">
               <FormField
                 label="Observações comerciais do produto"
-                error={errors.observacoesComerciais?.message}
+                error={errors.observacoes_comerciais?.message}
                 input={
                   <Textarea
                     rows={3}
                     placeholder="Observações comerciais"
-                    {...register("observacoesComerciais")}
+                    {...register("observacoes_comerciais")}
                     disabled={isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Diferenciais percebidos do produto"
-                error={errors.diferenciaisProduto?.message}
+                error={errors.diferenciais_produto?.message}
                 input={
                   <Textarea
                     rows={3}
                     placeholder="Diferenciais percebidos"
-                    {...register("diferenciaisProduto")}
+                    {...register("diferenciais_produto")}
                     disabled={isSubmitting}
                   />
                 }
               />
               <FormField
                 label="Observações gerais"
-                error={errors.observacoesGerais?.message}
+                error={errors.observacoes_gerais?.message}
                 input={
                   <Textarea
                     rows={3}
                     placeholder="Observações gerais"
-                    {...register("observacoesGerais")}
+                    {...register("observacoes_gerais")}
                     disabled={isSubmitting}
                   />
                 }
@@ -1637,17 +1637,17 @@ function FormField({
 
 async function requestSignedUrl(input: {
   target: ProductMediaTarget;
-  entityId: string;
+  entity_id: string;
   file: File;
 }): Promise<UploadSignedUrlData> {
   const response = await apiFetch<unknown>("/uploads/signed-url", {
     method: "POST",
     body: {
       target: input.target,
-      entityId: input.entityId,
-      fileName: input.file.name,
-      contentType: input.file.type,
-      contentLength: input.file.size,
+      entity_id: input.entity_id,
+      file_name: input.file.name,
+      content_type: input.file.type,
+      content_length: input.file.size,
     },
   });
 
@@ -1663,10 +1663,10 @@ async function uploadFileToSignedUrl(
   signedUrlData: UploadSignedUrlData,
   file: File,
 ) {
-  const response = await fetch(signedUrlData.uploadUrl, {
-    method: signedUrlData.uploadMethod,
+  const response = await fetch(signedUrlData.upload_url, {
+    method: signedUrlData.upload_method,
     headers: {
-      "Content-Type": signedUrlData.uploadHeaders["Content-Type"],
+      "Content-Type": signedUrlData.upload_headers["Content-Type"],
     },
     body: file,
   });
@@ -1675,3 +1675,4 @@ async function uploadFileToSignedUrl(
     throw new Error("Falha ao enviar arquivo para o storage.");
   }
 }
+

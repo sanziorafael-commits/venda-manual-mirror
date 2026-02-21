@@ -1,4 +1,4 @@
-﻿import { randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
 import { Storage, type StorageOptions } from '@google-cloud/storage';
@@ -40,7 +40,7 @@ export async function createStorageSignedUploadUrl(
   input: CreateStorageSignedUploadUrlInput,
 ): Promise<CreateStorageSignedUploadUrlResult> {
   if (env.STORAGE_PROVIDER !== 'gcs') {
-    throw badRequest('Storage de arquivos está desabilitado no ambiente atual');
+    throw badRequest('Storage de arquivos est� desabilitado no ambiente atual');
   }
 
   const bucketName = env.GCS_BUCKET_NAME!;
@@ -203,8 +203,8 @@ function parseCredentialsFromBase64(rawCredentialsBase64?: string) {
     const decodedJson = Buffer.from(rawCredentialsBase64, 'base64').toString('utf8');
     return parseCredentialsFromJson(decodedJson, 'GCS_CREDENTIALS_BASE64');
   } catch (error) {
-    logger.error({ err: error }, 'não foi possível decodificar GCS_CREDENTIALS_BASE64');
-    throw badRequest('Credenciais GCS inválidas');
+    logger.error({ err: error }, 'n�o foi poss�vel decodificar GCS_CREDENTIALS_BASE64');
+    throw badRequest('Credenciais GCS inv�lidas');
   }
 }
 
@@ -223,8 +223,8 @@ function parseCredentialsFromJson(rawJson?: string, sourceLabel?: string) {
       ...(parsedCredentials.project_id ? { project_id: parsedCredentials.project_id } : {}),
     };
   } catch (error) {
-    logger.error({ err: error, sourceLabel }, 'credenciais GCS inválidas');
-    throw badRequest('Credenciais GCS inválidas');
+    logger.error({ err: error, sourceLabel }, 'credenciais GCS inv�lidas');
+    throw badRequest('Credenciais GCS inv�lidas');
   }
 }
 
@@ -356,8 +356,10 @@ export function readServiceAccountFromFile(filePath: string) {
     const rawJson = readFileSync(filePath, 'utf8');
     return parseCredentialsFromJson(rawJson, 'file');
   } catch (error) {
-    logger.error({ err: error, filePath }, 'não foi possível ler o arquivo de credenciais GCS');
-    throw badRequest('Arquivo de credenciais GCS inválido');
+    logger.error({ err: error, filePath }, 'n�o foi poss�vel ler o arquivo de credenciais GCS');
+    throw badRequest('Arquivo de credenciais GCS inv�lido');
   }
 }
+
+
 

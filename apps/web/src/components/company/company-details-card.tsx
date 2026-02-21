@@ -1,4 +1,4 @@
-﻿import { Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import type { CompanyDetails } from "@/schemas/company";
@@ -57,4 +57,5 @@ export function CompanyDetailsCard({ company, onEditCompany }: CompanyDetailsCar
     </div>
   );
 }
+
 

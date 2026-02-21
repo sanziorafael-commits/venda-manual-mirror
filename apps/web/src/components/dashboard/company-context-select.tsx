@@ -73,9 +73,9 @@ export function CompanyContextSelect() {
                   value: PLATFORM_ADMIN_CONTEXT,
                   label: PLATFORM_ADMIN_LABEL,
                 },
-                ...parsed.data.data.companyOptions,
+                ...parsed.data.data.company_options,
               ]
-            : parsed.data.data.companyOptions,
+            : parsed.data.data.company_options,
         );
       } catch (error) {
         if (currentRequestId !== optionsRequestRef.current) {
@@ -108,8 +108,8 @@ export function CompanyContextSelect() {
       return;
     }
 
-    if (authUser.companyId !== selectedContext) {
-      setSelectedContext(authUser.companyId);
+    if (authUser.company_id !== selectedContext) {
+      setSelectedContext(authUser.company_id);
     }
   }, [authHydrated, authUser, selectedContext, setSelectedContext]);
 
@@ -143,18 +143,18 @@ export function CompanyContextSelect() {
       return <CompanyNameSkeleton />;
     }
 
-    const companyName =
-      options.find((option) => option.value === authUser.companyId)?.label ??
+    const company_name =
+      options.find((option) => option.value === authUser.company_id)?.label ??
       options[0]?.label ??
       "Sem empresa";
 
     return (
       <div className="flex items-center gap-2">
         <span className="bg-sidebar-primary text-sidebar-primary-foreground inline-flex size-7 items-center justify-center rounded-full text-xs font-semibold">
-          {initialFromName(companyName)}
+          {initialFromName(company_name)}
         </span>
         <span className="text-sm font-medium text-foreground">
-          {companyName}
+          {company_name}
         </span>
       </div>
     );
@@ -210,3 +210,4 @@ function CompanySelectSkeleton() {
     </div>
   );
 }
+

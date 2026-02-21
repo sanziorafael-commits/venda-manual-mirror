@@ -15,41 +15,41 @@ export const userCompanySchema = z.object({
 
 export const userListItemSchema = z.object({
   id: z.string().min(1),
-  companyId: z.string().nullable(),
+  company_id: z.string().nullable(),
   company: userCompanySchema.nullable().optional(),
-  managerId: z.string().nullable().optional(),
+  manager_id: z.string().nullable().optional(),
   manager: z
     .object({
       id: z.string().min(1),
-      fullName: z.string().min(1),
+      full_name: z.string().min(1),
     })
     .nullable()
     .optional(),
-  supervisorId: z.string().nullable().optional(),
+  supervisor_id: z.string().nullable().optional(),
   supervisor: z
     .object({
       id: z.string().min(1),
-      fullName: z.string().min(1),
+      full_name: z.string().min(1),
     })
     .nullable()
     .optional(),
   role: userRoleSchema,
-  fullName: z.string().min(1),
+  full_name: z.string().min(1),
   cpf: z.string().min(1),
   email: z.string().nullable(),
   phone: z.string().min(1),
-  isActive: z.boolean(),
-  deletedAt: z.string().nullable().optional(),
-  passwordStatus: z.enum(["NOT_APPLICABLE", "PENDING", "SET"]),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  is_active: z.boolean(),
+  deleted_at: z.string().nullable().optional(),
+  password_status: z.enum(["NOT_APPLICABLE", "PENDING", "SET"]),
+  created_at: z.string(),
+  updated_at: z.string(),
 });
 
 export const userListMetaSchema = z.object({
   page: z.number().int().positive(),
-  pageSize: z.number().int().positive(),
+  page_size: z.number().int().positive(),
   total: z.number().int().nonnegative(),
-  totalPages: z.number().int().positive(),
+  total_pages: z.number().int().positive(),
 });
 
 export const usersApiResponseSchema = z.object({
@@ -59,7 +59,7 @@ export const usersApiResponseSchema = z.object({
 
 export const createUserFormSchema = z
   .object({
-    fullName: z
+    full_name: z
       .string()
       .trim()
       .min(2, { message: "Nome completo deve ter pelo menos 2 caracteres." }),
@@ -82,10 +82,10 @@ export const createUserFormSchema = z
         message: "Celular deve conter entre 10 e 13 dígitos.",
       }),
     role: userRoleSchema,
-    companyId: z.string().trim().optional(),
+    company_id: z.string().trim().optional(),
     password: z.string().optional(),
-    managerId: z.string().trim().optional(),
-    supervisorId: z.string().trim().optional(),
+    manager_id: z.string().trim().optional(),
+    supervisor_id: z.string().trim().optional(),
   })
   .superRefine((value, context) => {
     if (value.role !== "VENDEDOR") {
@@ -126,7 +126,7 @@ export const userDetailsApiResponseSchema = z.object({
 
 export const updateUserFormSchema = z
   .object({
-    fullName: z
+    full_name: z
       .string()
       .trim()
       .min(2, { message: "Nome completo deve ter pelo menos 2 caracteres." }),
@@ -149,10 +149,10 @@ export const updateUserFormSchema = z
         message: "Celular deve conter entre 10 e 13 dígitos.",
       }),
     role: userRoleSchema,
-    companyId: z.string().trim().optional(),
+    company_id: z.string().trim().optional(),
     password: z.string().optional(),
-    managerId: z.string().trim().optional(),
-    supervisorId: z.string().trim().optional(),
+    manager_id: z.string().trim().optional(),
+    supervisor_id: z.string().trim().optional(),
   })
   .superRefine((value, context) => {
     if (value.role !== "VENDEDOR") {
@@ -188,3 +188,4 @@ export type UserListItem = z.infer<typeof userListItemSchema>;
 export type UserListMeta = z.infer<typeof userListMetaSchema>;
 export type CreateUserFormInput = z.infer<typeof createUserFormSchema>;
 export type UpdateUserFormInput = z.infer<typeof updateUserFormSchema>;
+

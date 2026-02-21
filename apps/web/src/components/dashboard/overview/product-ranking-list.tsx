@@ -19,13 +19,13 @@ export function OverviewProductRankingList({
     <ul className="space-y-2.5">
       {items.map((item, index) => (
         <li
-          key={`${item.productId}-${index}`}
+          key={`${item.product_id}-${index}`}
           className="flex items-center justify-between gap-3"
         >
           <div className="flex min-w-0 items-center gap-2">
             <Package className="text-muted-foreground size-3.5 shrink-0" />
             <p className="text-foreground truncate text-[1.05rem] font-medium leading-tight">
-              {item.productName}
+              {item.product_name}
             </p>
           </div>
           <span className="text-foreground shrink-0 text-[1.05rem] font-semibold leading-none">
@@ -36,3 +36,4 @@ export function OverviewProductRankingList({
     </ul>
   );
 }
+

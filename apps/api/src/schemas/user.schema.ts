@@ -24,54 +24,56 @@ const booleanQueryParamSchema = z.preprocess((value) => {
 
 export const userQuerySchema = z.object({
   q: z.string().optional(),
-  companyId: z.string().cuid().optional(),
+  company_id: z.string().uuid().optional(),
   role: z.nativeEnum(UserRole).optional(),
-  managerId: z.string().cuid().optional(),
-  supervisorId: z.string().cuid().optional(),
-  isActive: booleanQueryParamSchema,
+  manager_id: z.string().uuid().optional(),
+  supervisor_id: z.string().uuid().optional(),
+  is_active: booleanQueryParamSchema,
   page: z.coerce.number().int().positive().default(1),
-  pageSize: z.coerce.number().int().positive().max(100).default(10),
+  page_size: z.coerce.number().int().positive().max(100).default(10),
 });
 
 export const userParamSchema = z.object({
-  userId: z.string().cuid(),
+  user_id: z.string().uuid(),
 });
 
 export const createUserSchema = z.object({
-  companyId: z.string().cuid().optional(),
+  company_id: z.string().uuid().optional(),
   role: z.nativeEnum(UserRole),
-  fullName: z.string().min(2),
+  full_name: z.string().min(2),
   cpf: z.string().min(11),
   email: z.string().email().optional(),
   phone: phoneSchema,
   password: z.string().min(6).optional(),
-  managerId: z.string().cuid().nullable().optional(),
-  supervisorId: z.string().cuid().nullable().optional(),
+  manager_id: z.string().uuid().nullable().optional(),
+  supervisor_id: z.string().uuid().nullable().optional(),
 });
 
 export const updateUserSchema = z
   .object({
-    companyId: z.string().cuid().optional(),
+    company_id: z.string().uuid().optional(),
     role: z.nativeEnum(UserRole).optional(),
-    fullName: z.string().min(2).optional(),
+    full_name: z.string().min(2).optional(),
     cpf: z.string().min(11).optional(),
     email: z.string().email().nullable().optional(),
     phone: phoneSchema.optional(),
     password: z.string().min(6).optional(),
-    isActive: z.boolean().optional(),
-    managerId: z.string().cuid().nullable().optional(),
-    supervisorId: z.string().cuid().nullable().optional(),
+    is_active: z.boolean().optional(),
+    manager_id: z.string().uuid().nullable().optional(),
+    supervisor_id: z.string().uuid().nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'Informe ao menos um campo para atualização',
   });
 
 export const reassignSupervisorSchema = z.object({
-  fromSupervisorId: z.string().cuid(),
-  toSupervisorId: z.string().cuid(),
+  from_supervisor_id: z.string().uuid(),
+  to_supervisor_id: z.string().uuid(),
 });
 
 export const reassignManagerTeamSchema = z.object({
-  fromManagerId: z.string().cuid(),
-  toManagerId: z.string().cuid(),
+  from_manager_id: z.string().uuid(),
+  to_manager_id: z.string().uuid(),
 });
+
+

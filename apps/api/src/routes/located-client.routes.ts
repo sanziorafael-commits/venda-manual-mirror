@@ -20,16 +20,18 @@ router.use(
 );
 
 router.get('/', listLocatedClientsHandler);
-router.get('/:locatedClientId', getLocatedClientByIdHandler);
+router.get('/:located_client_id', getLocatedClientByIdHandler);
 router.patch(
-  '/:locatedClientId/status',
+  '/:located_client_id/status',
   authorize(UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
   updateLocatedClientStatusHandler,
 );
 router.delete(
-  '/:locatedClientId',
+  '/:located_client_id',
   authorize(UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
   deleteLocatedClientHandler,
 );
 
 export default router;
+
+

@@ -1,4 +1,4 @@
-﻿import { Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,17 +6,17 @@ import { PAGE_SIZE_OPTIONS } from "@/lib/pagination";
 
 type CompanyUsersFilterFormProps = {
   searchValue: string;
-  pageSize: number;
+  page_size: number;
   isLoading: boolean;
   onSearchValueChange: (value: string) => void;
-  onPageSizeChange: (pageSize: number) => void;
+  onPageSizeChange: (page_size: number) => void;
   onSubmit: () => void;
   onAddUser: () => void;
 };
 
 export function CompanyUsersFilterForm({
   searchValue,
-  pageSize,
+  page_size,
   isLoading,
   onSearchValueChange,
   onPageSizeChange,
@@ -33,7 +33,7 @@ export function CompanyUsersFilterForm({
         }}
       >
         <label htmlFor="company-users-search" className="text-sm font-medium">
-          Buscar por usuário
+          Buscar por usu�rio
         </label>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input
@@ -60,7 +60,7 @@ export function CompanyUsersFilterForm({
           onClick={onAddUser}
           disabled={isLoading}
         >
-          Adicionar usuário
+          Adicionar usu�rio
           <Plus className="size-4" />
         </Button>
 
@@ -71,7 +71,7 @@ export function CompanyUsersFilterForm({
           <select
             id="company-users-page-size"
             className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-            value={String(pageSize)}
+            value={String(page_size)}
             onChange={(event) => onPageSizeChange(Number(event.target.value))}
             disabled={isLoading}
           >
@@ -86,3 +86,4 @@ export function CompanyUsersFilterForm({
     </div>
   );
 }
+

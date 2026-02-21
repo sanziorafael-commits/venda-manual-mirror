@@ -39,25 +39,25 @@ export async function listLocatedClientsHandler(req: Request, res: Response) {
 
 export async function getLocatedClientByIdHandler(req: Request, res: Response) {
   const authUser = getAuthUserOrThrow(req);
-  const { locatedClientId } = locatedClientParamSchema.parse(req.params);
-  const data = await getLocatedClientById(authUser, locatedClientId);
+  const { located_client_id } = locatedClientParamSchema.parse(req.params);
+  const data = await getLocatedClientById(authUser, located_client_id);
 
   res.status(200).json({ data });
 }
 
 export async function updateLocatedClientStatusHandler(req: Request, res: Response) {
   const authUser = getAuthUserOrThrow(req);
-  const { locatedClientId } = locatedClientParamSchema.parse(req.params);
+  const { located_client_id } = locatedClientParamSchema.parse(req.params);
   const payload = locatedClientStatusUpdateSchema.parse(req.body);
-  const data = await updateLocatedClientStatus(authUser, locatedClientId, payload);
+  const data = await updateLocatedClientStatus(authUser, located_client_id, payload);
 
   res.status(200).json({ data });
 }
 
 export async function deleteLocatedClientHandler(req: Request, res: Response) {
   const authUser = getAuthUserOrThrow(req);
-  const { locatedClientId } = locatedClientParamSchema.parse(req.params);
-  await deleteLocatedClient(authUser, locatedClientId);
+  const { located_client_id } = locatedClientParamSchema.parse(req.params);
+  await deleteLocatedClient(authUser, located_client_id);
 
   res.status(200).json({
     data: {
@@ -81,3 +81,5 @@ function extractBatchMessages(payload: LocatedClientWebhookBodyInput) {
 
   return null;
 }
+
+

@@ -9,3 +9,4 @@ export function useAuthUser() {
 export function useAuthHydrated() {
   return useAuthStore((state) => state.hydrated);
 }
+

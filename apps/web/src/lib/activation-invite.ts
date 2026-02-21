@@ -5,12 +5,12 @@ type ActivationInvitePasswordStatus = "NOT_APPLICABLE" | "PENDING" | "SET";
 
 type ActivationInviteTarget = {
   role: UserRole;
-  companyId: string | null;
-  managerId?: string | null;
+  company_id: string | null;
+  manager_id?: string | null;
   email: string | null;
-  isActive: boolean;
-  deletedAt?: string | null;
-  passwordStatus?: ActivationInvitePasswordStatus;
+  is_active: boolean;
+  deleted_at?: string | null;
+  password_status?: ActivationInvitePasswordStatus;
 };
 
 const INVITABLE_ROLES = new Set<UserRole>([
@@ -27,15 +27,15 @@ export function canResendActivationInvite(
     return false;
   }
 
-  if (target.deletedAt) {
+  if (target.deleted_at) {
     return false;
   }
 
-  if (!target.isActive) {
+  if (!target.is_active) {
     return false;
   }
 
-  if (target.passwordStatus !== "PENDING") {
+  if (target.password_status !== "PENDING") {
     return false;
   }
 
@@ -51,7 +51,7 @@ export function canResendActivationInvite(
     return true;
   }
 
-  if (!actor.companyId || actor.companyId !== target.companyId) {
+  if (!actor.company_id || actor.company_id !== target.company_id) {
     return false;
   }
 
@@ -60,8 +60,9 @@ export function canResendActivationInvite(
   }
 
   if (actor.role === "GERENTE_COMERCIAL") {
-    return target.role === "SUPERVISOR" && target.managerId === actor.id;
+    return target.role === "SUPERVISOR" && target.manager_id === actor.id;
   }
 
   return false;
 }
+

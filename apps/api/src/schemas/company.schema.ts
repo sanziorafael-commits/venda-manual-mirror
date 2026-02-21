@@ -9,24 +9,24 @@ const phoneSchema = z.string().min(1).refine((value) => {
 export const companyQuerySchema = z.object({
   q: z.string().optional(),
   page: z.coerce.number().int().positive().default(1),
-  pageSize: z.coerce.number().int().positive().max(100).default(10),
+  page_size: z.coerce.number().int().positive().max(100).default(10),
 });
 
 export const companyParamSchema = z.object({
-  companyId: z.string().cuid(),
+  company_id: z.string().uuid(),
 });
 
 export const createCompanySchema = z.object({
   name: z.string().min(2),
   cnpj: z.string().min(14),
-  logoUrl: z.string().url().optional(),
+  logo_url: z.string().url().optional(),
 });
 
 export const updateCompanySchema = z
   .object({
     name: z.string().min(2).optional(),
     cnpj: z.string().min(14).optional(),
-    logoUrl: z.string().url().nullable().optional(),
+    logo_url: z.string().url().nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, {
     message: 'Informe ao menos um campo para atualização',
@@ -34,11 +34,13 @@ export const updateCompanySchema = z
 
 export const createCompanyUserSchema = z.object({
   role: z.nativeEnum(UserRole),
-  fullName: z.string().min(2),
+  full_name: z.string().min(2),
   cpf: z.string().min(11),
   email: z.string().email().optional(),
   phone: phoneSchema,
   password: z.string().min(6).optional(),
-  managerId: z.string().cuid().nullable().optional(),
-  supervisorId: z.string().cuid().nullable().optional(),
+  manager_id: z.string().uuid().nullable().optional(),
+  supervisor_id: z.string().uuid().nullable().optional(),
 });
+
+

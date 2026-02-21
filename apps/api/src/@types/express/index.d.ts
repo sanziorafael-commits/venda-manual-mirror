@@ -4,12 +4,14 @@ declare global {
   namespace Express {
     interface Request {
       authUser?: {
-        userId: string;
+        user_id: string;
         role: UserRole;
-        companyId: string | null;
+        company_id: string | null;
       };
     }
   }
 }
 
 export {};
+
+

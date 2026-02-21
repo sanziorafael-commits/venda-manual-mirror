@@ -37,9 +37,9 @@ export async function listConversationsHandler(req: Request, res: Response) {
 
 export async function getConversationByIdHandler(req: Request, res: Response) {
   const authUser = getAuthUserOrThrow(req);
-  const { conversationId } = conversationParamSchema.parse(req.params);
+  const { conversation_id } = conversationParamSchema.parse(req.params);
   const query = conversationDetailQuerySchema.parse(req.query);
-  const data = await getConversationById(authUser, conversationId, query);
+  const data = await getConversationById(authUser, conversation_id, query);
 
   res.status(200).json({ data });
 }
@@ -55,3 +55,5 @@ function extractBatchMessages(payload: ConversationWebhookBodyInput) {
 
   return null;
 }
+
+

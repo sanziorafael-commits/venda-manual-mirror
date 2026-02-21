@@ -16,11 +16,11 @@ import {
 } from "@/schemas/conversation";
 
 type ConversationDetailWrapperProps = {
-  conversationId: string;
+  conversation_id: string;
 };
 
 export function ConversationDetailWrapper({
-  conversationId,
+  conversation_id,
 }: ConversationDetailWrapperProps) {
   const authHydrated = useAuthHydrated();
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(
@@ -44,23 +44,23 @@ export function ConversationDetailWrapper({
 
       try {
         const params = new URLSearchParams();
-        const startDate = selectedRange?.from
+        const start_date = selectedRange?.from
           ? format(selectedRange.from, "yyyy-MM-dd")
           : null;
         const endSource = selectedRange?.to ?? selectedRange?.from;
-        const endDate = endSource ? format(endSource, "yyyy-MM-dd") : null;
+        const end_date = endSource ? format(endSource, "yyyy-MM-dd") : null;
 
-        if (startDate) {
-          params.set("startDate", startDate);
+        if (start_date) {
+          params.set("start_date", start_date);
         }
 
-        if (endDate) {
-          params.set("endDate", endDate);
+        if (end_date) {
+          params.set("end_date", end_date);
         }
 
         const queryString = params.toString();
         const response = await apiFetch<unknown>(
-          `/conversations/${conversationId}${
+          `/conversations/${conversation_id}${
             queryString.length > 0 ? `?${queryString}` : ""
           }`,
         );
@@ -90,7 +90,7 @@ export function ConversationDetailWrapper({
         }
       }
     },
-    [authHydrated, conversationId],
+    [authHydrated, conversation_id],
   );
 
   React.useEffect(() => {
@@ -105,16 +105,16 @@ export function ConversationDetailWrapper({
         <div>
           <h3 className="flex items-center gap-2 text-xl font-semibold">
             {conversationDetail
-              ? `Histórico de ${conversationDetail.vendedorNome}`
+              ? `Histórico de ${conversationDetail.vendedor_nome}`
               : "Histórico da conversa"}
           </h3>
           {conversationDetail ? (
             <p className="mt-1 text-sm text-muted-foreground">
-              {conversationDetail.companyName
-                ? `${conversationDetail.companyName} `
+              {conversationDetail.company_name
+                ? `${conversationDetail.company_name} `
                 : ""}
-              {/* {conversationDetail.clienteNome
-                ? `Cliente: ${conversationDetail.clienteNome}`
+              {/* {conversationDetail.cliente_nome
+                ? `Cliente: ${conversationDetail.cliente_nome}`
                 : "Cliente não identificado"} */}
             </p>
           ) : null}
@@ -190,7 +190,7 @@ export function ConversationDetailWrapper({
                     ></span>
                     <p className="mb-1 text-sm font-bold text-[#212A38]">
                       {message.sender === "vendedor"
-                        ? conversationDetail.vendedorNome
+                        ? conversationDetail.vendedor_nome
                         : "HandSell"}
                     </p>
                     <p className="whitespace-pre-wrap text-sm">
@@ -251,3 +251,4 @@ function formatDatePillLabel(value: string) {
     year: "numeric",
   });
 }
+

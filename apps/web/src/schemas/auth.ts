@@ -16,14 +16,14 @@ export const forgotPasswordFormSchema = z.object({
 export const resetPasswordFormSchema = z
   .object({
     token: z.string().min(1, { message: "Token obrigatório" }),
-    newPassword: z
+    new_password: z
       .string()
       .min(6, { message: "A nova senha deve ter pelo menos 6 caracteres" }),
-    confirmPassword: z.string().min(1, { message: "Confirme sua nova senha" }),
+    confirm_password: z.string().min(1, { message: "Confirme sua nova senha" }),
   })
-  .refine((data) => data.newPassword === data.confirmPassword, {
+  .refine((data) => data.new_password === data.confirm_password, {
     message: "As senhas não coincidem",
-    path: ["confirmPassword"],
+    path: ["confirm_password"],
   });
 
 export const activateAccountFormSchema = z
@@ -32,33 +32,33 @@ export const activateAccountFormSchema = z
     password: z
       .string()
       .min(6, { message: "A senha deve ter pelo menos 6 caracteres" }),
-    confirmPassword: z.string().min(1, { message: "Confirme sua senha" }),
+    confirm_password: z.string().min(1, { message: "Confirme sua senha" }),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((data) => data.password === data.confirm_password, {
     message: "As senhas não coincidem",
-    path: ["confirmPassword"],
+    path: ["confirm_password"],
   });
 
 export const profileFormSchema = z
   .object({
-    fullName: z
+    full_name: z
       .string()
       .trim()
       .min(2, { message: "Nome deve ter pelo menos 2 caracteres" }),
     email: z.string().trim().email({ message: "E-mail inválido" }),
-    newPassword: z.string(),
-    confirmPassword: z.string(),
+    new_password: z.string(),
+    confirm_password: z.string(),
   })
   .superRefine((data, ctx) => {
-    const password = data.newPassword.trim();
-    const confirmation = data.confirmPassword.trim();
+    const password = data.new_password.trim();
+    const confirmation = data.confirm_password.trim();
 
     if (!password && !confirmation) return;
 
     if (password.length < 6) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["newPassword"],
+        path: ["new_password"],
         message: "A nova senha deve ter pelo menos 6 caracteres",
       });
     }
@@ -66,7 +66,7 @@ export const profileFormSchema = z
     if (password !== confirmation) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ["confirmPassword"],
+        path: ["confirm_password"],
         message: "As senhas não coincidem",
       });
     }
@@ -92,9 +92,9 @@ export const dashboardUserRoleSchema = z.enum([
 
 export const authSessionUserSchema = z.object({
   id: z.string().min(1),
-  companyId: z.string().nullable(),
+  company_id: z.string().nullable(),
   role: dashboardUserRoleSchema,
-  fullName: z.string().min(1),
+  full_name: z.string().min(1),
   email: z.string().email().nullable(),
 });
 
@@ -105,13 +105,13 @@ export const passwordStatusSchema = z.enum([
 ]);
 
 export const meUserSchema = authSessionUserSchema.extend({
-  passwordStatus: passwordStatusSchema,
+  password_status: passwordStatusSchema,
 });
 
 export const authTokenSchema = z.object({
-  accessToken: z.string().min(1),
-  refreshToken: z.string().min(1),
-  expiresIn: z.string().min(1),
+  access_token: z.string().min(1),
+  refresh_token: z.string().min(1),
+  expires_in: z.string().min(1),
 });
 
 export const authSessionSchema = z.object({
@@ -157,3 +157,4 @@ export type LoginApiResponse = z.infer<typeof loginApiResponseSchema>;
 export type PasswordStatus = z.infer<typeof passwordStatusSchema>;
 export type MeUser = z.infer<typeof meUserSchema>;
 export type MeApiResponse = z.infer<typeof meApiResponseSchema>;
+

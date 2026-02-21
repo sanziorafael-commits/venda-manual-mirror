@@ -8,16 +8,16 @@ export const metadata = createPageMetadata("Adicionar Usuário");
 
 type DashboardUserCreatePageProps = {
   searchParams: Promise<{
-    companyId?: string;
+    company_id?: string;
   }>;
 };
 
 export default async function DashboardUserCreatePage({
   searchParams,
 }: DashboardUserCreatePageProps) {
-  const { companyId } = await searchParams;
-  const backHref = companyId
-    ? `/dashboard/companies/${companyId}`
+  const { company_id } = await searchParams;
+  const backHref = company_id
+    ? `/dashboard/companies/${company_id}`
     : "/dashboard/users";
 
   return (
@@ -41,7 +41,8 @@ export default async function DashboardUserCreatePage({
 
       <h3 className="text-2xl font-semibold">Adicionar usuário</h3>
 
-      <UserCreateForm prefilledCompanyId={companyId ?? null} />
+      <UserCreateForm prefilledCompanyId={company_id ?? null} />
     </div>
   );
 }
+

@@ -54,3 +54,4 @@ export function useAuthSubmit<TInput, TResult>(
     submit,
   };
 }
+

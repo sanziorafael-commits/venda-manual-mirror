@@ -18,23 +18,23 @@ const COOKIE_BASE_OPTIONS: CookieOptions = {
 export function setAuthCookies(
   res: Response,
   input: {
-    accessToken: string;
-    refreshToken: string;
+    access_token: string;
+    refresh_token: string;
     user: {
       id: string;
-      companyId: string | null;
+      company_id: string | null;
       role: string;
-      fullName: string;
+      full_name: string;
       email: string | null;
     };
   },
 ) {
-  res.cookie(AUTH_ACCESS_COOKIE_NAME, input.accessToken, {
+  res.cookie(AUTH_ACCESS_COOKIE_NAME, input.access_token, {
     ...COOKIE_BASE_OPTIONS,
     maxAge: ttlToMs(env.JWT_ACCESS_TOKEN_TTL),
   });
 
-  res.cookie(AUTH_REFRESH_COOKIE_NAME, input.refreshToken, {
+  res.cookie(AUTH_REFRESH_COOKIE_NAME, input.refresh_token, {
     ...COOKIE_BASE_OPTIONS,
     maxAge: ttlToMs(env.JWT_REFRESH_TOKEN_TTL),
   });
@@ -52,7 +52,7 @@ export function clearAuthCookies(res: Response) {
 }
 
 export function getRefreshTokenFromRequest(req: Request) {
-  const bodyToken = typeof req.body?.refreshToken === 'string' ? req.body.refreshToken : undefined;
+  const bodyToken = typeof req.body?.refresh_token === 'string' ? req.body.refresh_token : undefined;
   if (bodyToken?.trim()) {
     return bodyToken.trim();
   }
@@ -89,3 +89,5 @@ export function getCookieValue(req: Request, key: string) {
 
   return undefined;
 }
+
+

@@ -19,8 +19,8 @@ type ProductTableProps = {
   isLoading: boolean;
   canManageProducts: boolean;
   pageIndex: number;
-  pageSize: number;
-  totalPages: number;
+  page_size: number;
+  total_pages: number;
   onPageChange: (pageIndex: number) => void;
   onViewDetails: (product: ProductListItem) => void;
   onEditProduct: (product: ProductListItem) => void;
@@ -60,8 +60,8 @@ export function ProductTable({
   isLoading,
   canManageProducts,
   pageIndex,
-  pageSize,
-  totalPages,
+  page_size,
+  total_pages,
   onPageChange,
   onViewDetails,
   onEditProduct,
@@ -78,7 +78,7 @@ export function ProductTable({
               {row.original.nome}
             </span>
             <span className="text-xs text-muted-foreground">
-              SKU: {row.original.codigoInternoSku ?? "-"}
+              SKU: {row.original.codigo_interno_sku ?? "-"}
             </span>
           </div>
         ),
@@ -94,14 +94,14 @@ export function ProductTable({
         cell: ({ row }) => formatCategories(row.original.categorias),
       },
       {
-        accessorKey: "totalObjecoes",
+        accessorKey: "total_objecoes",
         header: "Objeções",
-        cell: ({ row }) => row.original.totalObjecoes,
+        cell: ({ row }) => row.original.total_objecoes,
       },
       {
-        accessorKey: "updatedAt",
+        accessorKey: "updated_at",
         header: "Atualizado em",
-        cell: ({ row }) => formatDateTime(row.original.updatedAt),
+        cell: ({ row }) => formatDateTime(row.original.updated_at),
       },
       {
         id: "details",
@@ -167,11 +167,11 @@ export function ProductTable({
     state: {
       pagination: {
         pageIndex,
-        pageSize,
+        pageSize: page_size,
       },
     },
     manualPagination: true,
-    pageCount: totalPages,
+    pageCount: total_pages,
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -199,7 +199,7 @@ export function ProductTable({
             <tbody>
               {isLoading
                 ? Array.from(
-                    { length: Math.max(4, Math.min(pageSize, 8)) },
+                    { length: Math.max(4, Math.min(page_size, 8)) },
                     (_, rowIndex) => (
                       <tr key={`loading-${rowIndex}`} className="border-t">
                         {columns.map((_, columnIndex) => (
@@ -243,10 +243,11 @@ export function ProductTable({
 
       <PaginationControls
         pageIndex={pageIndex}
-        totalPages={totalPages}
+        total_pages={total_pages}
         isLoading={isLoading}
         onPageChange={onPageChange}
       />
     </div>
   );
 }
+

@@ -31,8 +31,8 @@ export async function listUsersHandler(req: Request, res: Response) {
 
 export async function getUserByIdHandler(req: Request, res: Response) {
   const authUser = req.authUser!;
-  const { userId } = userParamSchema.parse(req.params);
-  const data = await getUserById(authUser, userId);
+  const { user_id } = userParamSchema.parse(req.params);
+  const data = await getUserById(authUser, user_id);
 
   res.status(200).json({ data });
 }
@@ -47,17 +47,17 @@ export async function createUserHandler(req: Request, res: Response) {
 
 export async function updateUserHandler(req: Request, res: Response) {
   const authUser = req.authUser!;
-  const { userId } = userParamSchema.parse(req.params);
+  const { user_id } = userParamSchema.parse(req.params);
   const payload = updateUserSchema.parse(req.body);
-  const data = await updateUser(authUser, userId, payload);
+  const data = await updateUser(authUser, user_id, payload);
 
   res.status(200).json({ data });
 }
 
 export async function deleteUserHandler(req: Request, res: Response) {
   const authUser = req.authUser!;
-  const { userId } = userParamSchema.parse(req.params);
-  await deleteUser(authUser, userId);
+  const { user_id } = userParamSchema.parse(req.params);
+  await deleteUser(authUser, user_id);
 
   res.status(200).json({ data: { ok: true } });
 }
@@ -77,3 +77,5 @@ export async function reassignManagerTeamHandler(req: Request, res: Response) {
 
   res.status(200).json({ data });
 }
+
+

@@ -25,11 +25,11 @@ import {
 } from "@/stores/company-context-store";
 
 type ProductDetailsWrapperProps = {
-  productId: string;
+  product_id: string;
 };
 
 export function ProductDetailsWrapper({
-  productId,
+  product_id,
 }: ProductDetailsWrapperProps) {
   const router = useRouter();
   const authHydrated = useAuthHydrated();
@@ -43,7 +43,7 @@ export function ProductDetailsWrapper({
 
   const selectedCompanyId = React.useMemo(() => {
     if (!isAdmin) {
-      return authUser?.companyId ?? null;
+      return authUser?.company_id ?? null;
     }
 
     if (
@@ -54,7 +54,7 @@ export function ProductDetailsWrapper({
     }
 
     return selectedCompanyContext;
-  }, [authUser?.companyId, isAdmin, selectedCompanyContext]);
+  }, [authUser?.company_id, isAdmin, selectedCompanyContext]);
 
   const [isLoading, setIsLoading] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
@@ -78,12 +78,12 @@ export function ProductDetailsWrapper({
     try {
       const params = new URLSearchParams();
       if (isAdmin && selectedCompanyId) {
-        params.set("companyId", selectedCompanyId);
+        params.set("company_id", selectedCompanyId);
       }
 
       const endpoint = params.toString()
-        ? `/products/${productId}?${params.toString()}`
-        : `/products/${productId}`;
+        ? `/products/${product_id}?${params.toString()}`
+        : `/products/${product_id}`;
 
       const response = await apiFetch<unknown>(endpoint);
       const parsed = productDetailApiResponseSchema.safeParse(response);
@@ -100,15 +100,15 @@ export function ProductDetailsWrapper({
     } finally {
       setIsLoading(false);
     }
-  }, [authHydrated, isAdmin, productId, selectedCompanyId]);
+  }, [authHydrated, isAdmin, product_id, selectedCompanyId]);
 
   React.useEffect(() => {
     void loadProduct();
   }, [loadProduct]);
 
   const handleEditProduct = React.useCallback(() => {
-    router.push(`/dashboard/products/${productId}/edit`);
-  }, [productId, router]);
+    router.push(`/dashboard/products/${product_id}/edit`);
+  }, [product_id, router]);
 
   const handleDeleteProduct = React.useCallback(async () => {
     if (!product) {
@@ -174,7 +174,7 @@ export function ProductDetailsWrapper({
             {product.marca ? `Marca: ${product.marca}` : "Marca não informada"}
           </p>
           <p className="text-sm text-muted-foreground">
-            SKU: {product.codigoInternoSku ?? "-"}
+            SKU: {product.codigo_interno_sku ?? "-"}
           </p>
         </div>
 
@@ -199,31 +199,31 @@ export function ProductDetailsWrapper({
       <DetailsSection title="01. Informações gerais">
         <KeyValue
           label="Descrição comercial"
-          value={product.descricaoComercial}
+          value={product.descricao_comercial}
         />
         <KeyValue
           label="Categorias"
           value={toLabelList(product.categorias, CATEGORY_LABEL_BY_VALUE)}
         />
-        {product.categoriaOutro ? (
-          <KeyValue label="Categoria outro" value={product.categoriaOutro} />
+        {product.categoria_outro ? (
+          <KeyValue label="Categoria outro" value={product.categoria_outro} />
         ) : null}
         <KeyValue
           label="Tipologias indicadas"
           value={toLabelList(
-            product.tipologiasClientes,
+            product.tipologias_clientes,
             CLIENT_TYPE_LABEL_BY_VALUE,
           )}
         />
-        {product.tipologiaClienteOutro ? (
+        {product.tipologia_cliente_outro ? (
           <KeyValue
             label="Tipologia outro"
-            value={product.tipologiaClienteOutro}
+            value={product.tipologia_cliente_outro}
           />
         ) : null}
         <KeyValue
           label="Sugestões de receitas"
-          value={product.sugestoesReceitas}
+          value={product.sugestoes_receitas}
         />
       </DetailsSection>
 
@@ -232,42 +232,42 @@ export function ProductDetailsWrapper({
           <div className="space-y-2">
             <KeyValue
               label="Código de barras item (EAN)"
-              value={product.codigoBarrasEan}
+              value={product.codigo_barras_ean}
             />
             <KeyValue
               label="Código de barras caixa (DUN)"
-              value={product.codigoBarrasDun}
+              value={product.codigo_barras_dun}
             />
             <KeyValue
               label="Código fiscal NCM"
-              value={product.codigoFiscalNcm}
+              value={product.codigo_fiscal_ncm}
             />
             <KeyValue
               label="Tipo de conservação"
               value={
-                product.tipoConservacao
-                  ? (CONSERVATION_LABEL_BY_VALUE[product.tipoConservacao] ??
-                    product.tipoConservacao)
+                product.tipo_conservacao
+                  ? (CONSERVATION_LABEL_BY_VALUE[product.tipo_conservacao] ??
+                    product.tipo_conservacao)
                   : "-"
               }
             />
-            {product.tipoConservacaoOutro ? (
+            {product.tipo_conservacao_outro ? (
               <KeyValue
                 label="Tipo de conservação outro"
-                value={product.tipoConservacaoOutro}
+                value={product.tipo_conservacao_outro}
               />
             ) : null}
             <KeyValue
               label="Validade embalagem fechada"
-              value={product.validadeEmbalagemFechada}
+              value={product.validade_embalagem_fechada}
             />
             <KeyValue
               label="Validade após abertura"
-              value={product.validadeAposAbertura}
+              value={product.validade_apos_abertura}
             />
             <KeyValue
               label="Validade após preparo"
-              value={product.validadeAposPreparo}
+              value={product.validade_apos_preparo}
             />
           </div>
 
@@ -275,49 +275,49 @@ export function ProductDetailsWrapper({
             <KeyValue
               label="Unidade de venda"
               value={
-                product.unidadeVenda
-                  ? (SALE_UNIT_LABEL_BY_VALUE[product.unidadeVenda] ??
-                    product.unidadeVenda)
+                product.unidade_venda
+                  ? (SALE_UNIT_LABEL_BY_VALUE[product.unidade_venda] ??
+                    product.unidade_venda)
                   : "-"
               }
             />
-            {product.unidadeVendaOutro ? (
+            {product.unidade_venda_outro ? (
               <KeyValue
                 label="Unidade de venda outro"
-                value={product.unidadeVendaOutro}
+                value={product.unidade_venda_outro}
               />
             ) : null}
             <KeyValue
               label="Peso líquido / volume"
-              value={product.pesoLiquidoVolume}
+              value={product.peso_liquido_volume}
             />
-            <KeyValue label="Peso bruto" value={product.pesoBruto} />
+            <KeyValue label="Peso bruto" value={product.peso_bruto} />
             <KeyValue
               label="Qtd. unidades por caixa"
-              value={product.qtdUnidadesPorCaixa}
+              value={product.qtd_unidades_por_caixa}
             />
             <KeyValue
               label="Instruções conservação (produto)"
-              value={product.instrucoesConservacaoProduto}
+              value={product.instrucoes_conservacao_produto}
             />
             <KeyValue
               label="Restrições (produto)"
-              value={product.restricoesProduto}
+              value={product.restricoes_produto}
             />
             <KeyValue
               label="Instruções conservação (embalagem)"
-              value={product.instrucoesConservacaoEmbalagem}
+              value={product.instrucoes_conservacao_embalagem}
             />
             <KeyValue
               label="Restrições (embalagem)"
-              value={product.restricoesEmbalagem}
+              value={product.restricoes_embalagem}
             />
             <KeyValue
               label="Possui ingredientes/composição"
               value={
-                product.possuiIngredientes === null
+                product.possui_ingredientes === null
                   ? "-"
-                  : product.possuiIngredientes
+                  : product.possui_ingredientes
                     ? "Sim"
                     : "Não"
               }
@@ -327,60 +327,60 @@ export function ProductDetailsWrapper({
             <KeyValue
               label="Produto pronto para uso"
               value={
-                product.produtoProntoUso
-                  ? (READY_TO_USE_LABEL_BY_VALUE[product.produtoProntoUso] ??
-                    product.produtoProntoUso)
+                product.produto_pronto_uso
+                  ? (READY_TO_USE_LABEL_BY_VALUE[product.produto_pronto_uso] ??
+                    product.produto_pronto_uso)
                   : "-"
               }
             />
-            {product.produtoProntoUsoOutro ? (
+            {product.produto_pronto_uso_outro ? (
               <KeyValue
                 label="Produto pronto para uso outro"
-                value={product.produtoProntoUsoOutro}
+                value={product.produto_pronto_uso_outro}
               />
             ) : null}
-            <KeyValue label="Modo de preparo" value={product.modoPreparo} />
+            <KeyValue label="Modo de preparo" value={product.modo_preparo} />
             <KeyValue
               label="Observações de uso"
-              value={product.observacoesUso}
+              value={product.observacoes_uso}
             />
           </div>
         </div>
       </DetailsSection>
 
       <DetailsSection title="03. Objeções e argumentações">
-        {product.objecoesArgumentacoes.length === 0 ? (
+        {product.objecoes_argumentacoes.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Nenhuma objeção cadastrada para este produto.
           </p>
         ) : (
           <div className="space-y-4">
-            {product.objecoesArgumentacoes.map((item, index) => (
+            {product.objecoes_argumentacoes.map((item, index) => (
               <div
-                key={`${item.objecaoCliente}-${index}`}
+                key={`${item.objecao_cliente}-${index}`}
                 className="rounded-lg border p-4"
               >
                 <p className="text-sm font-medium">
-                  {index + 1}. {item.objecaoCliente}
+                  {index + 1}. {item.objecao_cliente}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Tipo:{" "}
-                  {OBJECTION_TYPE_LABEL_BY_VALUE[item.tipoObjecao] ??
-                    item.tipoObjecao}
+                  {OBJECTION_TYPE_LABEL_BY_VALUE[item.tipo_objecao] ??
+                    item.tipo_objecao}
                 </p>
-                {item.tipoObjecaoOutro ? (
+                {item.tipo_objecao_outro ? (
                   <p className="text-sm text-muted-foreground">
-                    Tipo outro: {item.tipoObjecaoOutro}
+                    Tipo outro: {item.tipo_objecao_outro}
                   </p>
                 ) : null}
                 <p className="mt-2 text-sm">
                   <span className="font-medium">Resposta sugerida:</span>{" "}
-                  {item.respostaArgumento}
+                  {item.resposta_argumento}
                 </p>
-                {item.quandoUsar ? (
+                {item.quando_usar ? (
                   <p className="text-sm">
                     <span className="font-medium">Quando usar:</span>{" "}
-                    {item.quandoUsar}
+                    {item.quando_usar}
                   </p>
                 ) : null}
               </div>
@@ -397,15 +397,15 @@ export function ProductDetailsWrapper({
               <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                 {product.media.fotos.map((item) => (
                   <a
-                    key={item.publicUrl}
-                    href={item.signedUrl ?? item.publicUrl}
+                    key={item.public_url}
+                    href={item.signed_url ?? item.public_url}
                     target="_blank"
                     rel="noreferrer"
                     className="block overflow-hidden rounded-md border"
                   >
-                    {item.signedUrl ? (
+                    {item.signed_url ? (
                       <img
-                        src={item.signedUrl}
+                        src={item.signed_url}
                         alt="Foto do produto"
                         className="h-28 w-full object-cover"
                       />
@@ -430,8 +430,8 @@ export function ProductDetailsWrapper({
               <div className="space-y-2">
                 {product.media.videos.map((item, index) => (
                   <a
-                    key={item.publicUrl}
-                    href={item.signedUrl ?? item.publicUrl}
+                    key={item.public_url}
+                    href={item.signed_url ?? item.public_url}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex text-sm text-primary underline underline-offset-2"
@@ -450,30 +450,30 @@ export function ProductDetailsWrapper({
 
         <KeyValue
           label="Observações sobre imagens e vídeos"
-          value={product.observacoesImagens}
+          value={product.observacoes_imagens}
         />
       </DetailsSection>
 
       <DetailsSection title="05. Informações adicionais">
         <KeyValue
           label="Informações técnicas complementares"
-          value={product.informacoesTecnicasComplementares}
+          value={product.informacoes_tecnicas_complementares}
         />
         <KeyValue
           label="Certificações / registros"
-          value={product.certificacoesRegistros}
+          value={product.certificacoes_registros}
         />
         <KeyValue
           label="Observações comerciais"
-          value={product.observacoesComerciais}
+          value={product.observacoes_comerciais}
         />
         <KeyValue
           label="Diferenciais do produto"
-          value={product.diferenciaisProduto}
+          value={product.diferenciais_produto}
         />
         <KeyValue
           label="Observações gerais"
-          value={product.observacoesGerais}
+          value={product.observacoes_gerais}
         />
       </DetailsSection>
     </section>
@@ -515,3 +515,4 @@ function KeyValue({ label, value }: { label: string; value: string | null }) {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -37,7 +37,7 @@ type SelectOption = {
 };
 
 type UserEditFormProps = {
-  userId: string;
+  user_id: string;
   backHref: string;
 };
 
@@ -77,8 +77,8 @@ function formatCpfInput(value: string) {
   return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
 }
 
-function getUserInitials(fullName: string) {
-  const tokens = fullName.trim().split(/\s+/).filter(Boolean);
+function getUserInitials(full_name: string) {
+  const tokens = full_name.trim().split(/\s+/).filter(Boolean);
 
   if (tokens.length === 0) {
     return "?";
@@ -91,8 +91,8 @@ function getUserInitials(fullName: string) {
   return `${tokens[0].charAt(0)}${tokens[1].charAt(0)}`.toUpperCase();
 }
 
-async function fetchUserById(userId: string): Promise<UserListItem | null> {
-  const response = await apiFetch<unknown>(`/users/${userId}`);
+async function fetchUserById(user_id: string): Promise<UserListItem | null> {
+  const response = await apiFetch<unknown>(`/users/${user_id}`);
   const parsed = userDetailsApiResponseSchema.safeParse(response);
   if (!parsed.success) {
     return null;
@@ -103,12 +103,12 @@ async function fetchUserById(userId: string): Promise<UserListItem | null> {
 
 async function fetchAllCompaniesForSelect(): Promise<SelectOption[] | null> {
   let page = 1;
-  let totalPages = 1;
+  let total_pages = 1;
   const options: SelectOption[] = [];
 
-  while (page <= totalPages) {
+  while (page <= total_pages) {
     const response = await apiFetch<unknown>(
-      `/companies?page=${page}&pageSize=${COMPANIES_PAGE_SIZE}`,
+      `/companies?page=${page}&page_size=${COMPANIES_PAGE_SIZE}`,
     );
     const parsed = companiesApiResponseSchema.safeParse(response);
     if (!parsed.success) {
@@ -122,7 +122,7 @@ async function fetchAllCompaniesForSelect(): Promise<SelectOption[] | null> {
       })),
     );
 
-    totalPages = parsed.data.meta.totalPages;
+    total_pages = parsed.data.meta.total_pages;
     page += 1;
   }
 
@@ -131,21 +131,21 @@ async function fetchAllCompaniesForSelect(): Promise<SelectOption[] | null> {
 
 async function fetchUserOptionsByRole(input: {
   role: UserRole;
-  companyId?: string;
+  company_id?: string;
 }): Promise<SelectOption[] | null> {
   let page = 1;
-  let totalPages = 1;
+  let total_pages = 1;
   const options: SelectOption[] = [];
 
-  while (page <= totalPages) {
+  while (page <= total_pages) {
     const params = new URLSearchParams();
     params.set("role", input.role);
-    params.set("isActive", "true");
+    params.set("is_active", "true");
     params.set("page", String(page));
-    params.set("pageSize", String(USERS_OPTIONS_PAGE_SIZE));
+    params.set("page_size", String(USERS_OPTIONS_PAGE_SIZE));
 
-    if (input.companyId) {
-      params.set("companyId", input.companyId);
+    if (input.company_id) {
+      params.set("company_id", input.company_id);
     }
 
     const response = await apiFetch<unknown>(`/users?${params.toString()}`);
@@ -157,18 +157,18 @@ async function fetchUserOptionsByRole(input: {
     options.push(
       ...parsed.data.data.map((user: UserListItem) => ({
         id: user.id,
-        label: user.fullName,
+        label: user.full_name,
       })),
     );
 
-    totalPages = parsed.data.meta.totalPages;
+    total_pages = parsed.data.meta.total_pages;
     page += 1;
   }
 
   return options;
 }
 
-export function UserEditForm({ userId, backHref }: UserEditFormProps) {
+export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
   const router = useRouter();
   const authUser = useAuthUser();
   const authHydrated = useAuthHydrated();
@@ -182,7 +182,7 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
   const [userData, setUserData] = React.useState<UserListItem | null>(null);
   const [isLoadingUser, setIsLoadingUser] = React.useState(true);
   const [loadError, setLoadError] = React.useState<string | null>(null);
-  const [companyOptions, setCompanyOptions] = React.useState<SelectOption[]>(
+  const [company_options, setCompanyOptions] = React.useState<SelectOption[]>(
     [],
   );
   const [managerOptions, setManagerOptions] = React.useState<SelectOption[]>(
@@ -206,20 +206,20 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
   } = useForm<UpdateUserFormInput>({
     resolver: zodResolver(updateUserFormSchema),
     defaultValues: {
-      fullName: "",
+      full_name: "",
       cpf: "",
       email: "",
       phone: "",
       role: "VENDEDOR",
-      companyId: "",
+      company_id: "",
       password: "",
-      managerId: "",
-      supervisorId: "",
+      manager_id: "",
+      supervisor_id: "",
     },
   });
 
   const selectedRole = watch("role");
-  const selectedCompanyId = watch("companyId");
+  const selectedCompanyId = watch("company_id");
   const actorRole = authUser?.role ?? null;
   const isAdminActor = actorRole === "ADMIN";
   const isDirectorActor = actorRole === "DIRETOR";
@@ -253,14 +253,14 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
 
     const load = async () => {
       try {
-        const loadedUser = await fetchUserById(userId);
+        const loadedUser = await fetchUserById(user_id);
         if (currentRequestId !== userRequestIdRef.current) {
           return;
         }
 
         if (!loadedUser) {
           setUserData(null);
-          setLoadError("Não foi possível carregar os dados do usuário.");
+          setLoadError("N�o foi poss�vel carregar os dados do usu�rio.");
           return;
         }
 
@@ -280,7 +280,7 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
     };
 
     void load();
-  }, [authHydrated, userId]);
+  }, [authHydrated, user_id]);
 
   React.useEffect(() => {
     if (!authHydrated || !authUser || !userData || formInitializedRef.current) {
@@ -288,28 +288,28 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
     }
 
     reset({
-      fullName: userData.fullName,
+      full_name: userData.full_name,
       cpf: formatCpfInput(userData.cpf),
       email: userData.email ?? "",
       phone: formatPhoneInput(userData.phone),
       role: userData.role,
-      companyId: userData.companyId ?? "",
+      company_id: userData.company_id ?? "",
       password: "",
-      managerId: userData.managerId ?? "",
-      supervisorId: userData.supervisorId ?? "",
+      manager_id: userData.manager_id ?? "",
+      supervisor_id: userData.supervisor_id ?? "",
     });
 
-    previousCompanyIdRef.current = userData.companyId ?? "";
+    previousCompanyIdRef.current = userData.company_id ?? "";
     formInitializedRef.current = true;
   }, [authHydrated, authUser, reset, userData]);
 
   React.useEffect(() => {
     if (selectedRole !== "SUPERVISOR") {
-      setValue("managerId", "");
+      setValue("manager_id", "");
     }
 
     if (selectedRole !== "VENDEDOR") {
-      setValue("supervisorId", "");
+      setValue("supervisor_id", "");
     }
 
     if (selectedRole !== "ADMIN") {
@@ -317,7 +317,7 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
     }
 
     if (isAdminActor && !shouldShowCompanyField) {
-      setValue("companyId", "");
+      setValue("company_id", "");
     }
   }, [isAdminActor, selectedRole, setValue, shouldShowCompanyField]);
 
@@ -330,8 +330,8 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
     const previousCompanyId = previousCompanyIdRef.current;
 
     if (previousCompanyId !== null && previousCompanyId !== nextCompanyId) {
-      setValue("managerId", "");
-      setValue("supervisorId", "");
+      setValue("manager_id", "");
+      setValue("supervisor_id", "");
     }
 
     previousCompanyIdRef.current = nextCompanyId;
@@ -353,7 +353,7 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
         }
 
         if (!options) {
-          toast.error("Não foi possível carregar empresas.");
+          toast.error("N�o foi poss�vel carregar empresas.");
           setCompanyOptions([]);
           return;
         }
@@ -389,14 +389,14 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
       try {
         const options = await fetchUserOptionsByRole({
           role: "GERENTE_COMERCIAL",
-          companyId: selectedCompanyId,
+          company_id: selectedCompanyId,
         });
         if (currentRequestId !== managersRequestIdRef.current) {
           return;
         }
 
         if (!options) {
-          toast.error("Não foi possível carregar gerentes da empresa.");
+          toast.error("N�o foi poss�vel carregar gerentes da empresa.");
           setManagerOptions([]);
           return;
         }
@@ -433,7 +433,7 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
         const options = await fetchUserOptionsByRole({
           role: "SUPERVISOR",
           ...((isAdminActor || isDirectorActor) && selectedCompanyId
-            ? { companyId: selectedCompanyId }
+            ? { company_id: selectedCompanyId }
             : {}),
         });
         if (currentRequestId !== supervisorsRequestIdRef.current) {
@@ -441,7 +441,7 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
         }
 
         if (!options) {
-          toast.error("Não foi possível carregar supervisores.");
+          toast.error("N�o foi poss�vel carregar supervisores.");
           setSupervisorOptions([]);
           return;
         }
@@ -472,47 +472,47 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
 
   const onSubmit = async (input: UpdateUserFormInput) => {
     if (!authUser || !userData) {
-      toast.error("Não foi possível carregar o contexto para edição.");
+      toast.error("N�o foi poss�vel carregar o contexto para edi��o.");
       return;
     }
 
-    const companyId = input.companyId?.trim() ?? "";
-    const managerId = input.managerId?.trim() ?? "";
-    const supervisorId = input.supervisorId?.trim() ?? "";
+    const company_id = input.company_id?.trim() ?? "";
+    const manager_id = input.manager_id?.trim() ?? "";
+    const supervisor_id = input.supervisor_id?.trim() ?? "";
     const password = input.password?.trim() ?? "";
 
-    if (shouldShowCompanyField && !companyId) {
-      setError("companyId", {
+    if (shouldShowCompanyField && !company_id) {
+      setError("company_id", {
         type: "manual",
-        message: "Empresa obrigatória para este cargo.",
+        message: "Empresa obrigat�ria para este cargo.",
       });
       return;
     }
 
-    if (shouldShowManagerField && !managerId) {
-      setError("managerId", {
+    if (shouldShowManagerField && !manager_id) {
+      setError("manager_id", {
         type: "manual",
-        message: "Selecione um gerente responsável.",
+        message: "Selecione um gerente respons�vel.",
       });
       return;
     }
 
-    if (shouldShowSupervisorField && !supervisorId) {
-      setError("supervisorId", {
+    if (shouldShowSupervisorField && !supervisor_id) {
+      setError("supervisor_id", {
         type: "manual",
-        message: "Selecione um supervisor responsável.",
+        message: "Selecione um supervisor respons�vel.",
       });
       return;
     }
 
     if (
       selectedRole === "ADMIN" &&
-      userData.passwordStatus !== "SET" &&
+      userData.password_status !== "SET" &&
       !password
     ) {
       setError("password", {
         type: "manual",
-        message: "Senha obrigatória ao promover para admin.",
+        message: "Senha obrigat�ria ao promover para admin.",
       });
       return;
     }
@@ -520,7 +520,7 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
     try {
       const payload: Record<string, string | null> = {
         role: input.role,
-        fullName: input.fullName.trim(),
+        full_name: input.full_name.trim(),
         cpf: input.cpf.replace(/\D/g, ""),
         phone: input.phone.replace(/\D/g, ""),
       };
@@ -535,20 +535,20 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
       }
 
       if (selectedRole !== "ADMIN" && isAdminActor) {
-        payload.companyId = companyId;
+        payload.company_id = company_id;
       }
 
       if (selectedRole === "SUPERVISOR") {
         if (isAdminActor || isDirectorActor) {
-          payload.managerId = managerId;
+          payload.manager_id = manager_id;
         }
       }
 
       if (selectedRole === "VENDEDOR") {
         if (isAdminActor || isDirectorActor) {
-          payload.supervisorId = supervisorId;
+          payload.supervisor_id = supervisor_id;
         } else if (isManagerActor) {
-          payload.supervisorId = supervisorId;
+          payload.supervisor_id = supervisor_id;
         }
       }
 
@@ -559,11 +559,11 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
 
       const parsed = userDetailsApiResponseSchema.safeParse(response);
       if (!parsed.success) {
-        toast.error("Resposta inesperada ao atualizar usuário.");
+        toast.error("Resposta inesperada ao atualizar usu�rio.");
         return;
       }
 
-      toast.success("Usuário atualizado com sucesso!");
+      toast.success("Usu�rio atualizado com sucesso!");
       router.push(backHref);
     } catch (error) {
       toast.error(parseApiError(error));
@@ -588,7 +588,7 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
   if (!authUser || !userData) {
     return (
       <div className="rounded-xl border p-6 text-sm text-destructive">
-        {loadError ?? "Não foi possível carregar dados do usuário."}
+        {loadError ?? "N�o foi poss�vel carregar dados do usu�rio."}
       </div>
     );
   }
@@ -601,20 +601,20 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
       <FieldGroup className="gap-4">
         <div className="flex items-center gap-4">
           <div className="flex size-12 items-center justify-center rounded-full bg-muted text-base font-semibold">
-            {getUserInitials(watch("fullName") || userData.fullName)}
+            {getUserInitials(watch("full_name") || userData.full_name)}
           </div>
           <div className="flex flex-col gap-1">
             <h4 className="text-2xl font-semibold">
-              {watch("fullName") || userData.fullName}
+              {watch("full_name") || userData.full_name}
             </h4>
             <span
               className={
-                userData.isActive
+                userData.is_active
                   ? "inline-flex w-fit rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700"
                   : "inline-flex w-fit rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700"
               }
             >
-              {userData.isActive ? "Ativo" : "Inativo"}
+              {userData.is_active ? "Ativo" : "Inativo"}
             </span>
           </div>
         </div>
@@ -626,12 +626,12 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
           <Input
             id="edit-user-full-name"
             placeholder="Nome e sobrenome"
-            {...register("fullName")}
+            {...register("full_name")}
             disabled={isSubmitting}
           />
-          {errors.fullName ? (
+          {errors.full_name ? (
             <p className="text-sm text-destructive">
-              {errors.fullName.message}
+              {errors.full_name.message}
             </p>
           ) : null}
         </Field>
@@ -723,19 +723,19 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
               id="edit-user-company"
               className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
               value={selectedCompanyId ?? ""}
-              onChange={(event) => setValue("companyId", event.target.value)}
+              onChange={(event) => setValue("company_id", event.target.value)}
               disabled={isSubmitting || isLoadingCompanies}
             >
               <option value="">Selecione a empresa</option>
-              {companyOptions.map((companyOption) => (
+              {company_options.map((companyOption) => (
                 <option key={companyOption.id} value={companyOption.id}>
                   {companyOption.label}
                 </option>
               ))}
             </select>
-            {errors.companyId ? (
+            {errors.company_id ? (
               <p className="text-sm text-destructive">
-                {errors.companyId.message}
+                {errors.company_id.message}
               </p>
             ) : null}
           </Field>
@@ -744,13 +744,13 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
         {shouldShowManagerField ? (
           <Field className="gap-2">
             <FieldLabel htmlFor="edit-user-manager" className="font-semibold">
-              Gerente responsável
+              Gerente respons�vel
             </FieldLabel>
             <select
               id="edit-user-manager"
               className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-              value={watch("managerId") ?? ""}
-              onChange={(event) => setValue("managerId", event.target.value)}
+              value={watch("manager_id") ?? ""}
+              onChange={(event) => setValue("manager_id", event.target.value)}
               disabled={isSubmitting || isLoadingManagers}
             >
               <option value="">Selecione o gerente</option>
@@ -760,9 +760,9 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
                 </option>
               ))}
             </select>
-            {errors.managerId ? (
+            {errors.manager_id ? (
               <p className="text-sm text-destructive">
-                {errors.managerId.message}
+                {errors.manager_id.message}
               </p>
             ) : null}
           </Field>
@@ -774,13 +774,13 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
               htmlFor="edit-user-supervisor"
               className="font-semibold"
             >
-              Supervisor responsável
+              Supervisor respons�vel
             </FieldLabel>
             <select
               id="edit-user-supervisor"
               className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-              value={watch("supervisorId") ?? ""}
-              onChange={(event) => setValue("supervisorId", event.target.value)}
+              value={watch("supervisor_id") ?? ""}
+              onChange={(event) => setValue("supervisor_id", event.target.value)}
               disabled={isSubmitting || isLoadingSupervisors}
             >
               <option value="">Selecione o supervisor</option>
@@ -790,9 +790,9 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
                 </option>
               ))}
             </select>
-            {errors.supervisorId ? (
+            {errors.supervisor_id ? (
               <p className="text-sm text-destructive">
-                {errors.supervisorId.message}
+                {errors.supervisor_id.message}
               </p>
             ) : null}
           </Field>
@@ -826,7 +826,7 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
                 Salvando
               </span>
             ) : (
-              <>Salvar alterações</>
+              <>Salvar altera��es</>
             )}
           </Button>
         </div>
@@ -834,3 +834,4 @@ export function UserEditForm({ userId, backHref }: UserEditFormProps) {
     </form>
   );
 }
+

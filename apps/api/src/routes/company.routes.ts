@@ -17,10 +17,12 @@ router.use(authenticate);
 router.use(authorize(UserRole.ADMIN));
 
 router.get('/', listCompaniesHandler);
-router.get('/:companyId', getCompanyByIdHandler);
+router.get('/:company_id', getCompanyByIdHandler);
 router.post('/', createCompanyHandler);
-router.patch('/:companyId', updateCompanyHandler);
-router.delete('/:companyId', deleteCompanyHandler);
-router.post('/:companyId/users', createCompanyUserHandler);
+router.patch('/:company_id', updateCompanyHandler);
+router.delete('/:company_id', deleteCompanyHandler);
+router.post('/:company_id/users', createCompanyUserHandler);
 
 export default router;
+
+

@@ -8,7 +8,7 @@ import { Button } from "./button";
 
 type PaginationControlsProps = {
   pageIndex: number;
-  totalPages: number;
+  total_pages: number;
   isLoading?: boolean;
   onPageChange: (pageIndex: number) => void;
   previousLabel?: string;
@@ -17,15 +17,15 @@ type PaginationControlsProps = {
 
 export function PaginationControls({
   pageIndex,
-  totalPages,
+  total_pages,
   isLoading = false,
   onPageChange,
   previousLabel = "Pagina anterior",
   nextLabel = "Proxima pagina",
 }: PaginationControlsProps) {
   const canGoBack = pageIndex > 0;
-  const canGoForward = pageIndex + 1 < totalPages;
-  const pages = buildPageList(pageIndex, totalPages);
+  const canGoForward = pageIndex + 1 < total_pages;
+  const pages = buildPageList(pageIndex, total_pages);
 
   return (
     <div className="flex items-center justify-center">
@@ -73,3 +73,4 @@ export function PaginationControls({
     </div>
   );
 }
+

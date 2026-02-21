@@ -8,10 +8,10 @@ export const metadata = createPageMetadata("Editar Usuário");
 
 type DashboardUserEditPageProps = {
   params: Promise<{
-    userId: string;
+    user_id: string;
   }>;
   searchParams: Promise<{
-    companyId?: string;
+    company_id?: string;
   }>;
 };
 
@@ -19,10 +19,10 @@ export default async function DashboardUserEditPage({
   params,
   searchParams,
 }: DashboardUserEditPageProps) {
-  const { userId } = await params;
-  const { companyId } = await searchParams;
-  const backHref = companyId
-    ? `/dashboard/companies/${companyId}`
+  const { user_id } = await params;
+  const { company_id } = await searchParams;
+  const backHref = company_id
+    ? `/dashboard/companies/${company_id}`
     : "/dashboard/users";
 
   return (
@@ -46,7 +46,7 @@ export default async function DashboardUserEditPage({
 
       <h3 className="text-2xl font-semibold">Editar usuário</h3>
 
-      <UserEditForm userId={userId} backHref={backHref} />
+      <UserEditForm user_id={user_id} backHref={backHref} />
     </div>
   );
 }

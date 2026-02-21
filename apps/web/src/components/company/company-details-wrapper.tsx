@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { Plus } from "lucide-react";
@@ -29,11 +29,11 @@ import { CompanyUsersFilterForm } from "./company-users-filter-form";
 import { CompanyUsersTable } from "./company-users-table";
 
 type CompanyDetailsWrapperProps = {
-  companyId: string;
+  company_id: string;
 };
 
 export function CompanyDetailsWrapper({
-  companyId,
+  company_id,
 }: CompanyDetailsWrapperProps) {
   const router = useRouter();
   const authUser = useAuthUser();
@@ -51,7 +51,7 @@ export function CompanyDetailsWrapper({
     createEmptyPaginationMeta<CompanyListMeta>(),
   );
   const [pageIndex, setPageIndex] = React.useState(0);
-  const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
+  const [page_size, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
   const [actionUserId, setActionUserId] = React.useState<string | null>(null);
   const usersRequestIdRef = React.useRef(0);
 
@@ -60,12 +60,12 @@ export function CompanyDetailsWrapper({
     setCompanyLoadError(null);
 
     try {
-      const response = await apiFetch<unknown>(`/companies/${companyId}`);
+      const response = await apiFetch<unknown>(`/companies/${company_id}`);
       const parsed = companyDetailsApiResponseSchema.safeParse(response);
 
       if (!parsed.success) {
         setCompany(null);
-        setCompanyLoadError("Não foi possível carregar os dados da empresa.");
+        setCompanyLoadError("N�o foi poss�vel carregar os dados da empresa.");
         return;
       }
 
@@ -76,13 +76,13 @@ export function CompanyDetailsWrapper({
     } finally {
       setIsCompanyLoading(false);
     }
-  }, [companyId]);
+  }, [company_id]);
 
   const loadUsers = React.useCallback(async () => {
     const params = new URLSearchParams();
-    params.set("companyId", companyId);
+    params.set("company_id", company_id);
     params.set("page", String(pageIndex + 1));
-    params.set("pageSize", String(pageSize));
+    params.set("page_size", String(page_size));
 
     if (query.trim().length > 0) {
       params.set("q", query.trim());
@@ -99,9 +99,9 @@ export function CompanyDetailsWrapper({
 
       const parsed = companyUsersApiResponseSchema.safeParse(response);
       if (!parsed.success) {
-        toast.error("Resposta inesperada ao carregar Usuários da empresa.");
+        toast.error("Resposta inesperada ao carregar Usu�rios da empresa.");
         setUsers([]);
-        setMeta(createEmptyPaginationMeta<CompanyListMeta>(pageSize));
+        setMeta(createEmptyPaginationMeta<CompanyListMeta>(page_size));
         return;
       }
 
@@ -119,13 +119,13 @@ export function CompanyDetailsWrapper({
 
       toast.error(parseApiError(error));
       setUsers([]);
-      setMeta(createEmptyPaginationMeta<CompanyListMeta>(pageSize));
+      setMeta(createEmptyPaginationMeta<CompanyListMeta>(page_size));
     } finally {
       if (currentRequestId === usersRequestIdRef.current) {
         setIsUsersLoading(false);
       }
     }
-  }, [companyId, pageIndex, pageSize, query]);
+  }, [company_id, pageIndex, page_size, query]);
 
   React.useEffect(() => {
     void loadCompany();
@@ -153,30 +153,30 @@ export function CompanyDetailsWrapper({
   }, []);
 
   const handleEditCompany = React.useCallback(() => {
-    router.push(`/dashboard/companies/${companyId}/edit`);
-  }, [companyId, router]);
+    router.push(`/dashboard/companies/${company_id}/edit`);
+  }, [company_id, router]);
 
   const handleAddUser = React.useCallback(() => {
-    router.push(`/dashboard/users/new?companyId=${companyId}`);
-  }, [companyId, router]);
+    router.push(`/dashboard/users/new?company_id=${company_id}`);
+  }, [company_id, router]);
 
   const handleEditUser = React.useCallback(
     (user: CompanyUserItem) => {
-      router.push(`/dashboard/users/${user.id}/edit?companyId=${companyId}`);
+      router.push(`/dashboard/users/${user.id}/edit?company_id=${company_id}`);
     },
-    [companyId, router],
+    [company_id, router],
   );
 
   const canResendActivationForUser = React.useCallback(
     (user: CompanyUserItem) =>
       canResendActivationInvite(authUser, {
         role: user.role,
-        companyId: user.companyId,
-        managerId: user.managerId,
+        company_id: user.company_id,
+        manager_id: user.manager_id,
         email: user.email,
-        isActive: user.isActive,
-        deletedAt: user.deletedAt,
-        passwordStatus: user.passwordStatus,
+        is_active: user.is_active,
+        deleted_at: user.deleted_at,
+        password_status: user.password_status,
       }),
     [authUser],
   );
@@ -184,12 +184,12 @@ export function CompanyDetailsWrapper({
   const handleResendActivation = React.useCallback(
     async (user: CompanyUserItem) => {
       if (!canResendActivationForUser(user)) {
-        toast.error("Usuário sem permissão ou inelegível para reenvio de ativação.");
+        toast.error("Usu�rio sem permiss�o ou ineleg�vel para reenvio de ativa��o.");
         return;
       }
 
       const confirmed = window.confirm(
-        `Confirma reenviar o link de ativação para "${user.fullName}"?`,
+        `Confirma reenviar o link de ativa��o para "${user.full_name}"?`,
       );
       if (!confirmed) {
         return;
@@ -201,11 +201,11 @@ export function CompanyDetailsWrapper({
         await apiFetch<unknown>("/auth/resend-activation", {
           method: "POST",
           body: {
-            userId: user.id,
+            user_id: user.id,
           },
         });
 
-        toast.success("Link de ativação reenviado com sucesso.");
+        toast.success("Link de ativa��o reenviado com sucesso.");
       } catch (error) {
         toast.error(parseApiError(error));
       } finally {
@@ -219,13 +219,13 @@ export function CompanyDetailsWrapper({
 
   const handleDeleteUser = React.useCallback(
     async (user: CompanyUserItem) => {
-      if (user.deletedAt) {
-        toast.error("Usuário já está excluído.");
+      if (user.deleted_at) {
+        toast.error("Usu�rio j� est� exclu�do.");
         return;
       }
 
       const confirmed = window.confirm(
-        `Confirma a exclusão do usuário "${user.fullName}"? Esta ação é irreversível.`,
+        `Confirma a exclus�o do usu�rio "${user.full_name}"? Esta a��o � irrevers�vel.`,
       );
 
       if (!confirmed) {
@@ -237,7 +237,7 @@ export function CompanyDetailsWrapper({
       try {
         const deleted = await tryApiDelete(
           `/users/${user.id}`,
-          "Usuário excluído com sucesso.",
+          "Usu�rio exclu�do com sucesso.",
         );
         if (!deleted) {
           return;
@@ -260,13 +260,13 @@ export function CompanyDetailsWrapper({
 
   const handleReactivateUser = React.useCallback(
     async (user: CompanyUserItem) => {
-      if (user.isActive) {
-        toast.error("Usuário já está ativo.");
+      if (user.is_active) {
+        toast.error("Usu�rio j� est� ativo.");
         return;
       }
 
       const confirmed = window.confirm(
-        `Confirma reativar o usuário "${user.fullName}"?`,
+        `Confirma reativar o usu�rio "${user.full_name}"?`,
       );
       if (!confirmed) {
         return;
@@ -278,17 +278,17 @@ export function CompanyDetailsWrapper({
         const response = await apiFetch<unknown>(`/users/${user.id}`, {
           method: "PATCH",
           body: {
-            isActive: true,
+            is_active: true,
           },
         });
 
         const parsed = userDetailsApiResponseSchema.safeParse(response);
         if (!parsed.success) {
-          toast.error("Resposta inesperada ao reativar usuário.");
+          toast.error("Resposta inesperada ao reativar usu�rio.");
           return;
         }
 
-        toast.success("Usuário reativado com sucesso.");
+        toast.success("Usu�rio reativado com sucesso.");
         void loadUsers();
       } catch (error) {
         toast.error(parseApiError(error));
@@ -312,7 +312,7 @@ export function CompanyDetailsWrapper({
   if (!company) {
     return (
       <div className="rounded-xl border p-6 text-sm text-destructive">
-        {companyLoadError ?? "Não foi possível carregar a empresa."}
+        {companyLoadError ?? "N�o foi poss�vel carregar a empresa."}
       </div>
     );
   }
@@ -323,20 +323,20 @@ export function CompanyDetailsWrapper({
 
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-2xl font-semibold">Usuários da empresa</h3>
+          <h3 className="text-2xl font-semibold">Usu�rios da empresa</h3>
           <Button
             type="button"
             className="bg-emerald-600 text-white hover:bg-emerald-700 lg:hidden"
             onClick={handleAddUser}
           >
-            Adicionar usuário
+            Adicionar usu�rio
             <Plus className="size-4" />
           </Button>
         </div>
 
         <CompanyUsersFilterForm
           searchValue={searchDraft}
-          pageSize={pageSize}
+          page_size={page_size}
           isLoading={isUsersLoading}
           onSearchValueChange={setSearchDraft}
           onPageSizeChange={handlePageSizeChange}
@@ -349,8 +349,8 @@ export function CompanyDetailsWrapper({
           isLoading={isUsersLoading}
           actionUserId={actionUserId}
           pageIndex={pageIndex}
-          pageSize={pageSize}
-          totalPages={meta.totalPages}
+          page_size={page_size}
+          total_pages={meta.total_pages}
           onPageChange={setPageIndex}
           onEditUser={handleEditUser}
           canResendActivationForUser={canResendActivationForUser}
@@ -362,4 +362,5 @@ export function CompanyDetailsWrapper({
     </section>
   );
 }
+
 

@@ -55,3 +55,4 @@ export const useAuthStore = create<AuthStoreState>((set) => ({
 export function clearAuthStore() {
   useAuthStore.getState().clear();
 }
+

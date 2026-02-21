@@ -32,7 +32,7 @@ export function AppSidebarClient({ user, ...props }: AppSidebarClientProps) {
       <SidebarFooter>
         <NavUser
           user={{
-            name: user.fullName,
+            name: user.full_name,
             email: user.email ?? "",
             role: user.role,
           }}
@@ -42,3 +42,4 @@ export function AppSidebarClient({ user, ...props }: AppSidebarClientProps) {
     </Sidebar>
   );
 }
+

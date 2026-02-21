@@ -5,7 +5,7 @@ export type JwtTokenType = 'access' | 'refresh';
 export type BaseTokenPayload = {
   sub: string;
   role: UserRole;
-  companyId: string | null;
+  company_id: string | null;
 };
 
 export type AccessTokenPayload = BaseTokenPayload & {
@@ -16,3 +16,5 @@ export type RefreshTokenPayload = BaseTokenPayload & {
   type: 'refresh';
   sid: string;
 };
+
+

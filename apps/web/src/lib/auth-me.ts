@@ -49,9 +49,10 @@ export async function fetchMeUser() {
 export function toAuthUser(user: MeUser): AuthUser {
   return {
     id: user.id,
-    companyId: user.companyId,
+    company_id: user.company_id,
     role: user.role,
-    fullName: user.fullName,
+    full_name: user.full_name,
     email: user.email,
   };
 }
+

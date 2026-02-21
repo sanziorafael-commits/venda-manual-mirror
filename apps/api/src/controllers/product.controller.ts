@@ -29,9 +29,9 @@ export async function listProductsHandler(req: Request, res: Response) {
 
 export async function getProductByIdHandler(req: Request, res: Response) {
   const authUser = getAuthUserOrThrow(req);
-  const { productId } = productParamSchema.parse(req.params);
+  const { product_id } = productParamSchema.parse(req.params);
   const query = productReadScopeQuerySchema.parse(req.query);
-  const data = await getProductById(authUser, productId, query.companyId);
+  const data = await getProductById(authUser, product_id, query.company_id);
 
   res.status(200).json({ data });
 }
@@ -46,17 +46,17 @@ export async function createProductHandler(req: Request, res: Response) {
 
 export async function updateProductHandler(req: Request, res: Response) {
   const authUser = getAuthUserOrThrow(req);
-  const { productId } = productParamSchema.parse(req.params);
+  const { product_id } = productParamSchema.parse(req.params);
   const payload = updateProductSchema.parse(req.body);
-  const data = await updateProduct(authUser, productId, payload);
+  const data = await updateProduct(authUser, product_id, payload);
 
   res.status(200).json({ data });
 }
 
 export async function deleteProductHandler(req: Request, res: Response) {
   const authUser = getAuthUserOrThrow(req);
-  const { productId } = productParamSchema.parse(req.params);
-  await deleteProduct(authUser, productId);
+  const { product_id } = productParamSchema.parse(req.params);
+  await deleteProduct(authUser, product_id);
 
   res.status(200).json({
     data: {
@@ -64,3 +64,5 @@ export async function deleteProductHandler(req: Request, res: Response) {
     },
   });
 }
+
+

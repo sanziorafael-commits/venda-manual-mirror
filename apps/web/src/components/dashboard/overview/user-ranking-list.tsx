@@ -25,7 +25,7 @@ export function OverviewUserRankingList({
         const first = index === 0 && !compact;
         return (
           <li
-            key={`${item.userName}-${index}`}
+            key={`${item.user_name}-${index}`}
             className="flex items-center justify-between gap-3"
           >
             <div className="flex min-w-0 items-center gap-2">
@@ -44,7 +44,7 @@ export function OverviewUserRankingList({
                       : "text-muted-foreground text-[1.05rem] font-medium",
                 )}
               >
-                {item.userName}
+                {item.user_name}
               </p>
               {first && <Trophy className="size-4 shrink-0 text-[#1c826e]" />}
             </div>
@@ -67,3 +67,4 @@ export function OverviewUserRankingList({
     </ul>
   );
 }
+

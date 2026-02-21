@@ -48,3 +48,4 @@ export function AuthStoreHydrator({ initialUser }: AuthStoreHydratorProps) {
 
   return null;
 }
+

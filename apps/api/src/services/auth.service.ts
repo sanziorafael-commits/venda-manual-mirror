@@ -22,6 +22,7 @@ import { normalizeCpf, normalizeEmail, normalizePhone } from '../utils/normalize
 import { hashPassword, verifyPassword } from '../utils/password.js';
 import { ttlToDate } from '../utils/time.js';
 import { isInvitableRole } from '../utils/user-role-policy.js';
+import { createUuidV7 } from '../utils/uuid.js';
 
 import {
   activateAccountWithToken,
@@ -35,14 +36,14 @@ export async function login(input: LoginInput) {
   const user = await prisma.user.findFirst({
     where: {
       email,
-      isActive: true,
-      deletedAt: null,
+      is_active: true,
+      deleted_at: null,
       OR: [
         { role: UserRole.ADMIN },
         {
           company: {
             is: {
-              deletedAt: null,
+              deleted_at: null,
             },
           },
         },
@@ -105,7 +106,7 @@ export async function bootstrapAdmin(input: BootstrapAdminInput) {
   const adminsCount = await prisma.user.count({
     where: {
       role: UserRole.ADMIN,
-      deletedAt: null,
+      deleted_at: null,
     },
   });
 
@@ -115,13 +116,14 @@ export async function bootstrapAdmin(input: BootstrapAdminInput) {
 
   const user = await prisma.user.create({
     data: {
+      id: createUuidV7(),
       role: UserRole.ADMIN,
-      fullName: input.fullName.trim(),
+      full_name: input.full_name.trim(),
       cpf: normalizeCpf(input.cpf),
       email: normalizeEmail(input.email),
       phone: normalizePhone(input.phone),
       passwordHash: await hashPassword(input.password),
-      isActive: true,
+      is_active: true,
     },
   });
 
@@ -133,8 +135,8 @@ export async function bootstrapAdmin(input: BootstrapAdminInput) {
   };
 }
 
-export async function refreshSession(refreshToken: string, input: SessionInput) {
-  const payload = verifyToken(refreshToken);
+export async function refreshSession(refresh_token: string, input: SessionInput) {
+  const payload = verifyToken(refresh_token);
 
   if (payload.type !== 'refresh' || typeof payload.sid !== 'string') {
     throw unauthorized('Refresh token inválido');
@@ -149,24 +151,24 @@ export async function refreshSession(refreshToken: string, input: SessionInput) 
     throw unauthorized('Sessão expirada');
   }
 
-  const tokenHash = sha256(refreshToken);
+  const tokenHash = sha256(refresh_token);
   if (session.refreshTokenHash !== tokenHash) {
     throw unauthorized('Refresh token inválido');
   }
 
-  if (!session.user.isActive || !session.user.passwordHash) {
+  if (!session.user.is_active || !session.user.passwordHash) {
     throw unauthorized('Conta inativa');
   }
 
-  if (session.user.deletedAt) {
+  if (session.user.deleted_at) {
     throw unauthorized('Conta inativa');
   }
 
-  if (session.user.role !== UserRole.ADMIN && session.user.companyId) {
+  if (session.user.role !== UserRole.ADMIN && session.user.company_id) {
     const company = await prisma.company.findFirst({
       where: {
-        id: session.user.companyId,
-        deletedAt: null,
+        id: session.user.company_id,
+        deleted_at: null,
       },
       select: { id: true },
     });
@@ -183,7 +185,7 @@ export async function refreshSession(refreshToken: string, input: SessionInput) 
   const nextRefreshToken = signRefreshToken({
     sub: session.user.id,
     role: session.user.role,
-    companyId: session.user.companyId,
+    company_id: session.user.company_id,
     sid: session.id,
   });
 
@@ -201,19 +203,19 @@ export async function refreshSession(refreshToken: string, input: SessionInput) 
   return {
     user: mapPublicUser(session.user),
     tokens: {
-      accessToken: signAccessToken({
+      access_token: signAccessToken({
         sub: session.user.id,
         role: session.user.role,
-        companyId: session.user.companyId,
+        company_id: session.user.company_id,
       }),
-      refreshToken: nextRefreshToken,
-      expiresIn: env.JWT_ACCESS_TOKEN_TTL,
+      refresh_token: nextRefreshToken,
+      expires_in: env.JWT_ACCESS_TOKEN_TTL,
     } satisfies TokenResponse,
   };
 }
 
-export async function logout(refreshToken: string) {
-  const payload = verifyToken(refreshToken);
+export async function logout(refresh_token: string) {
+  const payload = verifyToken(refresh_token);
 
   if (payload.type !== 'refresh' || typeof payload.sid !== 'string') {
     throw unauthorized('Refresh token inválido');
@@ -236,7 +238,7 @@ export async function logout(refreshToken: string) {
 }
 
 export async function resendActivation(actor: AuthActor, input: ResendActivationInput) {
-  return resendActivationInvite(actor, input.userId);
+  return resendActivationInvite(actor, input.user_id);
 }
 
 export async function forgotPassword(input: ForgotPasswordInput) {
@@ -250,11 +252,11 @@ export async function resetPassword(input: ResetPasswordInput) {
   return { ok: true };
 }
 
-export async function getMe(userId: string) {
+export async function getMe(user_id: string) {
   const user = await prisma.user.findFirst({
     where: {
-      id: userId,
-      deletedAt: null,
+      id: user_id,
+      deleted_at: null,
     },
   });
 
@@ -266,13 +268,13 @@ export async function getMe(userId: string) {
 }
 
 export async function updateMe(
-  userId: string,
+  user_id: string,
   input: UpdateMeInput,
 ) {
   const user = await prisma.user.findFirst({
     where: {
-      id: userId,
-      deletedAt: null,
+      id: user_id,
+      deleted_at: null,
     },
   });
 
@@ -284,16 +286,16 @@ export async function updateMe(
     throw forbidden('Este cargo não possui acesso ao dashboard');
   }
 
-  if (input.newPassword && input.newPassword.length < 6) {
+  if (input.new_password && input.new_password.length < 6) {
     throw badRequest('A senha deve ter no mínimo 6 caracteres');
   }
 
-  const passwordHash = input.newPassword ? await hashPassword(input.newPassword) : undefined;
+  const passwordHash = input.new_password ? await hashPassword(input.new_password) : undefined;
 
   const updated = await prisma.user.update({
-    where: { id: userId },
+    where: { id: user_id },
     data: {
-      fullName: input.fullName,
+      full_name: input.full_name,
       email: input.email ? normalizeEmail(input.email) : undefined,
       passwordHash,
     },
@@ -305,7 +307,8 @@ export async function updateMe(
 async function issueTokensForUser(user: User, input: SessionInput) {
   const session = await prisma.session.create({
     data: {
-      userId: user.id,
+      id: createUuidV7(),
+      user_id: user.id,
       refreshTokenHash: `pending-${user.id}-${Date.now()}`,
       userAgent: input.userAgent,
       ipAddress: input.ipAddress,
@@ -313,41 +316,43 @@ async function issueTokensForUser(user: User, input: SessionInput) {
     },
   });
 
-  const accessToken = signAccessToken({
+  const access_token = signAccessToken({
     sub: user.id,
     role: user.role,
-    companyId: user.companyId,
+    company_id: user.company_id,
   });
 
-  const refreshToken = signRefreshToken({
+  const refresh_token = signRefreshToken({
     sub: user.id,
     role: user.role,
-    companyId: user.companyId,
+    company_id: user.company_id,
     sid: session.id,
   });
 
   await prisma.session.update({
     where: { id: session.id },
     data: {
-      refreshTokenHash: sha256(refreshToken),
+      refreshTokenHash: sha256(refresh_token),
     },
   });
 
   return {
-    accessToken,
-    refreshToken,
-    expiresIn: env.JWT_ACCESS_TOKEN_TTL,
+    access_token,
+    refresh_token,
+    expires_in: env.JWT_ACCESS_TOKEN_TTL,
   } satisfies TokenResponse;
 }
 
 function mapPublicUser(user: User): PublicUser {
   return {
     id: user.id,
-    companyId: user.companyId,
+    company_id: user.company_id,
     role: user.role,
-    fullName: user.fullName,
+    full_name: user.full_name,
     email: user.email,
-    passwordStatus:
+    password_status:
       user.role === UserRole.VENDEDOR ? 'NOT_APPLICABLE' : user.passwordHash ? 'SET' : 'PENDING',
   };
 }
+
+

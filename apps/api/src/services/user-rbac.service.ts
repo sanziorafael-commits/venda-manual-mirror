@@ -7,10 +7,10 @@ import { canCreateRole, canManageRole, isInvitableRole } from '../utils/user-rol
 export type ScopedTargetUser = {
   id: string;
   role: UserRole;
-  companyId: string | null;
-  managerId: string | null;
-  supervisorId: string | null;
-  supervisor: { id: string; managerId: string | null } | null;
+  company_id: string | null;
+  manager_id: string | null;
+  supervisor_id: string | null;
+  supervisor: { id: string; manager_id: string | null } | null;
 };
 
 export function canReadUserByHierarchy(actor: AuthActor, target: ScopedTargetUser) {
@@ -20,8 +20,8 @@ export function canReadUserByHierarchy(actor: AuthActor, target: ScopedTargetUse
 
   if (actor.role === UserRole.DIRETOR) {
     return (
-      Boolean(actor.companyId) &&
-      actor.companyId === target.companyId &&
+      Boolean(actor.company_id) &&
+      actor.company_id === target.company_id &&
       (target.role === UserRole.GERENTE_COMERCIAL ||
         target.role === UserRole.SUPERVISOR ||
         target.role === UserRole.VENDEDOR)
@@ -30,18 +30,18 @@ export function canReadUserByHierarchy(actor: AuthActor, target: ScopedTargetUse
 
   if (actor.role === UserRole.GERENTE_COMERCIAL) {
     if (target.role === UserRole.SUPERVISOR) {
-      return target.managerId === actor.userId;
+      return target.manager_id === actor.user_id;
     }
 
     if (target.role === UserRole.VENDEDOR) {
-      return target.supervisor?.managerId === actor.userId;
+      return target.supervisor?.manager_id === actor.user_id;
     }
 
     return false;
   }
 
   if (actor.role === UserRole.SUPERVISOR) {
-    return target.role === UserRole.VENDEDOR && target.supervisorId === actor.userId;
+    return target.role === UserRole.VENDEDOR && target.supervisor_id === actor.user_id;
   }
 
   return false;
@@ -103,12 +103,14 @@ export function validateCredentialsForRole(role: UserRole, email?: string | null
   }
 }
 
-export function validateCompanyForRole(role: UserRole, companyId: string | null) {
-  if (role === UserRole.ADMIN && companyId) {
+export function validateCompanyForRole(role: UserRole, company_id: string | null) {
+  if (role === UserRole.ADMIN && company_id) {
     throw badRequest('Admin não deve estar vinculado à empresa');
   }
 
-  if (role !== UserRole.ADMIN && !companyId) {
-    throw badRequest('companyId obrigatório para cargos não-admin');
+  if (role !== UserRole.ADMIN && !company_id) {
+    throw badRequest('company_id obrigatório para cargos não-admin');
   }
 }
+
+

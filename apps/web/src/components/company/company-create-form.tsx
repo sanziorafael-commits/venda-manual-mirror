@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -57,7 +57,7 @@ function extractValidLogoFile(fileList: FileList | null) {
   if (!file) return null;
 
   if (!ACCEPTED_LOGO_MIME_TYPES.includes(file.type)) {
-    toast.error("Formato de logo inválido. Use SVG, PNG, JPG ou GIF.");
+    toast.error("Formato de logo inv�lido. Use SVG, PNG, JPG ou GIF.");
     return null;
   }
 
@@ -87,17 +87,17 @@ async function createCompany(payload: {
 }
 
 async function requestCompanyLogoSignedUrl(
-  companyId: string,
+  company_id: string,
   file: File,
 ): Promise<UploadSignedUrlData | null> {
   const response = await apiFetch<unknown>("/uploads/signed-url", {
     method: "POST",
     body: {
       target: "COMPANY_LOGO",
-      companyId,
-      fileName: file.name,
-      contentType: file.type,
-      contentLength: file.size,
+      company_id,
+      file_name: file.name,
+      content_type: file.type,
+      content_length: file.size,
     },
   });
 
@@ -110,24 +110,24 @@ async function requestCompanyLogoSignedUrl(
 }
 
 async function uploadFileToSignedUrl(signedUrlData: UploadSignedUrlData, file: File) {
-  const response = await fetch(signedUrlData.uploadUrl, {
-    method: signedUrlData.uploadMethod,
+  const response = await fetch(signedUrlData.upload_url, {
+    method: signedUrlData.upload_method,
     headers: {
-      "Content-Type": signedUrlData.uploadHeaders["Content-Type"],
+      "Content-Type": signedUrlData.upload_headers["Content-Type"],
     },
     body: file,
   });
 
   if (!response.ok) {
-    throw new Error("Não foi possível enviar a logo para o storage.");
+    throw new Error("N�o foi poss�vel enviar a logo para o storage.");
   }
 }
 
-async function updateCompanyLogo(companyId: string, logoUrl: string) {
-  await apiFetch(`/companies/${companyId}`, {
+async function updateCompanyLogo(company_id: string, logo_url: string) {
+  await apiFetch(`/companies/${company_id}`, {
     method: "PATCH",
     body: {
-      logoUrl,
+      logo_url,
     },
   });
 }
@@ -186,14 +186,14 @@ export function CompanyCreateForm() {
 
       if (!signedUrlData) {
         toast.warning(
-          "Empresa criada, mas Não foi possível preparar o upload da logo.",
+          "Empresa criada, mas N�o foi poss�vel preparar o upload da logo.",
         );
         router.push("/dashboard/companies");
         return;
       }
 
       await uploadFileToSignedUrl(signedUrlData, logoFile);
-      await updateCompanyLogo(createdCompany.id, signedUrlData.publicUrl);
+      await updateCompanyLogo(createdCompany.id, signedUrlData.public_url);
 
       toast.success("Empresa cadastrada com logo enviada com sucesso!");
       router.push("/dashboard/companies");
@@ -286,7 +286,7 @@ export function CompanyCreateForm() {
           </div>
 
           <p className="text-sm font-medium">
-            Arraste para cá a logo da empresa ou{" "}
+            Arraste para c� a logo da empresa ou{" "}
             <button
               type="button"
               className="cursor-pointer underline underline-offset-2"
@@ -335,4 +335,5 @@ export function CompanyCreateForm() {
     </form>
   );
 }
+
 

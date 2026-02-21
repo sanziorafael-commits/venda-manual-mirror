@@ -4,27 +4,29 @@ export type UploadTarget = 'COMPANY_LOGO' | 'PRODUCT_IMAGE' | 'PRODUCT_VIDEO';
 
 export type CreateUploadSignedUrlInput = {
   target: UploadTarget;
-  fileName: string;
-  contentType: string;
-  contentLength: number;
-  companyId?: string;
-  entityId?: string;
+  file_name: string;
+  content_type: string;
+  content_length: number;
+  company_id?: string;
+  entity_id?: string;
 };
 
 export type CreateUploadSignedUrlResult = {
   target: UploadTarget;
-  objectKey: string;
+  object_key: string;
   bucket: string;
-  storageUrl: string;
-  publicUrl: string;
-  uploadUrl: string;
-  uploadMethod: 'PUT';
-  uploadHeaders: {
+  storage_url: string;
+  public_url: string;
+  upload_url: string;
+  upload_method: 'PUT';
+  upload_headers: {
     'Content-Type': string;
   };
-  contentType: string;
-  contentLength: number;
-  maxSizeBytes: number;
-  expiresAt: string;
-  actor: Pick<AuthActor, 'userId' | 'role' | 'companyId'>;
+  content_type: string;
+  content_length: number;
+  max_size_bytes: number;
+  expires_at: string;
+  actor: Pick<AuthActor, 'user_id' | 'role' | 'company_id'>;
 };
+
+

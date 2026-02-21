@@ -84,3 +84,4 @@ function findDashboardRouteRule(pathname: string) {
     (route) => pathname === route.path || pathname.startsWith(`${route.path}/`),
   );
 }
+

@@ -32,7 +32,7 @@ import { OverviewTotalInteractionsCard } from "./overview/total-interactions-car
 
 const PERIOD_ORDER: DashboardPeriod[] = ["365d", "30d", "7d", "today"];
 
-type RankingItem = DashboardOverview["userRanking"]["highestVolume"][number];
+type RankingItem = DashboardOverview["user_ranking"]["highest_volume"][number];
 
 export function DashboardOverviewPanel() {
   const authUser = useAuthUser();
@@ -61,7 +61,7 @@ export function DashboardOverviewPanel() {
 
   const selectedCompanyId = React.useMemo(() => {
     if (!isAdmin) {
-      return authUser?.companyId ?? null;
+      return authUser?.company_id ?? null;
     }
 
     if (!selectedCompanyContext) {
@@ -73,9 +73,9 @@ export function DashboardOverviewPanel() {
     }
 
     return selectedCompanyContext;
-  }, [authUser?.companyId, isAdmin, selectedCompanyContext]);
+  }, [authUser?.company_id, isAdmin, selectedCompanyContext]);
 
-  const customStartDate = React.useMemo(() => {
+  const custom_start_date = React.useMemo(() => {
     if (!dateRange?.from) {
       return null;
     }
@@ -83,7 +83,7 @@ export function DashboardOverviewPanel() {
     return format(dateRange.from, "yyyy-MM-dd");
   }, [dateRange?.from]);
 
-  const customEndDate = React.useMemo(() => {
+  const custom_end_date = React.useMemo(() => {
     const endSource = dateRange?.to ?? dateRange?.from;
     if (!endSource) {
       return null;
@@ -92,7 +92,7 @@ export function DashboardOverviewPanel() {
     return format(endSource, "yyyy-MM-dd");
   }, [dateRange?.from, dateRange?.to]);
 
-  const hasCustomDateRange = Boolean(customStartDate && customEndDate);
+  const hasCustomDateRange = Boolean(custom_start_date && custom_end_date);
 
   const loadFilterOptions = React.useCallback(async () => {
     if (!authHydrated) {
@@ -150,16 +150,16 @@ export function DashboardOverviewPanel() {
     params.set("period", period);
     params.set("scope", scope);
 
-    if (customStartDate) {
-      params.set("startDate", customStartDate);
+    if (custom_start_date) {
+      params.set("start_date", custom_start_date);
     }
 
-    if (customEndDate) {
-      params.set("endDate", customEndDate);
+    if (custom_end_date) {
+      params.set("end_date", custom_end_date);
     }
 
     if (isAdmin && selectedCompanyId) {
-      params.set("companyId", selectedCompanyId);
+      params.set("company_id", selectedCompanyId);
     }
 
     const query = params.toString();
@@ -205,8 +205,8 @@ export function DashboardOverviewPanel() {
     }
   }, [
     authHydrated,
-    customEndDate,
-    customStartDate,
+    custom_end_date,
+    custom_start_date,
     filterOptions,
     isAdmin,
     period,
@@ -230,7 +230,7 @@ export function DashboardOverviewPanel() {
     const orderIndex = new Map(
       PERIOD_ORDER.map((item, index) => [item, index]),
     );
-    return [...filterOptions.periodOptions].sort((left, right) => {
+    return [...filterOptions.period_options].sort((left, right) => {
       const leftIndex = orderIndex.get(left.value as DashboardPeriod) ?? 100;
       const rightIndex = orderIndex.get(right.value as DashboardPeriod) ?? 100;
       return leftIndex - rightIndex;
@@ -242,7 +242,7 @@ export function DashboardOverviewPanel() {
       return [] as RankingItem[];
     }
 
-    return overview.userRanking.highestVolume;
+    return overview.user_ranking.highest_volume;
   }, [overview]);
 
   const selectedLowestRanking = React.useMemo(() => {
@@ -250,7 +250,7 @@ export function DashboardOverviewPanel() {
       return [] as RankingItem[];
     }
 
-    return overview.userRanking.lowestVolume;
+    return overview.user_ranking.lowest_volume;
   }, [overview]);
 
   const rankingScopeLabel = React.useMemo(() => {
@@ -280,7 +280,7 @@ export function DashboardOverviewPanel() {
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/40 focus-visible:ring-[3px]"
                 disabled={isLoadingOptions || isLoadingData}
               >
-                {filterOptions?.scopeOptions.map((scopeOption) => (
+                {filterOptions?.scope_options.map((scopeOption) => (
                   <option key={scopeOption.value} value={scopeOption.value}>
                     {scopeOption.label}
                   </option>
@@ -340,19 +340,19 @@ export function DashboardOverviewPanel() {
       ) : overview && series ? (
         <>
           <OverviewTotalInteractionsCard
-            totalInteractions={overview.totalInteractions}
+            total_interactions={overview.total_interactions}
             points={series.points}
-            seriesTotal={series.totalInteractions}
+            seriesTotal={series.total_interactions}
           />
 
           <section className="grid gap-4 xl:grid-cols-3">
             <OverviewAdoptionCard
               entityLabel={rankingScopeLabel}
-              activeWithInteractions={
-                overview.adoptionRate.activeWithInteractions
+              active_with_interactions={
+                overview.adoption_rate.active_with_interactions
               }
-              activeEntities={overview.adoptionRate.activeEntities}
-              ratePercent={overview.adoptionRate.ratePercent}
+              active_entities={overview.adoption_rate.active_entities}
+              rate_percent={overview.adoption_rate.rate_percent}
             />
 
             <OverviewRankingCard
@@ -367,17 +367,17 @@ export function DashboardOverviewPanel() {
               emptyMessage="Sem dados para o período."
             />
 
-            <OverviewLocatedClientsCard value={overview.newLocatedClients} />
+            <OverviewLocatedClientsCard value={overview.new_located_clients} />
 
             <OverviewProductsCard
               variant="most"
-              items={overview.productRanking.mostCited}
+              items={overview.product_ranking.most_cited}
               emptyMessage="Sem citações registradas."
             />
 
             <OverviewProductsCard
               variant="least"
-              items={overview.productRanking.leastCited}
+              items={overview.product_ranking.least_cited}
               emptyMessage="Sem citações registradas."
             />
           </section>
@@ -410,3 +410,4 @@ function DashboardSkeleton() {
     </>
   );
 }
+

@@ -7,30 +7,30 @@ export const locatedClientStatusSchema = z.enum([
 
 export const locatedClientListItemSchema = z.object({
   id: z.string().min(1),
-  companyId: z.string().nullable(),
-  companyName: z.string().nullable(),
-  identifiedByUserId: z.string().nullable(),
-  identifiedByUserName: z.string().nullable(),
-  sourceSellerPhone: z.string().min(1),
-  customerName: z.string().min(1),
+  company_id: z.string().nullable(),
+  company_name: z.string().nullable(),
+  identified_by_user_id: z.string().nullable(),
+  identified_by_user_name: z.string().nullable(),
+  source_seller_phone: z.string().min(1),
+  customer_name: z.string().min(1),
   city: z.string().min(1),
   state: z.string().min(1),
   address: z.string().min(1),
-  mapUrl: z.string().nullable(),
-  identifiedAt: z.string(),
+  map_url: z.string().nullable(),
+  identified_at: z.string(),
   status: locatedClientStatusSchema,
-  visitedAt: z.string().nullable(),
-  visitedByUserId: z.string().nullable(),
-  visitedByUserName: z.string().nullable(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  visited_at: z.string().nullable(),
+  visited_by_user_id: z.string().nullable(),
+  visited_by_user_name: z.string().nullable(),
+  created_at: z.string(),
+  updated_at: z.string(),
 });
 
 export const locatedClientListMetaSchema = z.object({
   page: z.number().int().positive(),
-  pageSize: z.number().int().positive(),
+  page_size: z.number().int().positive(),
   total: z.number().int().nonnegative(),
-  totalPages: z.number().int().positive(),
+  total_pages: z.number().int().positive(),
 });
 
 export const locatedClientsApiResponseSchema = z.object({
@@ -45,3 +45,4 @@ export const locatedClientDetailApiResponseSchema = z.object({
 export type LocatedClientStatus = z.infer<typeof locatedClientStatusSchema>;
 export type LocatedClientListItem = z.infer<typeof locatedClientListItemSchema>;
 export type LocatedClientListMeta = z.infer<typeof locatedClientListMetaSchema>;
+

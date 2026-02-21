@@ -1,4 +1,4 @@
-﻿import 'dotenv/config';
+import 'dotenv/config';
 
 import { z } from 'zod';
 
@@ -27,12 +27,12 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(3001),
   LOG_LEVEL: z.string().default('info'),
-  DATABASE_URL: z.string().url('DATABASE_URL deve ser uma URL válida'),
-  JWT_SECRET: z.string().min(16, 'JWT_SECRET deve ter no mínimo 16 caracteres'),
-  JWT_ACCESS_TOKEN_TTL: z.string().regex(ttlPattern, 'TTL inválido. Use formatos como 15m, 12h, 7d.').default('1h'),
-  JWT_REFRESH_TOKEN_TTL: z.string().regex(ttlPattern, 'TTL inválido. Use formatos como 15m, 12h, 7d.').default('7d'),
-  ACCOUNT_ACTIVATION_TOKEN_TTL: z.string().regex(ttlPattern, 'TTL inválido. Use formatos como 15m, 12h, 7d.').default('24h'),
-  PASSWORD_RESET_TOKEN_TTL: z.string().regex(ttlPattern, 'TTL inválido. Use formatos como 15m, 12h, 7d.').default('1h'),
+  DATABASE_URL: z.string().url('DATABASE_URL deve ser uma URL v�lida'),
+  JWT_SECRET: z.string().min(16, 'JWT_SECRET deve ter no m�nimo 16 caracteres'),
+  JWT_ACCESS_TOKEN_TTL: z.string().regex(ttlPattern, 'TTL inv�lido. Use formatos como 15m, 12h, 7d.').default('1h'),
+  JWT_REFRESH_TOKEN_TTL: z.string().regex(ttlPattern, 'TTL inv�lido. Use formatos como 15m, 12h, 7d.').default('7d'),
+  ACCOUNT_ACTIVATION_TOKEN_TTL: z.string().regex(ttlPattern, 'TTL inv�lido. Use formatos como 15m, 12h, 7d.').default('24h'),
+  PASSWORD_RESET_TOKEN_TTL: z.string().regex(ttlPattern, 'TTL inv�lido. Use formatos como 15m, 12h, 7d.').default('1h'),
   MAIL_PROVIDER: z.enum(['resend', 'disabled']).default('disabled'),
   RESEND_API_KEY: z.string().optional(),
   MAIL_FROM: z.string().email().optional(),
@@ -49,11 +49,11 @@ const envSchema = z.object({
   STORAGE_PROVIDER: z.enum(['disabled', 'gcs']).default('disabled'),
   STORAGE_UPLOAD_URL_TTL: z
     .string()
-    .regex(ttlPattern, 'TTL inválido. Use formatos como 15m, 12h, 7d.')
+    .regex(ttlPattern, 'TTL inv�lido. Use formatos como 15m, 12h, 7d.')
     .default('15m'),
   STORAGE_READ_URL_TTL: z
     .string()
-    .regex(ttlPattern, 'TTL inválido. Use formatos como 15m, 12h, 7d.')
+    .regex(ttlPattern, 'TTL inv�lido. Use formatos como 15m, 12h, 7d.')
     .default('1h'),
   GCS_BUCKET_NAME: z.string().optional(),
   GCS_PROJECT_ID: z.string().optional(),
@@ -69,7 +69,7 @@ const envSchema = z.object({
       context.addIssue({
         code: 'custom',
         path: ['RESEND_API_KEY'],
-        message: 'RESEND_API_KEY é obrigatória quando MAIL_PROVIDER=resend',
+        message: 'RESEND_API_KEY � obrigat�ria quando MAIL_PROVIDER=resend',
       });
     }
 
@@ -77,7 +77,7 @@ const envSchema = z.object({
       context.addIssue({
         code: 'custom',
         path: ['MAIL_FROM'],
-        message: 'MAIL_FROM é obrigatório quando MAIL_PROVIDER=resend',
+        message: 'MAIL_FROM � obrigat�rio quando MAIL_PROVIDER=resend',
       });
     }
 
@@ -85,7 +85,7 @@ const envSchema = z.object({
       context.addIssue({
         code: 'custom',
         path: ['APP_WEB_URL'],
-        message: 'APP_WEB_URL é obrigatória quando MAIL_PROVIDER=resend',
+        message: 'APP_WEB_URL � obrigat�ria quando MAIL_PROVIDER=resend',
       });
     }
   }
@@ -100,7 +100,7 @@ const envSchema = z.object({
       context.addIssue({
         code: 'custom',
         path: ['APP_CORS_ORIGINS'],
-        message: 'Em produção, configure APP_CORS_ORIGINS ou APP_WEB_URL com ao menos uma origem válida',
+        message: 'Em produ��o, configure APP_CORS_ORIGINS ou APP_WEB_URL com ao menos uma origem v�lida',
       });
     }
   }
@@ -110,7 +110,7 @@ const envSchema = z.object({
       context.addIssue({
         code: 'custom',
         path: ['GCS_BUCKET_NAME'],
-        message: 'GCS_BUCKET_NAME é obrigatório quando STORAGE_PROVIDER=gcs',
+        message: 'GCS_BUCKET_NAME � obrigat�rio quando STORAGE_PROVIDER=gcs',
       });
     }
   }
@@ -128,5 +128,7 @@ const envSchema = z.object({
 });
 
 export const env = envSchema.parse(process.env);
+
+
 
 

@@ -5,7 +5,7 @@ import { getMe, updateMe } from '../services/auth.service.js';
 
 export async function getMeHandler(req: Request, res: Response) {
   const authUser = req.authUser!;
-  const data = await getMe(authUser.userId);
+  const data = await getMe(authUser.user_id);
 
   res.status(200).json({ data });
 }
@@ -13,7 +13,9 @@ export async function getMeHandler(req: Request, res: Response) {
 export async function updateMeHandler(req: Request, res: Response) {
   const authUser = req.authUser!;
   const payload = updateMeSchema.parse(req.body);
-  const data = await updateMe(authUser.userId, payload);
+  const data = await updateMe(authUser.user_id, payload);
 
   res.status(200).json({ data });
 }
+
+

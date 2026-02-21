@@ -45,6 +45,8 @@ export const openApiDocument = {
         type: 'string',
         minLength: 10,
         maxLength: 20,
+        description:
+          'Aceita telefone com ou sem mascara. A API persiste somente digitos. Regra atual: se chegar com 10 ou 11 digitos sem DDI, prefixa 55 automaticamente.',
         example: '+55 (11) 91700-0203',
       },
       UserRole: {
@@ -73,9 +75,9 @@ export const openApiDocument = {
       },
       BootstrapAdminRequest: {
         type: 'object',
-        required: ['fullName', 'cpf', 'email', 'phone', 'password'],
+        required: ['full_name', 'cpf', 'email', 'phone', 'password'],
         properties: {
-          fullName: { type: 'string', minLength: 2 },
+          full_name: { type: 'string', minLength: 2 },
           cpf: { type: 'string', minLength: 11 },
           email: { type: 'string', format: 'email' },
           phone: { $ref: '#/components/schemas/PhoneInput' },
@@ -100,9 +102,9 @@ export const openApiDocument = {
       },
       ResendActivationRequest: {
         type: 'object',
-        required: ['userId'],
+        required: ['user_id'],
         properties: {
-          userId: { type: 'string', minLength: 1 },
+          user_id: { type: 'string', format: 'uuid' },
         },
       },
       ForgotPasswordRequest: {
@@ -123,9 +125,9 @@ export const openApiDocument = {
       UpdateMeRequest: {
         type: 'object',
         properties: {
-          fullName: { type: 'string', minLength: 2 },
+          full_name: { type: 'string', minLength: 2 },
           email: { type: 'string', format: 'email' },
-          newPassword: { type: 'string', minLength: 6 },
+          new_password: { type: 'string', minLength: 6 },
         },
       },
       CompanyCreateRequest: {
@@ -134,7 +136,7 @@ export const openApiDocument = {
         properties: {
           name: { type: 'string', minLength: 2 },
           cnpj: { type: 'string', minLength: 14 },
-          logoUrl: { type: 'string', format: 'uri' },
+          logo_url: { type: 'string', format: 'uri' },
         },
       },
       CompanyUpdateRequest: {
@@ -143,80 +145,80 @@ export const openApiDocument = {
         properties: {
           name: { type: 'string', minLength: 2 },
           cnpj: { type: 'string', minLength: 14 },
-          logoUrl: { type: 'string', format: 'uri', nullable: true },
+          logo_url: { type: 'string', format: 'uri', nullable: true },
         },
       },
       CreateUserRequest: {
         type: 'object',
-        required: ['role', 'fullName', 'cpf', 'phone'],
+        required: ['role', 'full_name', 'cpf', 'phone'],
         properties: {
-          companyId: { type: 'string' },
+          company_id: { type: 'string', format: 'uuid' },
           role: { $ref: '#/components/schemas/UserRole' },
-          fullName: { type: 'string', minLength: 2 },
+          full_name: { type: 'string', minLength: 2 },
           cpf: { type: 'string', minLength: 11 },
           email: { type: 'string', format: 'email' },
           phone: { $ref: '#/components/schemas/PhoneInput' },
           password: { type: 'string', minLength: 6 },
-          managerId: { type: 'string', nullable: true },
-          supervisorId: { type: 'string', nullable: true },
+          manager_id: { type: 'string', format: 'uuid', nullable: true },
+          supervisor_id: { type: 'string', format: 'uuid', nullable: true },
         },
       },
       CreateCompanyUserRequest: {
         type: 'object',
-        required: ['role', 'fullName', 'cpf', 'phone'],
+        required: ['role', 'full_name', 'cpf', 'phone'],
         properties: {
           role: { $ref: '#/components/schemas/UserRole' },
-          fullName: { type: 'string', minLength: 2 },
+          full_name: { type: 'string', minLength: 2 },
           cpf: { type: 'string', minLength: 11 },
           email: { type: 'string', format: 'email' },
           phone: { $ref: '#/components/schemas/PhoneInput' },
           password: { type: 'string', minLength: 6 },
-          managerId: { type: 'string', nullable: true },
-          supervisorId: { type: 'string', nullable: true },
+          manager_id: { type: 'string', format: 'uuid', nullable: true },
+          supervisor_id: { type: 'string', format: 'uuid', nullable: true },
         },
       },
       UpdateUserRequest: {
         type: 'object',
         description: 'Informe ao menos um campo para atualizacao.',
         properties: {
-          companyId: { type: 'string' },
+          company_id: { type: 'string', format: 'uuid' },
           role: { $ref: '#/components/schemas/UserRole' },
-          fullName: { type: 'string', minLength: 2 },
+          full_name: { type: 'string', minLength: 2 },
           cpf: { type: 'string', minLength: 11 },
           email: { type: 'string', format: 'email', nullable: true },
           phone: { $ref: '#/components/schemas/PhoneInput' },
           password: { type: 'string', minLength: 6 },
-          isActive: { type: 'boolean' },
-          managerId: { type: 'string', nullable: true },
-          supervisorId: { type: 'string', nullable: true },
+          is_active: { type: 'boolean' },
+          manager_id: { type: 'string', format: 'uuid', nullable: true },
+          supervisor_id: { type: 'string', format: 'uuid', nullable: true },
         },
       },
       ReassignSupervisorRequest: {
         type: 'object',
-        required: ['fromSupervisorId', 'toSupervisorId'],
+        required: ['from_supervisor_id', 'to_supervisor_id'],
         properties: {
-          fromSupervisorId: { type: 'string' },
-          toSupervisorId: { type: 'string' },
+          from_supervisor_id: { type: 'string', format: 'uuid' },
+          to_supervisor_id: { type: 'string', format: 'uuid' },
         },
       },
       ReassignManagerTeamRequest: {
         type: 'object',
-        required: ['fromManagerId', 'toManagerId'],
+        required: ['from_manager_id', 'to_manager_id'],
         properties: {
-          fromManagerId: { type: 'string' },
-          toManagerId: { type: 'string' },
+          from_manager_id: { type: 'string', format: 'uuid' },
+          to_manager_id: { type: 'string', format: 'uuid' },
         },
       },
       UploadSignedUrlRequest: {
         type: 'object',
-        required: ['target', 'fileName', 'contentType', 'contentLength'],
+        required: ['target', 'file_name', 'content_type', 'content_length'],
         properties: {
           target: { $ref: '#/components/schemas/UploadTarget' },
-          fileName: { type: 'string', minLength: 1, maxLength: 255 },
-          contentType: { type: 'string', minLength: 3, maxLength: 120 },
-          contentLength: { type: 'integer', minimum: 1, maximum: 524288000 },
-          companyId: { type: 'string' },
-          entityId: { type: 'string', minLength: 1, maxLength: 100 },
+          file_name: { type: 'string', minLength: 1, maxLength: 255 },
+          content_type: { type: 'string', minLength: 3, maxLength: 120 },
+          content_length: { type: 'integer', minimum: 1, maximum: 524288000 },
+          company_id: { type: 'string', format: 'uuid' },
+          entity_id: { type: 'string', minLength: 1, maxLength: 100 },
         },
       },
       ProductCreateRequest: {
@@ -315,7 +317,7 @@ export const openApiDocument = {
         parameters: [
           { in: 'query', name: 'q', required: false, schema: { type: 'string' } },
           { in: 'query', name: 'page', required: false, schema: { type: 'integer', minimum: 1 } },
-          { in: 'query', name: 'pageSize', required: false, schema: { type: 'integer', minimum: 1, maximum: 100 } },
+          { in: 'query', name: 'page_size', required: false, schema: { type: 'integer', minimum: 1, maximum: 100 } },
         ],
         responses: { '200': { description: 'OK' } },
       },
@@ -327,19 +329,19 @@ export const openApiDocument = {
         responses: { '201': { description: 'Criado' } },
       },
     },
-    '/api/companies/{companyId}': {
+    '/api/companies/{company_id}': {
       get: {
         tags: ['companies'],
-        summary: 'Busca empresa por id (inclui logoSignedUrl para leitura privada)',
+        summary: 'Busca empresa por id (inclui logo_signed_url para leitura privada)',
         security: [{ bearerAuth: [] }],
-        parameters: [{ in: 'path', name: 'companyId', required: true, schema: { type: 'string' } }],
+        parameters: [{ in: 'path', name: 'company_id', required: true, schema: { type: 'string', format: 'uuid' } }],
         responses: { '200': { description: 'OK' } },
       },
       patch: {
         tags: ['companies'],
         summary: 'Atualiza empresa',
         security: [{ bearerAuth: [] }],
-        parameters: [{ in: 'path', name: 'companyId', required: true, schema: { type: 'string' } }],
+        parameters: [{ in: 'path', name: 'company_id', required: true, schema: { type: 'string', format: 'uuid' } }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/CompanyUpdateRequest' } } } },
         responses: { '200': { description: 'OK' } },
       },
@@ -347,16 +349,16 @@ export const openApiDocument = {
         tags: ['companies'],
         summary: 'Exclusao logica de empresa',
         security: [{ bearerAuth: [] }],
-        parameters: [{ in: 'path', name: 'companyId', required: true, schema: { type: 'string' } }],
+        parameters: [{ in: 'path', name: 'company_id', required: true, schema: { type: 'string', format: 'uuid' } }],
         responses: { '200': { description: 'OK' } },
       },
     },
-    '/api/companies/{companyId}/users': {
+    '/api/companies/{company_id}/users': {
       post: {
         tags: ['companies'],
         summary: 'Cria usuario para empresa',
         security: [{ bearerAuth: [] }],
-        parameters: [{ in: 'path', name: 'companyId', required: true, schema: { type: 'string' } }],
+        parameters: [{ in: 'path', name: 'company_id', required: true, schema: { type: 'string', format: 'uuid' } }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateCompanyUserRequest' } } } },
         responses: { '201': { description: 'Criado' } },
       },
@@ -368,13 +370,13 @@ export const openApiDocument = {
         security: [{ bearerAuth: [] }],
         parameters: [
           { in: 'query', name: 'q', required: false, schema: { type: 'string' } },
-          { in: 'query', name: 'companyId', required: false, schema: { type: 'string' } },
+          { in: 'query', name: 'company_id', required: false, schema: { type: 'string', format: 'uuid' } },
           { in: 'query', name: 'role', required: false, schema: { $ref: '#/components/schemas/UserRole' } },
-          { in: 'query', name: 'managerId', required: false, schema: { type: 'string' } },
-          { in: 'query', name: 'supervisorId', required: false, schema: { type: 'string' } },
-          { in: 'query', name: 'isActive', required: false, schema: { type: 'boolean' } },
+          { in: 'query', name: 'manager_id', required: false, schema: { type: 'string', format: 'uuid' } },
+          { in: 'query', name: 'supervisor_id', required: false, schema: { type: 'string', format: 'uuid' } },
+          { in: 'query', name: 'is_active', required: false, schema: { type: 'boolean' } },
           { in: 'query', name: 'page', required: false, schema: { type: 'integer', minimum: 1 } },
-          { in: 'query', name: 'pageSize', required: false, schema: { type: 'integer', minimum: 1, maximum: 100 } },
+          { in: 'query', name: 'page_size', required: false, schema: { type: 'integer', minimum: 1, maximum: 100 } },
         ],
         responses: { '200': { description: 'OK' } },
       },
@@ -386,19 +388,19 @@ export const openApiDocument = {
         responses: { '201': { description: 'Criado' } },
       },
     },
-    '/api/users/{userId}': {
+    '/api/users/{user_id}': {
       get: {
         tags: ['users'],
         summary: 'Busca usuario por id',
         security: [{ bearerAuth: [] }],
-        parameters: [{ in: 'path', name: 'userId', required: true, schema: { type: 'string' } }],
+        parameters: [{ in: 'path', name: 'user_id', required: true, schema: { type: 'string', format: 'uuid' } }],
         responses: { '200': { description: 'OK' } },
       },
       patch: {
         tags: ['users'],
         summary: 'Atualiza usuario',
         security: [{ bearerAuth: [] }],
-        parameters: [{ in: 'path', name: 'userId', required: true, schema: { type: 'string' } }],
+        parameters: [{ in: 'path', name: 'user_id', required: true, schema: { type: 'string', format: 'uuid' } }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/UpdateUserRequest' } } } },
         responses: { '200': { description: 'OK' } },
       },
@@ -406,7 +408,7 @@ export const openApiDocument = {
         tags: ['users'],
         summary: 'Exclusao logica de usuario',
         security: [{ bearerAuth: [] }],
-        parameters: [{ in: 'path', name: 'userId', required: true, schema: { type: 'string' } }],
+        parameters: [{ in: 'path', name: 'user_id', required: true, schema: { type: 'string', format: 'uuid' } }],
         responses: { '200': { description: 'OK' } },
       },
     },
@@ -464,9 +466,9 @@ export const openApiDocument = {
         security: [{ bearerAuth: [] }],
         parameters: [
           { in: 'query', name: 'q', required: false, schema: { type: 'string' } },
-          { in: 'query', name: 'companyId', required: false, schema: { type: 'string' }, description: 'Obrigatorio para ADMIN.' },
+          { in: 'query', name: 'company_id', required: false, schema: { type: 'string', format: 'uuid' }, description: 'Obrigatorio para ADMIN.' },
           { in: 'query', name: 'page', required: false, schema: { type: 'integer', minimum: 1 } },
-          { in: 'query', name: 'pageSize', required: false, schema: { type: 'integer', minimum: 1, maximum: 100 } },
+          { in: 'query', name: 'page_size', required: false, schema: { type: 'integer', minimum: 1, maximum: 100 } },
         ],
         responses: { '200': { description: 'OK' } },
       },
@@ -478,14 +480,14 @@ export const openApiDocument = {
         responses: { '201': { description: 'Criado' } },
       },
     },
-    '/api/products/{productId}': {
+    '/api/products/{product_id}': {
       get: {
         tags: ['products'],
         summary: 'Busca produto por id',
         security: [{ bearerAuth: [] }],
         parameters: [
-          { in: 'path', name: 'productId', required: true, schema: { type: 'string', format: 'uuid' } },
-          { in: 'query', name: 'companyId', required: false, schema: { type: 'string' }, description: 'Obrigatorio para ADMIN.' },
+          { in: 'path', name: 'product_id', required: true, schema: { type: 'string', format: 'uuid' } },
+          { in: 'query', name: 'company_id', required: false, schema: { type: 'string', format: 'uuid' }, description: 'Obrigatorio para ADMIN.' },
         ],
         responses: { '200': { description: 'OK' } },
       },
@@ -493,7 +495,7 @@ export const openApiDocument = {
         tags: ['products'],
         summary: 'Atualiza produto',
         security: [{ bearerAuth: [] }],
-        parameters: [{ in: 'path', name: 'productId', required: true, schema: { type: 'string', format: 'uuid' } }],
+        parameters: [{ in: 'path', name: 'product_id', required: true, schema: { type: 'string', format: 'uuid' } }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ProductUpdateRequest' } } } },
         responses: { '200': { description: 'OK' } },
       },
@@ -501,7 +503,7 @@ export const openApiDocument = {
         tags: ['products'],
         summary: 'Exclusao logica de produto',
         security: [{ bearerAuth: [] }],
-        parameters: [{ in: 'path', name: 'productId', required: true, schema: { type: 'string', format: 'uuid' } }],
+        parameters: [{ in: 'path', name: 'product_id', required: true, schema: { type: 'string', format: 'uuid' } }],
         responses: { '200': { description: 'OK' } },
       },
     },
@@ -512,12 +514,12 @@ export const openApiDocument = {
         security: [{ bearerAuth: [] }],
         parameters: [
           { in: 'query', name: 'period', required: false, schema: { $ref: '#/components/schemas/DashboardPeriod' } },
-          { in: 'query', name: 'startDate', required: false, schema: { type: 'string', format: 'date' } },
-          { in: 'query', name: 'endDate', required: false, schema: { type: 'string', format: 'date' } },
-          { in: 'query', name: 'viewBy', required: false, schema: { $ref: '#/components/schemas/DashboardViewBy' } },
+          { in: 'query', name: 'start_date', required: false, schema: { type: 'string', format: 'date' } },
+          { in: 'query', name: 'end_date', required: false, schema: { type: 'string', format: 'date' } },
+          { in: 'query', name: 'view_by', required: false, schema: { $ref: '#/components/schemas/DashboardViewBy' } },
           { in: 'query', name: 'scope', required: false, schema: { $ref: '#/components/schemas/DashboardScope' } },
-          { in: 'query', name: 'companyId', required: false, schema: { type: 'string' } },
-          { in: 'query', name: 'rankLimit', required: false, schema: { type: 'integer', minimum: 1, maximum: 20 } },
+          { in: 'query', name: 'company_id', required: false, schema: { type: 'string', format: 'uuid' } },
+          { in: 'query', name: 'rank_limit', required: false, schema: { type: 'integer', minimum: 1, maximum: 20 } },
         ],
         responses: { '200': { description: 'OK' } },
       },
@@ -529,11 +531,11 @@ export const openApiDocument = {
         security: [{ bearerAuth: [] }],
         parameters: [
           { in: 'query', name: 'period', required: false, schema: { $ref: '#/components/schemas/DashboardPeriod' } },
-          { in: 'query', name: 'startDate', required: false, schema: { type: 'string', format: 'date' } },
-          { in: 'query', name: 'endDate', required: false, schema: { type: 'string', format: 'date' } },
-          { in: 'query', name: 'viewBy', required: false, schema: { $ref: '#/components/schemas/DashboardViewBy' } },
+          { in: 'query', name: 'start_date', required: false, schema: { type: 'string', format: 'date' } },
+          { in: 'query', name: 'end_date', required: false, schema: { type: 'string', format: 'date' } },
+          { in: 'query', name: 'view_by', required: false, schema: { $ref: '#/components/schemas/DashboardViewBy' } },
           { in: 'query', name: 'scope', required: false, schema: { $ref: '#/components/schemas/DashboardScope' } },
-          { in: 'query', name: 'companyId', required: false, schema: { type: 'string' } },
+          { in: 'query', name: 'company_id', required: false, schema: { type: 'string', format: 'uuid' } },
         ],
         responses: { '200': { description: 'OK' } },
       },
@@ -543,7 +545,7 @@ export const openApiDocument = {
         tags: ['dashboard'],
         summary: 'Opcoes de filtros do dashboard (periodo, visao e empresas)',
         security: [{ bearerAuth: [] }],
-        parameters: [{ in: 'query', name: 'companyId', required: false, schema: { type: 'string' } }],
+        parameters: [{ in: 'query', name: 'company_id', required: false, schema: { type: 'string', format: 'uuid' } }],
         responses: { '200': { description: 'OK' } },
       },
     },
@@ -554,27 +556,27 @@ export const openApiDocument = {
         security: [{ bearerAuth: [] }],
         parameters: [
           { in: 'query', name: 'q', required: false, schema: { type: 'string' } },
-          { in: 'query', name: 'companyId', required: false, schema: { type: 'string' } },
-          { in: 'query', name: 'vendedorNome', required: false, schema: { type: 'string' } },
-          { in: 'query', name: 'vendedorTelefone', required: false, schema: { type: 'string' } },
-          { in: 'query', name: 'startDate', required: false, schema: { type: 'string', format: 'date' } },
-          { in: 'query', name: 'endDate', required: false, schema: { type: 'string', format: 'date' } },
+          { in: 'query', name: 'company_id', required: false, schema: { type: 'string', format: 'uuid' } },
+          { in: 'query', name: 'vendedor_nome', required: false, schema: { type: 'string' } },
+          { in: 'query', name: 'vendedor_telefone', required: false, schema: { type: 'string' } },
+          { in: 'query', name: 'start_date', required: false, schema: { type: 'string', format: 'date' } },
+          { in: 'query', name: 'end_date', required: false, schema: { type: 'string', format: 'date' } },
           { in: 'query', name: 'page', required: false, schema: { type: 'integer', minimum: 1 } },
-          { in: 'query', name: 'pageSize', required: false, schema: { type: 'integer', minimum: 1, maximum: 100 } },
+          { in: 'query', name: 'page_size', required: false, schema: { type: 'integer', minimum: 1, maximum: 100 } },
         ],
         responses: { '200': { description: 'OK' } },
       },
     },
-    '/api/conversations/{conversationId}': {
+    '/api/conversations/{conversation_id}': {
       get: {
         tags: ['conversations'],
         summary: 'Detalhe de uma conversa no formato timeline',
         security: [{ bearerAuth: [] }],
         parameters: [
-          { in: 'path', name: 'conversationId', required: true, schema: { type: 'string', format: 'uuid' } },
+          { in: 'path', name: 'conversation_id', required: true, schema: { type: 'string', format: 'uuid' } },
           { in: 'query', name: 'date', required: false, schema: { type: 'string', format: 'date' } },
-          { in: 'query', name: 'startDate', required: false, schema: { type: 'string', format: 'date' } },
-          { in: 'query', name: 'endDate', required: false, schema: { type: 'string', format: 'date' } },
+          { in: 'query', name: 'start_date', required: false, schema: { type: 'string', format: 'date' } },
+          { in: 'query', name: 'end_date', required: false, schema: { type: 'string', format: 'date' } },
         ],
         responses: { '200': { description: 'OK' } },
       },
@@ -583,7 +585,19 @@ export const openApiDocument = {
       post: {
         tags: ['conversations'],
         summary: 'Recebe mensagens de historico e detecta produtos citados por texto',
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', additionalProperties: true } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                additionalProperties: true,
+                description:
+                  "Payload livre (objeto unico ou lote em 'messages'/'mensagens'). Para resolucao automatica de vendedor/empresa, envie 'vendedor_telefone'. Telefone e normalizado para somente digitos; quando vier com 10/11 digitos sem DDI, a API prefixa 55.",
+              },
+            },
+          },
+        },
         responses: { '201': { description: 'Criado' } },
       },
     },
@@ -595,37 +609,37 @@ export const openApiDocument = {
         parameters: [
           { in: 'query', name: 'seller', required: false, schema: { type: 'string' } },
           { in: 'query', name: 'status', required: false, schema: { $ref: '#/components/schemas/LocatedClientStatus' } },
-          { in: 'query', name: 'companyId', required: false, schema: { type: 'string' } },
-          { in: 'query', name: 'startDate', required: false, schema: { type: 'string', format: 'date' } },
-          { in: 'query', name: 'endDate', required: false, schema: { type: 'string', format: 'date' } },
+          { in: 'query', name: 'company_id', required: false, schema: { type: 'string', format: 'uuid' } },
+          { in: 'query', name: 'start_date', required: false, schema: { type: 'string', format: 'date' } },
+          { in: 'query', name: 'end_date', required: false, schema: { type: 'string', format: 'date' } },
           { in: 'query', name: 'page', required: false, schema: { type: 'integer', minimum: 1 } },
-          { in: 'query', name: 'pageSize', required: false, schema: { type: 'integer', minimum: 1, maximum: 100 } },
+          { in: 'query', name: 'page_size', required: false, schema: { type: 'integer', minimum: 1, maximum: 100 } },
         ],
         responses: { '200': { description: 'OK' } },
       },
     },
-    '/api/located-clients/{locatedClientId}': {
+    '/api/located-clients/{located_client_id}': {
       get: {
         tags: ['located-clients'],
         summary: 'Busca cliente localizado por id',
         security: [{ bearerAuth: [] }],
-        parameters: [{ in: 'path', name: 'locatedClientId', required: true, schema: { type: 'string', format: 'uuid' } }],
+        parameters: [{ in: 'path', name: 'located_client_id', required: true, schema: { type: 'string', format: 'uuid' } }],
         responses: { '200': { description: 'OK' } },
       },
       delete: {
         tags: ['located-clients'],
         summary: 'Exclusao logica de cliente localizado',
         security: [{ bearerAuth: [] }],
-        parameters: [{ in: 'path', name: 'locatedClientId', required: true, schema: { type: 'string', format: 'uuid' } }],
+        parameters: [{ in: 'path', name: 'located_client_id', required: true, schema: { type: 'string', format: 'uuid' } }],
         responses: { '200': { description: 'OK' } },
       },
     },
-    '/api/located-clients/{locatedClientId}/status': {
+    '/api/located-clients/{located_client_id}/status': {
       patch: {
         tags: ['located-clients'],
         summary: 'Atualiza status do cliente localizado',
         security: [{ bearerAuth: [] }],
-        parameters: [{ in: 'path', name: 'locatedClientId', required: true, schema: { type: 'string', format: 'uuid' } }],
+        parameters: [{ in: 'path', name: 'located_client_id', required: true, schema: { type: 'string', format: 'uuid' } }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/LocatedClientStatusUpdateRequest' } } } },
         responses: { '200': { description: 'OK' } },
       },
@@ -634,9 +648,24 @@ export const openApiDocument = {
       post: {
         tags: ['located-clients'],
         summary: 'Recebe clientes localizados pela integracao de IA',
-        requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', additionalProperties: true } } } },
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                additionalProperties: true,
+                description:
+                  "Payload livre (objeto unico ou lote em 'clientes'/'items'/'messages'). Para resolucao automatica de vendedor/empresa, envie 'seller_phone' ou 'vendedor_telefone'. Telefone e normalizado para somente digitos; quando vier com 10/11 digitos sem DDI, a API prefixa 55.",
+              },
+            },
+          },
+        },
         responses: { '201': { description: 'Criado' } },
       },
     },
   },
 } as const;
+
+
+

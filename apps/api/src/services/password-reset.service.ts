@@ -8,6 +8,7 @@ import { badRequest, forbidden } from '../utils/app-error.js';
 import { sha256 } from '../utils/hash.js';
 import { normalizeEmail } from '../utils/normalizers.js';
 import { ttlToDate } from '../utils/time.js';
+import { createUuidV7 } from '../utils/uuid.js';
 
 import { sendResetPasswordEmail } from './email.service.js';
 
@@ -17,8 +18,8 @@ export async function requestPasswordReset(emailInput: string) {
   const user = await prisma.user.findFirst({
     where: {
       email,
-      deletedAt: null,
-      isActive: true,
+      deleted_at: null,
+      is_active: true,
       role: {
         not: UserRole.VENDEDOR,
       },
@@ -27,7 +28,7 @@ export async function requestPasswordReset(emailInput: string) {
         {
           company: {
             is: {
-              deletedAt: null,
+              deleted_at: null,
             },
           },
         },
@@ -35,7 +36,7 @@ export async function requestPasswordReset(emailInput: string) {
     },
     select: {
       id: true,
-      fullName: true,
+      full_name: true,
       email: true,
       passwordHash: true,
     },
@@ -53,7 +54,7 @@ export async function requestPasswordReset(emailInput: string) {
   await prisma.$transaction([
     prisma.passwordResetToken.updateMany({
       where: {
-        userId: user.id,
+        user_id: user.id,
         usedAt: null,
       },
       data: {
@@ -62,7 +63,8 @@ export async function requestPasswordReset(emailInput: string) {
     }),
     prisma.passwordResetToken.create({
       data: {
-        userId: user.id,
+        id: createUuidV7(),
+        user_id: user.id,
         tokenHash,
         expiresAt,
       },
@@ -71,7 +73,7 @@ export async function requestPasswordReset(emailInput: string) {
 
   await sendResetPasswordEmail({
     to: user.email,
-    fullName: user.fullName,
+    full_name: user.full_name,
     token,
   });
 }
@@ -99,7 +101,7 @@ export async function resetPasswordWithToken(token: string, passwordHash: string
     }
 
     const user = resetToken.user;
-    if (user.deletedAt || !user.isActive) {
+    if (user.deleted_at || !user.is_active) {
       throw forbidden('Conta inativa');
     }
 
@@ -107,11 +109,11 @@ export async function resetPasswordWithToken(token: string, passwordHash: string
       throw forbidden('Este cargo não possui acesso ao dashboard');
     }
 
-    if (user.role !== UserRole.ADMIN && user.companyId) {
+    if (user.role !== UserRole.ADMIN && user.company_id) {
       const company = await tx.company.findFirst({
         where: {
-          id: user.companyId,
-          deletedAt: null,
+          id: user.company_id,
+          deleted_at: null,
         },
         select: {
           id: true,
@@ -143,8 +145,8 @@ export async function resetPasswordWithToken(token: string, passwordHash: string
     const updated = await tx.user.updateMany({
       where: {
         id: user.id,
-        deletedAt: null,
-        isActive: true,
+        deleted_at: null,
+        is_active: true,
       },
       data: {
         passwordHash,
@@ -157,7 +159,7 @@ export async function resetPasswordWithToken(token: string, passwordHash: string
 
     await tx.passwordResetToken.updateMany({
       where: {
-        userId: user.id,
+        user_id: user.id,
         usedAt: null,
       },
       data: {
@@ -167,7 +169,7 @@ export async function resetPasswordWithToken(token: string, passwordHash: string
 
     await tx.session.updateMany({
       where: {
-        userId: user.id,
+        user_id: user.id,
         revokedAt: null,
       },
       data: {
@@ -176,3 +178,5 @@ export async function resetPasswordWithToken(token: string, passwordHash: string
     });
   });
 }
+
+

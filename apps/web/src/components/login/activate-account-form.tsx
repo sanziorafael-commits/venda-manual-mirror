@@ -37,7 +37,7 @@ export function ActivateAccountForm({
     defaultValues: {
       token: tokenFromUrl,
       password: "",
-      confirmPassword: "",
+      confirm_password: "",
     },
   });
 
@@ -46,15 +46,15 @@ export function ActivateAccountForm({
   }, [tokenFromUrl, setValue]);
 
   const password = useWatch({ control, name: "password", defaultValue: "" });
-  const confirmPassword = useWatch({
+  const confirm_password = useWatch({
     control,
-    name: "confirmPassword",
+    name: "confirm_password",
     defaultValue: "",
   });
   const isSubmitEnabled =
     tokenFromUrl.length > 0 &&
     password.trim().length > 0 &&
-    confirmPassword.trim().length > 0;
+    confirm_password.trim().length > 0;
 
   const { loading, submit } = useAuthSubmit<ActivateAccountSchema, LoginResponse>({
     path: "/auth/activate-account",
@@ -110,12 +110,12 @@ export function ActivateAccountForm({
         />
 
         <PasswordField
-          id="confirmPassword"
+          id="confirm_password"
           label="Confirmar senha"
-          registration={register("confirmPassword")}
+          registration={register("confirm_password")}
           autoComplete="new-password"
           required
-          error={errors.confirmPassword?.message}
+          error={errors.confirm_password?.message}
         />
 
         <Field className="mb-6 mt-6 gap-2">
@@ -134,3 +134,4 @@ export function ActivateAccountForm({
     </form>
   );
 }
+

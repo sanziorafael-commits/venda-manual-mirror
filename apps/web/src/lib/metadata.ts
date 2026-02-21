@@ -8,3 +8,4 @@ export function createPageMetadata(title: string, description = BRAND_NAME): Met
     description,
   };
 }
+

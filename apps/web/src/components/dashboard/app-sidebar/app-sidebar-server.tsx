@@ -15,3 +15,4 @@ export async function AppSidebarServer({ initialUser }: AppSidebarServerProps) {
 
   return <AppSidebarClient user={user} />;
 }
+

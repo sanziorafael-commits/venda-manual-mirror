@@ -1,4 +1,4 @@
-﻿import * as React from "react";
+import * as React from "react";
 import {
   type ColumnDef,
   flexRender,
@@ -14,8 +14,8 @@ type CompanyTableProps = {
   data: CompanyListItem[];
   isLoading: boolean;
   pageIndex: number;
-  pageSize: number;
-  totalPages: number;
+  page_size: number;
+  total_pages: number;
   onPageChange: (pageIndex: number) => void;
   onViewDetails: (company: CompanyListItem) => void;
 };
@@ -33,15 +33,15 @@ function formatCnpj(value: string) {
 }
 
 function formatUsersCount(count: number) {
-  return `${count} ${count === 1 ? "usuário" : "Usuários"}`;
+  return `${count} ${count === 1 ? "usu�rio" : "Usu�rios"}`;
 }
 
 export function CompanyTable({
   data,
   isLoading,
   pageIndex,
-  pageSize,
-  totalPages,
+  page_size,
+  total_pages,
   onPageChange,
   onViewDetails,
 }: CompanyTableProps) {
@@ -62,9 +62,9 @@ export function CompanyTable({
         cell: ({ row }) => formatCnpj(row.original.cnpj),
       },
       {
-        accessorKey: "usersCount",
-        header: "Usuários",
-        cell: ({ row }) => formatUsersCount(row.original.usersCount),
+        accessorKey: "users_count",
+        header: "Usu�rios",
+        cell: ({ row }) => formatUsersCount(row.original.users_count),
       },
       {
         id: "details",
@@ -92,11 +92,11 @@ export function CompanyTable({
     state: {
       pagination: {
         pageIndex,
-        pageSize,
+        pageSize: page_size,
       },
     },
     manualPagination: true,
-    pageCount: totalPages,
+    pageCount: total_pages,
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -125,7 +125,7 @@ export function CompanyTable({
             <tbody>
               {isLoading
                 ? Array.from(
-                    { length: Math.max(4, Math.min(pageSize, 8)) },
+                    { length: Math.max(4, Math.min(page_size, 8)) },
                     (_, rowIndex) => (
                       <tr key={`loading-${rowIndex}`} className="border-t">
                         {columns.map((_, columnIndex) => (
@@ -169,10 +169,11 @@ export function CompanyTable({
 
       <PaginationControls
         pageIndex={pageIndex}
-        totalPages={totalPages}
+        total_pages={total_pages}
         isLoading={isLoading}
         onPageChange={onPageChange}
       />
     </div>
   );
 }
+

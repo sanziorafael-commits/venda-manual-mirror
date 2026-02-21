@@ -2,20 +2,20 @@ import { z } from "zod";
 
 export const conversationListItemSchema = z.object({
   id: z.string().min(1),
-  companyId: z.string().nullable(),
-  companyName: z.string().nullable(),
-  vendedorNome: z.string().min(1),
-  vendedorTelefone: z.string().nullable(),
-  totalInteracoes: z.number().int().nonnegative(),
-  ultimaInteracaoEm: z.string().nullable(),
-  primeiraInteracaoEm: z.string().nullable(),
+  company_id: z.string().nullable(),
+  company_name: z.string().nullable(),
+  vendedor_nome: z.string().min(1),
+  vendedor_telefone: z.string().nullable(),
+  total_interacoes: z.number().int().nonnegative(),
+  ultima_interacao_em: z.string().nullable(),
+  primeira_interacao_em: z.string().nullable(),
 });
 
 export const conversationListMetaSchema = z.object({
   page: z.number().int().positive(),
-  pageSize: z.number().int().positive(),
+  page_size: z.number().int().positive(),
   total: z.number().int().nonnegative(),
-  totalPages: z.number().int().positive(),
+  total_pages: z.number().int().positive(),
 });
 
 export const conversationsApiResponseSchema = z.object({
@@ -25,24 +25,24 @@ export const conversationsApiResponseSchema = z.object({
 
 export const conversationTimelineMessageSchema = z.object({
   id: z.string().min(1),
-  historicoId: z.string().min(1),
+  historico_id: z.string().min(1),
   sender: z.enum(["vendedor", "handsell"]),
   text: z.string().min(1),
-  messageType: z.string().min(1),
+  message_type: z.string().min(1),
   timestamp: z.string(),
-  clienteNome: z.string().nullable(),
+  cliente_nome: z.string().nullable(),
 });
 
 export const conversationDetailSchema = z.object({
   id: z.string().min(1),
-  companyId: z.string().nullable(),
-  companyName: z.string().nullable(),
-  vendedorNome: z.string().min(1),
-  vendedorTelefone: z.string().nullable(),
-  clienteNome: z.string().nullable(),
-  selectedDate: z.string().nullable(),
-  availableDates: z.array(z.string()),
-  totalMensagens: z.number().int().nonnegative(),
+  company_id: z.string().nullable(),
+  company_name: z.string().nullable(),
+  vendedor_nome: z.string().min(1),
+  vendedor_telefone: z.string().nullable(),
+  cliente_nome: z.string().nullable(),
+  selected_date: z.string().nullable(),
+  available_dates: z.array(z.string()),
+  total_mensagens: z.number().int().nonnegative(),
   mensagens: z.array(conversationTimelineMessageSchema),
 });
 
@@ -53,3 +53,4 @@ export const conversationDetailApiResponseSchema = z.object({
 export type ConversationListItem = z.infer<typeof conversationListItemSchema>;
 export type ConversationListMeta = z.infer<typeof conversationListMetaSchema>;
 export type ConversationDetail = z.infer<typeof conversationDetailSchema>;
+

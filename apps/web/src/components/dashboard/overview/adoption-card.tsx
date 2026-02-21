@@ -5,14 +5,14 @@ const numberFormatter = new Intl.NumberFormat("pt-BR");
 
 export function OverviewAdoptionCard({
   entityLabel,
-  activeWithInteractions,
-  activeEntities,
-  ratePercent,
+  active_with_interactions,
+  active_entities,
+  rate_percent,
 }: {
   entityLabel: string;
-  activeWithInteractions: number;
-  activeEntities: number;
-  ratePercent: number;
+  active_with_interactions: number;
+  active_entities: number;
+  rate_percent: number;
 }) {
   return (
     <OverviewCardFrame>
@@ -25,13 +25,13 @@ export function OverviewAdoptionCard({
             {capitalize(entityLabel)} ativos
           </p>
         </div>
-        <AdoptionRing percent={ratePercent} />
+        <AdoptionRing percent={rate_percent} />
       </div>
 
       <div className="text-muted-foreground mt-5 text-sm">
         <p className="text-foreground font-semibold">
-          {numberFormatter.format(activeWithInteractions)} de{" "}
-          {numberFormatter.format(activeEntities)}
+          {numberFormatter.format(active_with_interactions)} de{" "}
+          {numberFormatter.format(active_entities)}
         </p>
         <p>{entityLabel} ativos</p>
       </div>
@@ -94,3 +94,4 @@ function capitalize(value: string) {
 
   return `${value[0]?.toUpperCase()}${value.slice(1)}`;
 }
+

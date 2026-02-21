@@ -1,9 +1,9 @@
 import type { UserRole } from '@prisma/client';
 
 export type AuthActor = {
-  userId: string;
+  user_id: string;
   role: UserRole;
-  companyId: string | null;
+  company_id: string | null;
 };
 
 export type LoginInput = {
@@ -26,7 +26,7 @@ export type SessionInput = {
 };
 
 export type ResendActivationInput = {
-  userId: string;
+  user_id: string;
 };
 
 export type ForgotPasswordInput = {
@@ -39,22 +39,22 @@ export type ResetPasswordInput = {
 };
 
 export type TokenResponse = {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: string;
+  access_token: string;
+  refresh_token: string;
+  expires_in: string;
 };
 
 export type PublicUser = {
   id: string;
-  companyId: string | null;
+  company_id: string | null;
   role: UserRole;
-  fullName: string;
+  full_name: string;
   email: string | null;
-  passwordStatus: 'NOT_APPLICABLE' | 'PENDING' | 'SET';
+  password_status: 'NOT_APPLICABLE' | 'PENDING' | 'SET';
 };
 
 export type BootstrapAdminInput = {
-  fullName: string;
+  full_name: string;
   cpf: string;
   email: string;
   phone: string;
@@ -62,7 +62,9 @@ export type BootstrapAdminInput = {
 };
 
 export type UpdateMeInput = {
-  fullName?: string;
+  full_name?: string;
   email?: string;
-  newPassword?: string;
+  new_password?: string;
 };
+
+

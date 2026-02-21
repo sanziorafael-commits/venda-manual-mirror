@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
@@ -29,13 +29,13 @@ export function CompanyFormWrapper() {
     createEmptyPaginationMeta<CompanyListMeta>(),
   );
   const [pageIndex, setPageIndex] = React.useState(0);
-  const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
+  const [page_size, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
   const requestIdRef = React.useRef(0);
 
   const loadCompanies = React.useCallback(async () => {
     const params = new URLSearchParams();
     params.set("page", String(pageIndex + 1));
-    params.set("pageSize", String(pageSize));
+    params.set("page_size", String(page_size));
 
     if (query.trim().length > 0) {
       params.set("q", query.trim());
@@ -54,7 +54,7 @@ export function CompanyFormWrapper() {
       if (!parsedResponse.success) {
         toast.error("Resposta inesperada ao carregar empresas.");
         setCompanies([]);
-        setMeta(createEmptyPaginationMeta<CompanyListMeta>(pageSize));
+        setMeta(createEmptyPaginationMeta<CompanyListMeta>(page_size));
         return;
       }
 
@@ -72,13 +72,13 @@ export function CompanyFormWrapper() {
 
       toast.error(parseApiError(error));
       setCompanies([]);
-      setMeta(createEmptyPaginationMeta<CompanyListMeta>(pageSize));
+      setMeta(createEmptyPaginationMeta<CompanyListMeta>(page_size));
     } finally {
       if (currentRequestId === requestIdRef.current) {
         setIsLoading(false);
       }
     }
-  }, [pageIndex, pageSize, query]);
+  }, [pageIndex, page_size, query]);
 
   React.useEffect(() => {
     void loadCompanies();
@@ -115,7 +115,7 @@ export function CompanyFormWrapper() {
 
       <CompanyFilterForm
         searchValue={searchDraft}
-        pageSize={pageSize}
+        page_size={page_size}
         isLoading={isLoading}
         onSearchValueChange={setSearchDraft}
         onPageSizeChange={handlePageSizeChange}
@@ -127,12 +127,13 @@ export function CompanyFormWrapper() {
         data={companies}
         isLoading={isLoading}
         pageIndex={pageIndex}
-        pageSize={pageSize}
-        totalPages={meta.totalPages}
+        page_size={page_size}
+        total_pages={meta.total_pages}
         onPageChange={setPageIndex}
         onViewDetails={handleViewDetails}
       />
     </section>
   );
 }
+
 

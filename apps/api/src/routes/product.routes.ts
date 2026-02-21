@@ -20,7 +20,7 @@ router.get(
   listProductsHandler,
 );
 router.get(
-  '/:productId',
+  '/:product_id',
   authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
   getProductByIdHandler,
 );
@@ -31,14 +31,16 @@ router.post(
   createProductHandler,
 );
 router.patch(
-  '/:productId',
+  '/:product_id',
   authorize(UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
   updateProductHandler,
 );
 router.delete(
-  '/:productId',
+  '/:product_id',
   authorize(UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
   deleteProductHandler,
 );
 
 export default router;
+
+

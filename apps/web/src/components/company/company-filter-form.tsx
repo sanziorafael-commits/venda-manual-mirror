@@ -1,4 +1,4 @@
-﻿import { Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,17 +6,17 @@ import { PAGE_SIZE_OPTIONS } from "@/lib/pagination";
 
 type CompanyFilterFormProps = {
   searchValue: string;
-  pageSize: number;
+  page_size: number;
   isLoading: boolean;
   onSearchValueChange: (value: string) => void;
-  onPageSizeChange: (pageSize: number) => void;
+  onPageSizeChange: (page_size: number) => void;
   onSubmit: () => void;
   onAddCompany: () => void;
 };
 
 export function CompanyFilterForm({
   searchValue,
-  pageSize,
+  page_size,
   isLoading,
   onSearchValueChange,
   onPageSizeChange,
@@ -65,12 +65,12 @@ export function CompanyFilterForm({
         </Button>
 
         <label htmlFor="company-page-size" className="sr-only">
-          Itens por página
+          Itens por p�gina
         </label>
         <select
           id="company-page-size"
           className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-          value={String(pageSize)}
+          value={String(page_size)}
           onChange={(event) => onPageSizeChange(Number(event.target.value))}
           disabled={isLoading}
         >
@@ -84,3 +84,4 @@ export function CompanyFilterForm({
     </div>
   );
 }
+

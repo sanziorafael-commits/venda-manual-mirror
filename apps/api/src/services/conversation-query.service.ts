@@ -26,15 +26,15 @@ type InteractionRowForDate = {
 const EMPTY_WHERE: Prisma.historico_conversasWhereInput = {};
 
 export async function listConversations(actor: AuthActor, input: ConversationListInput) {
-  const pagination = getPagination(input.page, input.pageSize);
-  const scopedCompanyId = resolveScopedCompanyId(actor, input.companyId);
-  const range = parseDateRange(input.startDate, input.endDate);
+  const pagination = getPagination(input.page, input.page_size);
+  const scopedCompanyId = resolveScopedCompanyId(actor, input.company_id);
+  const range = parseDateRange(input.start_date, input.end_date);
   const baseWhere = buildConversationListWhere({
-    companyId: scopedCompanyId,
+    company_id: scopedCompanyId,
     range,
     q: input.q,
-    vendedorNome: input.vendedorNome,
-    vendedorTelefone: input.vendedorTelefone,
+    vendedor_nome: input.vendedor_nome,
+    vendedor_telefone: input.vendedor_telefone,
   });
   const actorScopeWhere = await buildConversationActorScopeWhere(actor, scopedCompanyId);
   const where = combineWhere(baseWhere, actorScopeWhere);
@@ -83,21 +83,21 @@ export async function listConversations(actor: AuthActor, input: ConversationLis
 
       return {
         id: latestRow.id,
-        companyId: group.company_id ?? null,
-        companyName: null,
-        vendedorNome:
+        company_id: group.company_id ?? null,
+        company_name: null,
+        vendedor_nome:
           sanitizeDisplayText(latestRow.vendedor_nome) ??
           sanitizeDisplayText(group.vendedor_nome) ??
           sanitizeDisplayText(latestRow.vendedor_telefone) ??
           'Vendedor sem nome',
-        vendedorTelefone: sanitizeDisplayText(latestRow.vendedor_telefone),
-        totalInteracoes: group._count._all,
-        ultimaInteracaoEm: resolveInteractionDate({
+        vendedor_telefone: sanitizeDisplayText(latestRow.vendedor_telefone),
+        total_interacoes: group._count._all,
+        ultima_interacao_em: resolveInteractionDate({
           timestamp_iso: latestRow.timestamp_iso,
           data: latestRow.data,
           created_at: latestRow.created_at,
         }),
-        primeiraInteracaoEm:
+        primeira_interacao_em:
           group._min.timestamp_iso ?? group._min.created_at ?? latestRow.created_at ?? null,
       };
     }),
@@ -106,7 +106,7 @@ export async function listConversations(actor: AuthActor, input: ConversationLis
   const items = itemsWithoutCompanyName.filter((item): item is ConversationListItem => Boolean(item));
 
   const companyIds = Array.from(
-    new Set(items.map((item) => item.companyId).filter((companyId): companyId is string => Boolean(companyId))),
+    new Set(items.map((item) => item.company_id).filter((company_id): company_id is string => Boolean(company_id))),
   );
   const companies =
     companyIds.length > 0
@@ -127,25 +127,25 @@ export async function listConversations(actor: AuthActor, input: ConversationLis
   return {
     items: items.map((item) => ({
       ...item,
-      companyName: item.companyId ? companyNameById.get(item.companyId) ?? null : null,
+      company_name: item.company_id ? companyNameById.get(item.company_id) ?? null : null,
     })),
     meta: {
       page: pagination.page,
-      pageSize: pagination.pageSize,
+      page_size: pagination.page_size,
       total,
-      totalPages: Math.max(1, Math.ceil(total / pagination.pageSize)),
+      total_pages: Math.max(1, Math.ceil(total / pagination.page_size)),
     },
   };
 }
 
 export async function getConversationById(
   actor: AuthActor,
-  conversationId: string,
+  conversation_id: string,
   input: ConversationDetailInput,
 ) {
   const baseConversation = await prisma.historico_conversas.findFirst({
     where: {
-      id: conversationId,
+      id: conversation_id,
     },
     select: {
       id: true,
@@ -164,11 +164,11 @@ export async function getConversationById(
   }
 
   if (actor.role !== UserRole.ADMIN) {
-    if (!actor.companyId) {
+    if (!actor.company_id) {
       throw forbidden('Usuário não vinculado à empresa');
     }
 
-    if (!baseConversation.company_id || baseConversation.company_id !== actor.companyId) {
+    if (!baseConversation.company_id || baseConversation.company_id !== actor.company_id) {
       throw forbidden('Você não tem acesso a esta conversa');
     }
   }
@@ -181,7 +181,7 @@ export async function getConversationById(
     const scopedConversation = await prisma.historico_conversas.findFirst({
       where: combineWhere(
         {
-          id: conversationId,
+          id: conversation_id,
         },
         actorScopeWhere,
       ),
@@ -195,10 +195,10 @@ export async function getConversationById(
     }
   }
 
-  const vendedorTelefone = sanitizeDisplayText(baseConversation.vendedor_telefone);
-  const vendedorNome = sanitizeDisplayText(baseConversation.vendedor_nome);
+  const vendedor_telefone = sanitizeDisplayText(baseConversation.vendedor_telefone);
+  const vendedor_nome = sanitizeDisplayText(baseConversation.vendedor_nome);
 
-  if (!vendedorTelefone && !vendedorNome) {
+  if (!vendedor_telefone && !vendedor_nome) {
     throw notFound('Não foi possível identificar o vendedor desta conversa');
   }
 
@@ -212,9 +212,9 @@ export async function getConversationById(
     });
   }
 
-  if (vendedorTelefone) {
+  if (vendedor_telefone) {
     sharedWhereFilters.push({
-      vendedor_telefone: normalizePhone(vendedorTelefone),
+      vendedor_telefone: normalizePhone(vendedor_telefone),
     });
   } else if (baseConversation.vendedor_nome) {
     sharedWhereFilters.push({
@@ -277,30 +277,30 @@ export async function getConversationById(
     }
 
     const mappedMessages: ConversationTimelineMessage[] = [];
-    const clienteNome = sanitizeDisplayText(row.cliente_nome);
+    const cliente_nome = sanitizeDisplayText(row.cliente_nome);
     const messageType = sanitizeDisplayText(row.msg_type) ?? 'text';
 
     if (row.mensagem) {
       mappedMessages.push({
         id: `${row.id}:in`,
-        historicoId: row.id,
+        historico_id: row.id,
         sender: 'vendedor',
         text: row.mensagem,
-        messageType,
+        message_type: messageType,
         timestamp,
-        clienteNome,
+        cliente_nome,
       });
     }
 
     if (row.resposta) {
       mappedMessages.push({
         id: `${row.id}:out`,
-        historicoId: row.id,
+        historico_id: row.id,
         sender: 'handsell',
         text: row.resposta,
-        messageType: 'text',
+        message_type: 'text',
         timestamp,
-        clienteNome,
+        cliente_nome,
       });
     }
 
@@ -311,14 +311,14 @@ export async function getConversationById(
 
   return {
     id: baseConversation.id,
-    companyId: baseConversation.company_id ?? null,
-    companyName: company?.name ?? null,
-    vendedorNome: vendedorNome ?? 'Vendedor sem nome',
-    vendedorTelefone: vendedorTelefone ?? null,
-    clienteNome: sanitizeDisplayText(baseConversation.cliente_nome),
-    selectedDate,
-    availableDates,
-    totalMensagens: messages.length,
+    company_id: baseConversation.company_id ?? null,
+    company_name: company?.name ?? null,
+    vendedor_nome: vendedor_nome ?? 'Vendedor sem nome',
+    vendedor_telefone: vendedor_telefone ?? null,
+    cliente_nome: sanitizeDisplayText(baseConversation.cliente_nome),
+    selected_date: selectedDate,
+    available_dates: availableDates,
+    total_mensagens: messages.length,
     mensagens: messages,
   };
 }
@@ -328,22 +328,22 @@ function resolveScopedCompanyId(actor: AuthActor, requestedCompanyId?: string) {
     return requestedCompanyId ?? null;
   }
 
-  if (!actor.companyId) {
+  if (!actor.company_id) {
     throw forbidden('Usuário não vinculado à empresa');
   }
 
-  return actor.companyId;
+  return actor.company_id;
 }
 
 async function buildConversationActorScopeWhere(
   actor: AuthActor,
-  companyId: string | null,
+  company_id: string | null,
 ): Promise<Prisma.historico_conversasWhereInput> {
   if (actor.role === UserRole.ADMIN || actor.role === UserRole.DIRETOR) {
     return EMPTY_WHERE;
   }
 
-  if (!companyId) {
+  if (!company_id) {
     return {
       id: '00000000-0000-0000-0000-000000000000',
     };
@@ -354,9 +354,9 @@ async function buildConversationActorScopeWhere(
       prisma.user.findMany({
         where: {
           role: UserRole.SUPERVISOR,
-          managerId: actor.userId,
-          companyId,
-          deletedAt: null,
+          manager_id: actor.user_id,
+          company_id,
+          deleted_at: null,
         },
         select: {
           id: true,
@@ -366,12 +366,12 @@ async function buildConversationActorScopeWhere(
       prisma.user.findMany({
         where: {
           role: UserRole.VENDEDOR,
-          companyId,
-          deletedAt: null,
+          company_id,
+          deleted_at: null,
           supervisor: {
             is: {
-              managerId: actor.userId,
-              deletedAt: null,
+              manager_id: actor.user_id,
+              deleted_at: null,
             },
           },
         },
@@ -396,9 +396,9 @@ async function buildConversationActorScopeWhere(
     const vendors = await prisma.user.findMany({
       where: {
         role: UserRole.VENDEDOR,
-        companyId,
-        supervisorId: actor.userId,
-        deletedAt: null,
+        company_id,
+        supervisor_id: actor.user_id,
+        deleted_at: null,
       },
       select: {
         id: true,
@@ -461,7 +461,7 @@ function resolveConversationDetailDateRange(input: ConversationDetailInput) {
     return parseDateRange(input.date, input.date);
   }
 
-  return parseDateRange(input.startDate, input.endDate);
+  return parseDateRange(input.start_date, input.end_date);
 }
 
 function resolveSelectedDate(input: ConversationDetailInput) {
@@ -469,25 +469,25 @@ function resolveSelectedDate(input: ConversationDetailInput) {
     return input.date;
   }
 
-  if (input.startDate && input.endDate && input.startDate === input.endDate) {
-    return input.startDate;
+  if (input.start_date && input.end_date && input.start_date === input.end_date) {
+    return input.start_date;
   }
 
   return null;
 }
 
 function buildConversationListWhere(input: {
-  companyId: string | null;
+  company_id: string | null;
   range: DateRange | null;
   q?: string;
-  vendedorNome?: string;
-  vendedorTelefone?: string;
+  vendedor_nome?: string;
+  vendedor_telefone?: string;
 }): Prisma.historico_conversasWhereInput {
   const andFilters: Prisma.historico_conversasWhereInput[] = [];
 
-  if (input.companyId) {
+  if (input.company_id) {
     andFilters.push({
-      company_id: input.companyId,
+      company_id: input.company_id,
     });
   }
 
@@ -495,19 +495,19 @@ function buildConversationListWhere(input: {
     andFilters.push(buildInteractionDateWhere(input.range));
   }
 
-  const vendedorNome = sanitizeDisplayText(input.vendedorNome);
-  if (vendedorNome) {
+  const vendedor_nome = sanitizeDisplayText(input.vendedor_nome);
+  if (vendedor_nome) {
     andFilters.push({
       vendedor_nome: {
-        contains: vendedorNome,
+        contains: vendedor_nome,
         mode: 'insensitive',
       },
     });
   }
 
-  const vendedorTelefone = sanitizeDisplayText(input.vendedorTelefone);
-  if (vendedorTelefone) {
-    const normalizedPhone = normalizePhone(vendedorTelefone);
+  const vendedor_telefone = sanitizeDisplayText(input.vendedor_telefone);
+  if (vendedor_telefone) {
+    const normalizedPhone = normalizePhone(vendedor_telefone);
     if (!normalizedPhone) {
       throw badRequest('Filtro de telefone inválido');
     }
@@ -563,17 +563,17 @@ function buildConversationListWhere(input: {
   };
 }
 
-function parseDateRange(startDate?: string, endDate?: string): DateRange | null {
-  if (!startDate && !endDate) {
+function parseDateRange(start_date?: string, end_date?: string): DateRange | null {
+  if (!start_date && !end_date) {
     return null;
   }
 
-  const startAt = startDate
-    ? new Date(`${startDate}T00:00:00.000Z`)
-    : new Date(`${endDate}T00:00:00.000Z`);
-  const endAt = endDate
-    ? new Date(`${endDate}T23:59:59.999Z`)
-    : new Date(`${startDate}T23:59:59.999Z`);
+  const startAt = start_date
+    ? new Date(`${start_date}T00:00:00.000Z`)
+    : new Date(`${end_date}T00:00:00.000Z`);
+  const endAt = end_date
+    ? new Date(`${end_date}T23:59:59.999Z`)
+    : new Date(`${start_date}T23:59:59.999Z`);
 
   if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
     throw badRequest('Período de data inválido');
@@ -703,3 +703,5 @@ function extractAvailableDates(rows: InteractionRowForDate[]) {
 
   return Array.from(dates).sort((left, right) => right.localeCompare(left));
 }
+
+

@@ -4,32 +4,32 @@ import { prisma } from '../lib/prisma.js';
 import { normalizePhone } from '../utils/normalizers.js';
 
 type ResolveSellerScopeInput = {
-  userId: string | null;
-  companyId: string | null;
-  sellerPhone: string | null;
+  user_id: string | null;
+  company_id: string | null;
+  seller_phone: string | null;
 };
 
 export async function resolveSellerScopeByPhone(input: ResolveSellerScopeInput) {
-  let resolvedUserId = normalizeText(input.userId);
-  let resolvedCompanyId = normalizeText(input.companyId);
-  const normalizedSellerPhone = normalizePhone(input.sellerPhone ?? '');
+  let resolvedUserId = normalizeText(input.user_id);
+  let resolvedCompanyId = normalizeText(input.company_id);
+  const normalizedSellerPhone = normalizePhone(input.seller_phone ?? '');
 
   if (resolvedUserId) {
     const existingUser = await prisma.user.findFirst({
       where: {
         id: resolvedUserId,
-        deletedAt: null,
+        deleted_at: null,
       },
       select: {
         id: true,
-        companyId: true,
+        company_id: true,
       },
     });
 
     if (existingUser) {
       resolvedUserId = existingUser.id;
-      if (!resolvedCompanyId && existingUser.companyId) {
-        resolvedCompanyId = existingUser.companyId;
+      if (!resolvedCompanyId && existingUser.company_id) {
+        resolvedCompanyId = existingUser.company_id;
       }
     } else {
       resolvedUserId = null;
@@ -44,21 +44,21 @@ export async function resolveSellerScopeByPhone(input: ResolveSellerScopeInput) 
             in: [UserRole.VENDEDOR, UserRole.SUPERVISOR],
           },
           phone: normalizedSellerPhone,
-          companyId: resolvedCompanyId,
-          deletedAt: null,
+          company_id: resolvedCompanyId,
+          deleted_at: null,
         },
         select: {
           id: true,
-          companyId: true,
+          company_id: true,
         },
         orderBy: {
-          createdAt: 'desc',
+          created_at: 'desc',
         },
       });
 
       if (user) {
         resolvedUserId = user.id;
-        resolvedCompanyId = user.companyId;
+        resolvedCompanyId = user.company_id;
       }
     } else {
       const users = await prisma.user.findMany({
@@ -67,29 +67,29 @@ export async function resolveSellerScopeByPhone(input: ResolveSellerScopeInput) 
             in: [UserRole.VENDEDOR, UserRole.SUPERVISOR],
           },
           phone: normalizedSellerPhone,
-          deletedAt: null,
+          deleted_at: null,
         },
         select: {
           id: true,
-          companyId: true,
+          company_id: true,
         },
         orderBy: {
-          createdAt: 'desc',
+          created_at: 'desc',
         },
         take: 2,
       });
 
       if (users.length === 1) {
         resolvedUserId = users[0].id;
-        resolvedCompanyId = users[0].companyId;
+        resolvedCompanyId = users[0].company_id;
       }
     }
   }
 
   return {
-    userId: resolvedUserId,
-    companyId: resolvedCompanyId,
-    sellerPhone: normalizedSellerPhone || null,
+    user_id: resolvedUserId,
+    company_id: resolvedCompanyId,
+    seller_phone: normalizedSellerPhone || null,
   };
 }
 
@@ -101,3 +101,5 @@ function normalizeText(value: string | null) {
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
 }
+
+

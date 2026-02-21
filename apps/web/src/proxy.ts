@@ -88,3 +88,4 @@ function isSessionUser(value: unknown): value is SessionUser {
     role === "SUPERVISOR"
   );
 }
+

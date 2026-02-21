@@ -8,14 +8,14 @@ export const metadata = createPageMetadata("Detalhes do Produto");
 
 type DashboardProductDetailsPageProps = {
   params: Promise<{
-    productId: string;
+    product_id: string;
   }>;
 };
 
 export default async function DashboardProductDetailsPage({
   params,
 }: DashboardProductDetailsPageProps) {
-  const { productId } = await params;
+  const { product_id } = await params;
 
   return (
     <div className="flex w-full max-w-7xl flex-col gap-6 p-6">
@@ -38,7 +38,7 @@ export default async function DashboardProductDetailsPage({
         Cadastro de Produtos
       </h2>
 
-      <ProductDetailsWrapper productId={productId} />
+      <ProductDetailsWrapper product_id={product_id} />
     </div>
   );
 }

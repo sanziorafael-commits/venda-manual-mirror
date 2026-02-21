@@ -13,7 +13,7 @@ function buildSupervisorScopedWhere(
   if (context === 'users') {
     return {
       role: UserRole.VENDEDOR,
-      supervisorId: actorUserId,
+      supervisor_id: actorUserId,
     };
   }
 
@@ -25,7 +25,7 @@ function buildSupervisorScopedWhere(
       },
       {
         role: UserRole.VENDEDOR,
-        supervisorId: actorUserId,
+        supervisor_id: actorUserId,
       },
     ],
   };
@@ -36,13 +36,13 @@ function buildManagerScopedWhere(actorUserId: string): Prisma.UserWhereInput {
     OR: [
       {
         role: UserRole.SUPERVISOR,
-        managerId: actorUserId,
+        manager_id: actorUserId,
       },
       {
         role: UserRole.VENDEDOR,
         supervisor: {
           is: {
-            managerId: actorUserId,
+            manager_id: actorUserId,
           },
         },
       },
@@ -63,11 +63,11 @@ export function resolveActorCompanyScope(actor: AuthActor, requestedCompanyId?: 
     return requestedCompanyId ?? null;
   }
 
-  if (!actor.companyId) {
+  if (!actor.company_id) {
     throw forbidden('Usuário não está vinculado a uma empresa');
   }
 
-  return actor.companyId;
+  return actor.company_id;
 }
 
 export function assertActorCompanyScope(actor: AuthActor, targetCompanyId: string | null) {
@@ -75,7 +75,7 @@ export function assertActorCompanyScope(actor: AuthActor, targetCompanyId: strin
     return;
   }
 
-  if (!actor.companyId || actor.companyId !== targetCompanyId) {
+  if (!actor.company_id || actor.company_id !== targetCompanyId) {
     throw forbidden('Você não tem acesso ao escopo desta empresa');
   }
 }
@@ -97,14 +97,16 @@ export function getUserReadScopeWhere(
   }
 
   if (actor.role === UserRole.GERENTE_COMERCIAL) {
-    return buildManagerScopedWhere(actor.userId);
+    return buildManagerScopedWhere(actor.user_id);
   }
 
   if (actor.role === UserRole.SUPERVISOR) {
-    return buildSupervisorScopedWhere(context, actor.userId);
+    return buildSupervisorScopedWhere(context, actor.user_id);
   }
 
   return {
     id: '__forbidden__',
   };
 }
+
+

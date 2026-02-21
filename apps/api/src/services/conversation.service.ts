@@ -1,26 +1,27 @@
 import { prisma } from '../lib/prisma.js';
 import type { ConversationWebhookMessageInput } from '../schemas/conversation.schema.js';
 import { normalizePhone } from '../utils/normalizers.js';
+import { createUuidV7 } from '../utils/uuid.js';
 
 import { resolveSellerScopeByPhone } from './seller-scope-resolver.service.js';
 
 type NormalizedConversationWebhookInput = {
-  timestampIso: Date | null;
-  senderId: string | null;
+  timestamp_iso: Date | null;
+  sender_id: string | null;
   date: Date | null;
-  msgType: string | null;
-  flowName: string | null;
-  executionId: string | null;
-  messageId: string | null;
+  msg_type: string | null;
+  flow_name: string | null;
+  execution_id: string | null;
+  message_id: string | null;
   mensagem: string | null;
   resposta: string | null;
-  vendedorNome: string | null;
-  vendedorTelefone: string | null;
+  vendedor_nome: string | null;
+  vendedor_telefone: string | null;
   supervisor: string | null;
-  clienteNome: string | null;
-  leadsEncontrados: string | null;
-  companyId: string | null;
-  userId: string | null;
+  cliente_nome: string | null;
+  leads_encontrados: string | null;
+  company_id: string | null;
+  user_id: string | null;
   source: string | null;
 };
 
@@ -69,18 +70,18 @@ const STOPWORDS = new Set([
 
 export async function ingestConversationWebhookMessages(messages: ConversationWebhookMessageInput[]) {
   let inserted = 0;
-  let linkedProducts = 0;
+  let linked_products = 0;
   const productMatcherCache = new Map<string, ProductMatcherEntry[]>();
 
   for (const message of messages) {
     const result = await ingestConversationWebhookMessage(message, productMatcherCache);
     inserted += 1;
-    linkedProducts += result.linkedProducts;
+    linked_products += result.linked_products;
   }
 
   return {
     inserted,
-    linkedProducts,
+    linked_products,
   };
 }
 
@@ -90,29 +91,30 @@ async function ingestConversationWebhookMessage(
 ) {
   const normalized = normalizeConversationWebhookMessage(message);
   const resolvedScope = await resolveSellerScopeByPhone({
-    userId: normalized.userId,
-    companyId: normalized.companyId,
-    sellerPhone: normalized.vendedorTelefone,
+    user_id: normalized.user_id,
+    company_id: normalized.company_id,
+    seller_phone: normalized.vendedor_telefone,
   });
 
   const record = await prisma.historico_conversas.create({
     data: {
-      timestamp_iso: normalized.timestampIso ?? undefined,
-      sender_id: normalized.senderId ?? undefined,
+      id: createUuidV7(),
+      timestamp_iso: normalized.timestamp_iso ?? undefined,
+      sender_id: normalized.sender_id ?? undefined,
       data: normalized.date ?? undefined,
-      msg_type: normalized.msgType ?? undefined,
-      flow_name: normalized.flowName ?? undefined,
-      execution_id: normalized.executionId ?? undefined,
-      message_id: normalized.messageId ?? undefined,
+      msg_type: normalized.msg_type ?? undefined,
+      flow_name: normalized.flow_name ?? undefined,
+      execution_id: normalized.execution_id ?? undefined,
+      message_id: normalized.message_id ?? undefined,
       mensagem: normalized.mensagem ?? undefined,
       resposta: normalized.resposta ?? undefined,
-      vendedor_nome: normalized.vendedorNome ?? undefined,
-      vendedor_telefone: normalized.vendedorTelefone ?? undefined,
+      vendedor_nome: normalized.vendedor_nome ?? undefined,
+      vendedor_telefone: normalized.vendedor_telefone ?? undefined,
       supervisor: normalized.supervisor ?? undefined,
-      cliente_nome: normalized.clienteNome ?? undefined,
-      leads_encontrados: normalized.leadsEncontrados ?? undefined,
-      user_id: resolvedScope.userId ?? undefined,
-      company_id: resolvedScope.companyId ?? undefined,
+      cliente_nome: normalized.cliente_nome ?? undefined,
+      leads_encontrados: normalized.leads_encontrados ?? undefined,
+      user_id: resolvedScope.user_id ?? undefined,
+      company_id: resolvedScope.company_id ?? undefined,
     },
     select: {
       id: true,
@@ -122,37 +124,37 @@ async function ingestConversationWebhookMessage(
   });
 
   const detectedMentions = await detectMentionedProductsFromText({
-    messageText: normalized.mensagem,
-    responseText: normalized.resposta,
-    companyId: resolvedScope.companyId,
+    message_text: normalized.mensagem,
+    response_text: normalized.resposta,
+    company_id: resolvedScope.company_id,
     productMatcherCache,
   });
 
   const linkedProducts = await linkMentionedProducts({
     historicoId: record.id,
     mentions: detectedMentions,
-    companyId: resolvedScope.companyId,
+    company_id: resolvedScope.company_id,
     citedAt: record.timestamp_iso ?? record.created_at ?? new Date(),
     sourcePrefix: normalized.source ?? 'auto_text_v1',
   });
 
   return {
     id: record.id,
-    linkedProducts,
+    linked_products: linkedProducts,
   };
 }
 
 async function detectMentionedProductsFromText(input: {
-  messageText: string | null;
-  responseText: string | null;
-  companyId: string | null;
+  message_text: string | null;
+  response_text: string | null;
+  company_id: string | null;
   productMatcherCache: Map<string, ProductMatcherEntry[]>;
 }) {
-  if (!input.companyId) {
+  if (!input.company_id) {
     return [] as DetectedProductMention[];
   }
 
-  const fullText = [input.messageText, input.responseText].filter(Boolean).join('\n');
+  const fullText = [input.message_text, input.response_text].filter(Boolean).join('\n');
   const normalizedText = normalizeForMatching(fullText);
   if (!normalizedText) {
     return [] as DetectedProductMention[];
@@ -165,7 +167,7 @@ async function detectMentionedProductsFromText(input: {
   }
 
   const productEntries = await getCompanyProductMatcherEntries(
-    input.companyId,
+    input.company_id,
     input.productMatcherCache,
   );
 
@@ -206,17 +208,17 @@ async function detectMentionedProductsFromText(input: {
 }
 
 async function getCompanyProductMatcherEntries(
-  companyId: string,
+  company_id: string,
   cache: Map<string, ProductMatcherEntry[]>,
 ) {
-  const cached = cache.get(companyId);
+  const cached = cache.get(company_id);
   if (cached) {
     return cached;
   }
 
   const products = await prisma.produtos.findMany({
     where: {
-      company_id: companyId,
+      company_id: company_id,
       deleted_at: null,
     },
     select: {
@@ -240,7 +242,7 @@ async function getCompanyProductMatcherEntries(
     };
   });
 
-  cache.set(companyId, entries);
+  cache.set(company_id, entries);
   return entries;
 }
 
@@ -358,7 +360,7 @@ function levenshteinDistance(left: string, right: string) {
 async function linkMentionedProducts(input: {
   historicoId: string;
   mentions: DetectedProductMention[];
-  companyId: string | null;
+  company_id: string | null;
   citedAt: Date;
   sourcePrefix: string;
 }) {
@@ -367,9 +369,10 @@ async function linkMentionedProducts(input: {
   }
 
   const rows = input.mentions.map((mention) => ({
+    id: createUuidV7(),
     historico_id: input.historicoId,
     produto_id: mention.productId,
-    company_id: input.companyId,
+    company_id: input.company_id,
     cited_at: input.citedAt,
     source: `${input.sourcePrefix}:${mention.method}:${mention.score.toFixed(2)}`,
   }));
@@ -385,27 +388,27 @@ async function linkMentionedProducts(input: {
 function normalizeConversationWebhookMessage(
   message: ConversationWebhookMessageInput,
 ): NormalizedConversationWebhookInput {
-  const timestampIso = parseDateTime(message.timestamp_iso ?? message.timestampIso ?? null);
+  const timestamp_iso = parseDateTime(message.timestamp_iso ?? null);
   const date = parseDateTime(message.data ?? null);
-  const vendedorTelefone = normalizePhone(message.vendedor_telefone ?? message.vendedorTelefone ?? '');
+  const vendedor_telefone = normalizePhone(message.vendedor_telefone ?? '');
 
   return {
-    timestampIso,
-    senderId: normalizeText(message.sender_id ?? message.senderId ?? null),
+    timestamp_iso,
+    sender_id: normalizeText(message.sender_id ?? null),
     date,
-    msgType: normalizeText(message.msg_type ?? message.msgType ?? null),
-    flowName: normalizeText(message.flow_name ?? message.flowName ?? null),
-    executionId: normalizeText(message.execution_id ?? message.executionId ?? null),
-    messageId: normalizeText(message.message_id ?? message.messageId ?? null),
+    msg_type: normalizeText(message.msg_type ?? null),
+    flow_name: normalizeText(message.flow_name ?? null),
+    execution_id: normalizeText(message.execution_id ?? null),
+    message_id: normalizeText(message.message_id ?? null),
     mensagem: normalizeText(message.mensagem ?? null),
     resposta: normalizeText(message.resposta ?? null),
-    vendedorNome: normalizeText(message.vendedor_nome ?? message.vendedorNome ?? null),
-    vendedorTelefone: vendedorTelefone || null,
+    vendedor_nome: normalizeText(message.vendedor_nome ?? null),
+    vendedor_telefone: vendedor_telefone || null,
     supervisor: normalizeText(message.supervisor ?? null),
-    clienteNome: normalizeText(message.cliente_nome ?? message.clienteNome ?? null),
-    leadsEncontrados: normalizeText(message.leads_encontrados ?? message.leadsEncontrados ?? null),
-    companyId: normalizeText(message.company_id ?? message.companyId ?? null),
-    userId: normalizeText(message.user_id ?? message.userId ?? null),
+    cliente_nome: normalizeText(message.cliente_nome ?? null),
+    leads_encontrados: normalizeText(message.leads_encontrados ?? null),
+    company_id: normalizeText(message.company_id ?? null),
+    user_id: normalizeText(message.user_id ?? null),
     source: normalizeText(message.source ?? null),
   };
 }
@@ -484,3 +487,5 @@ function extractMeaningfulTokens(normalizedValue: string) {
     .map((token) => token.trim())
     .filter((token) => token.length >= 3 && !STOPWORDS.has(token));
 }
+
+

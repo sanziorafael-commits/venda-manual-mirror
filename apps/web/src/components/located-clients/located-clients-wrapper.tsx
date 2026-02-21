@@ -41,7 +41,7 @@ export function LocatedClientsWrapper() {
 
   const selectedCompanyId = React.useMemo(() => {
     if (!isAdmin) {
-      return authUser?.companyId ?? null;
+      return authUser?.company_id ?? null;
     }
 
     if (
@@ -52,7 +52,7 @@ export function LocatedClientsWrapper() {
     }
 
     return selectedCompanyContext;
-  }, [authUser?.companyId, isAdmin, selectedCompanyContext]);
+  }, [authUser?.company_id, isAdmin, selectedCompanyContext]);
 
   const [searchDraft, setSearchDraft] = React.useState("");
   const [query, setQuery] = React.useState("");
@@ -60,7 +60,7 @@ export function LocatedClientsWrapper() {
     undefined,
   );
   const [pageIndex, setPageIndex] = React.useState(0);
-  const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
+  const [page_size, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
   const [isLoadingLocatedClients, setIsLoadingLocatedClients] =
     React.useState(true);
   const [locatedClients, setLocatedClients] = React.useState<
@@ -72,7 +72,7 @@ export function LocatedClientsWrapper() {
 
   const requestRef = React.useRef(0);
 
-  const startDate = React.useMemo(() => {
+  const start_date = React.useMemo(() => {
     if (!dateRange?.from) {
       return null;
     }
@@ -80,7 +80,7 @@ export function LocatedClientsWrapper() {
     return format(dateRange.from, "yyyy-MM-dd");
   }, [dateRange?.from]);
 
-  const endDate = React.useMemo(() => {
+  const end_date = React.useMemo(() => {
     const endSource = dateRange?.to ?? dateRange?.from;
     if (!endSource) {
       return null;
@@ -96,29 +96,29 @@ export function LocatedClientsWrapper() {
 
     if (isAdmin && !selectedCompanyId) {
       setLocatedClients([]);
-      setMeta(createEmptyPaginationMeta<LocatedClientListMeta>(pageSize));
+      setMeta(createEmptyPaginationMeta<LocatedClientListMeta>(page_size));
       setIsLoadingLocatedClients(false);
       return;
     }
 
     const params = new URLSearchParams();
     params.set("page", String(pageIndex + 1));
-    params.set("pageSize", String(pageSize));
+    params.set("page_size", String(page_size));
 
     if (query.trim().length > 0) {
       params.set("seller", query.trim());
     }
 
-    if (startDate) {
-      params.set("startDate", startDate);
+    if (start_date) {
+      params.set("start_date", start_date);
     }
 
-    if (endDate) {
-      params.set("endDate", endDate);
+    if (end_date) {
+      params.set("end_date", end_date);
     }
 
     if (isAdmin && selectedCompanyId) {
-      params.set("companyId", selectedCompanyId);
+      params.set("company_id", selectedCompanyId);
     }
 
     const currentRequestId = ++requestRef.current;
@@ -136,7 +136,7 @@ export function LocatedClientsWrapper() {
       if (!parsed.success) {
         toast.error("Resposta inesperada ao carregar clientes localizados.");
         setLocatedClients([]);
-        setMeta(createEmptyPaginationMeta<LocatedClientListMeta>(pageSize));
+        setMeta(createEmptyPaginationMeta<LocatedClientListMeta>(page_size));
         return;
       }
 
@@ -154,7 +154,7 @@ export function LocatedClientsWrapper() {
 
       toast.error(parseApiError(error));
       setLocatedClients([]);
-      setMeta(createEmptyPaginationMeta<LocatedClientListMeta>(pageSize));
+      setMeta(createEmptyPaginationMeta<LocatedClientListMeta>(page_size));
     } finally {
       if (currentRequestId === requestRef.current) {
         setIsLoadingLocatedClients(false);
@@ -162,13 +162,13 @@ export function LocatedClientsWrapper() {
     }
   }, [
     authHydrated,
-    endDate,
+    end_date,
     isAdmin,
     pageIndex,
-    pageSize,
+    page_size,
     query,
     selectedCompanyId,
-    startDate,
+    start_date,
   ]);
 
   React.useEffect(() => {
@@ -218,7 +218,7 @@ export function LocatedClientsWrapper() {
       }
 
       const confirmed = window.confirm(
-        `Confirma a exclusao do cliente "${item.customerName}"?`,
+        `Confirma a exclusao do cliente "${item.customer_name}"?`,
       );
       if (!confirmed) {
         return;
@@ -297,7 +297,7 @@ export function LocatedClientsWrapper() {
             Itens
             <select
               className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] xl:w-auto"
-              value={String(pageSize)}
+              value={String(page_size)}
               onChange={(event) =>
                 handlePageSizeChange(Number(event.target.value))
               }
@@ -340,7 +340,7 @@ export function LocatedClientsWrapper() {
               <tbody>
                 {isLoadingLocatedClients
                   ? Array.from(
-                      { length: Math.max(4, Math.min(pageSize, 8)) },
+                      { length: Math.max(4, Math.min(page_size, 8)) },
                       (_, rowIndex) => (
                         <tr key={`loading-${rowIndex}`} className="border-t">
                           {Array.from(
@@ -360,23 +360,23 @@ export function LocatedClientsWrapper() {
                   : locatedClients.map((item) => (
                       <tr key={item.id} className="border-t">
                         <td className="px-4 py-4">
-                          <p className="font-medium">
-                            {item.identifiedByUserName ??
+                            <p className="font-medium">
+                            {item.identified_by_user_name ??
                               "Vendedor nao identificado"}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {formatPhoneDisplay(item.sourceSellerPhone)}
+                            {formatPhoneDisplay(item.source_seller_phone)}
                           </p>
                         </td>
-                        <td className="px-4 py-4">{item.customerName}</td>
+                        <td className="px-4 py-4">{item.customer_name}</td>
                         <td className="px-4 py-4">{item.city}</td>
                         <td className="px-4 py-4">{item.state}</td>
                         <td className="px-4 py-4">{item.address}</td>
                         <td className="px-4 py-4">
-                          {formatDate(item.identifiedAt)}
+                          {formatDate(item.identified_at)}
                         </td>
                         <td className="px-4 py-4">
-                          {item.mapUrl ? (
+                          {item.map_url ? (
                             <Button
                               type="button"
                               variant="outline"
@@ -384,7 +384,7 @@ export function LocatedClientsWrapper() {
                               className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
                               onClick={() =>
                                 window.open(
-                                  item.mapUrl ?? "",
+                                  item.map_url ?? "",
                                   "_blank",
                                   "noopener,noreferrer",
                                 )
@@ -407,8 +407,8 @@ export function LocatedClientsWrapper() {
                                 className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                                 onClick={() => void handleDelete(item)}
                                 disabled={isLoadingLocatedClients}
-                                title={`Excluir cliente ${item.customerName}`}
-                                aria-label={`Excluir cliente ${item.customerName}`}
+                                title={`Excluir cliente ${item.customer_name}`}
+                                aria-label={`Excluir cliente ${item.customer_name}`}
                               >
                                 <Trash2 className="size-4" />
                               </Button>
@@ -436,7 +436,7 @@ export function LocatedClientsWrapper() {
 
       <PaginationControls
         pageIndex={pageIndex}
-        totalPages={meta.totalPages}
+        total_pages={meta.total_pages}
         isLoading={isLoadingLocatedClients}
         onPageChange={setPageIndex}
       />
@@ -456,4 +456,5 @@ function formatDate(value: string) {
     year: "numeric",
   });
 }
+
 

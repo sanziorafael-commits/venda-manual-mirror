@@ -15,17 +15,17 @@ export const dashboardTeamSummarySchema = z.object({
 
 export const dashboardFilterOptionsSchema = z.object({
   role: z.enum(["ADMIN", "DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR"]),
-  periodOptions: z.array(dashboardOptionSchema),
-  scopeOptions: z.array(dashboardOptionSchema),
-  viewByOptions: z.array(dashboardOptionSchema),
-  companyOptions: z.array(dashboardOptionSchema),
+  period_options: z.array(dashboardOptionSchema),
+  scope_options: z.array(dashboardOptionSchema),
+  view_by_options: z.array(dashboardOptionSchema),
+  company_options: z.array(dashboardOptionSchema),
   defaults: z.object({
     period: dashboardPeriodSchema,
     scope: dashboardScopeSchema,
-    viewBy: z.enum(["vendedor", "supervisor"]),
-    companyId: z.string().nullable(),
+    view_by: z.enum(["vendedor", "supervisor"]),
+    company_id: z.string().nullable(),
   }),
-  teamSummary: dashboardTeamSummarySchema,
+  team_summary: dashboardTeamSummarySchema,
 });
 
 export const dashboardFilterOptionsApiResponseSchema = z.object({
@@ -33,75 +33,75 @@ export const dashboardFilterOptionsApiResponseSchema = z.object({
 });
 
 export const dashboardRankingItemSchema = z.object({
-  userName: z.string().min(1),
-  userPhone: z.string().nullable(),
+  user_name: z.string().min(1),
+  user_phone: z.string().nullable(),
   interactions: z.number().int().nonnegative(),
 });
 
 export const dashboardProductRankingItemSchema = z.object({
-  productId: z.string().min(1),
-  productName: z.string().min(1),
+  product_id: z.string().min(1),
+  product_name: z.string().min(1),
   citations: z.number().int().nonnegative(),
 });
 
 export const dashboardOverviewSchema = z.object({
   period: dashboardPeriodSchema,
   scope: dashboardScopeSchema,
-  viewBy: z.enum(["vendedor", "supervisor"]),
-  startAt: z.string(),
-  endAt: z.string(),
+  view_by: z.enum(["vendedor", "supervisor"]),
+  start_at: z.string(),
+  end_at: z.string(),
   company: z
     .object({
       id: z.string().min(1),
       name: z.string().min(1),
     })
     .nullable(),
-  totalInteractions: z.number().int().nonnegative(),
-  adoptionRate: z.object({
-    entityType: z.string().min(1),
-    activeEntities: z.number().int().nonnegative(),
-    activeVendors: z.number().int().nonnegative(),
-    activeWithInteractions: z.number().int().nonnegative(),
-    ratePercent: z.number().int().nonnegative(),
+  total_interactions: z.number().int().nonnegative(),
+  adoption_rate: z.object({
+    entity_type: z.string().min(1),
+    active_entities: z.number().int().nonnegative(),
+    active_vendors: z.number().int().nonnegative(),
+    active_with_interactions: z.number().int().nonnegative(),
+    rate_percent: z.number().int().nonnegative(),
   }),
-  adoptionRateByScope: z.object({
+  adoption_rate_by_scope: z.object({
     vendors: z.object({
-      activeEntities: z.number().int().nonnegative(),
-      activeWithInteractions: z.number().int().nonnegative(),
-      ratePercent: z.number().int().nonnegative(),
+      active_entities: z.number().int().nonnegative(),
+      active_with_interactions: z.number().int().nonnegative(),
+      rate_percent: z.number().int().nonnegative(),
     }),
     supervisors: z
       .object({
-        activeEntities: z.number().int().nonnegative(),
-        activeWithInteractions: z.number().int().nonnegative(),
-        ratePercent: z.number().int().nonnegative(),
+        active_entities: z.number().int().nonnegative(),
+        active_with_interactions: z.number().int().nonnegative(),
+        rate_percent: z.number().int().nonnegative(),
       })
       .nullable(),
   }),
-  vendorRanking: z.object({
-    highestVolume: z.array(dashboardRankingItemSchema),
-    lowestVolume: z.array(dashboardRankingItemSchema),
+  vendor_ranking: z.object({
+    highest_volume: z.array(dashboardRankingItemSchema),
+    lowest_volume: z.array(dashboardRankingItemSchema),
   }),
-  userRanking: z.object({
-    highestVolume: z.array(dashboardRankingItemSchema),
-    lowestVolume: z.array(dashboardRankingItemSchema),
+  user_ranking: z.object({
+    highest_volume: z.array(dashboardRankingItemSchema),
+    lowest_volume: z.array(dashboardRankingItemSchema),
   }),
-  rankingsByScope: z.object({
+  rankings_by_scope: z.object({
     vendors: z.object({
-      highestVolume: z.array(dashboardRankingItemSchema),
-      lowestVolume: z.array(dashboardRankingItemSchema),
+      highest_volume: z.array(dashboardRankingItemSchema),
+      lowest_volume: z.array(dashboardRankingItemSchema),
     }),
     supervisors: z
       .object({
-        highestVolume: z.array(dashboardRankingItemSchema),
-        lowestVolume: z.array(dashboardRankingItemSchema),
+        highest_volume: z.array(dashboardRankingItemSchema),
+        lowest_volume: z.array(dashboardRankingItemSchema),
       })
       .nullable(),
   }),
-  newLocatedClients: z.number().int().nonnegative(),
-  productRanking: z.object({
-    mostCited: z.array(dashboardProductRankingItemSchema),
-    leastCited: z.array(dashboardProductRankingItemSchema),
+  new_located_clients: z.number().int().nonnegative(),
+  product_ranking: z.object({
+    most_cited: z.array(dashboardProductRankingItemSchema),
+    least_cited: z.array(dashboardProductRankingItemSchema),
   }),
 });
 
@@ -110,7 +110,7 @@ export const dashboardOverviewApiResponseSchema = z.object({
 });
 
 export const dashboardSeriesPointSchema = z.object({
-  bucketStart: z.string(),
+  bucket_start: z.string(),
   label: z.string().min(1),
   interactions: z.number().int().nonnegative(),
 });
@@ -118,12 +118,12 @@ export const dashboardSeriesPointSchema = z.object({
 export const dashboardSeriesSchema = z.object({
   period: dashboardPeriodSchema,
   scope: dashboardScopeSchema,
-  viewBy: z.enum(["vendedor", "supervisor"]),
+  view_by: z.enum(["vendedor", "supervisor"]),
   granularity: z.enum(["hour", "day", "month"]),
-  startAt: z.string(),
-  endAt: z.string(),
-  companyId: z.string().nullable(),
-  totalInteractions: z.number().int().nonnegative(),
+  start_at: z.string(),
+  end_at: z.string(),
+  company_id: z.string().nullable(),
+  total_interactions: z.number().int().nonnegative(),
   points: z.array(dashboardSeriesPointSchema),
 });
 
@@ -136,3 +136,4 @@ export type DashboardPeriod = z.infer<typeof dashboardPeriodSchema>;
 export type DashboardFilterOptions = z.infer<typeof dashboardFilterOptionsSchema>;
 export type DashboardOverview = z.infer<typeof dashboardOverviewSchema>;
 export type DashboardSeries = z.infer<typeof dashboardSeriesSchema>;
+

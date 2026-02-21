@@ -9,26 +9,27 @@ import { badRequest, forbidden, notFound } from '../utils/app-error.js';
 import { sha256 } from '../utils/hash.js';
 import { ttlToDate } from '../utils/time.js';
 import { canManageRole, isInvitableRole } from '../utils/user-role-policy.js';
+import { createUuidV7 } from '../utils/uuid.js';
 
 import { sendActivationInviteEmail } from './email.service.js';
 
 export type ActivationInviteResult = {
-  userId: string;
+  user_id: string;
   email: string;
-  expiresAt: Date;
-  activationToken?: string;
+  expires_at: Date;
+  activation_token?: string;
 };
 
-export async function createActivationInviteForUser(userId: string) {
+export async function createActivationInviteForUser(user_id: string) {
   const user = await prisma.user.findFirst({
     where: {
-      id: userId,
-      deletedAt: null,
+      id: user_id,
+      deleted_at: null,
     },
     select: {
       id: true,
       role: true,
-      fullName: true,
+      full_name: true,
       email: true,
       passwordHash: true,
     },
@@ -48,7 +49,7 @@ export async function createActivationInviteForUser(userId: string) {
   await prisma.$transaction([
     prisma.accountActivationToken.updateMany({
       where: {
-        userId: user.id,
+        user_id: user.id,
         usedAt: null,
       },
       data: {
@@ -57,7 +58,8 @@ export async function createActivationInviteForUser(userId: string) {
     }),
     prisma.accountActivationToken.create({
       data: {
-        userId: user.id,
+        id: createUuidV7(),
+        user_id: user.id,
         tokenHash,
         expiresAt,
       },
@@ -66,29 +68,29 @@ export async function createActivationInviteForUser(userId: string) {
 
   await sendActivationInviteEmail({
     to: user.email!,
-    fullName: user.fullName,
+    full_name: user.full_name,
     token,
   });
 
   return {
-    userId: user.id,
+    user_id: user.id,
     email: user.email!,
-    expiresAt,
-    activationToken: env.NODE_ENV === 'production' ? undefined : token,
+    expires_at: expiresAt,
+    activation_token: env.NODE_ENV === 'production' ? undefined : token,
   } satisfies ActivationInviteResult;
 }
 
-export async function resendActivationInvite(actor: AuthActor, userId: string) {
+export async function resendActivationInvite(actor: AuthActor, user_id: string) {
   const user = await prisma.user.findFirst({
     where: {
-      id: userId,
-      deletedAt: null,
+      id: user_id,
+      deleted_at: null,
     },
     select: {
       id: true,
-      companyId: true,
+      company_id: true,
       role: true,
-      managerId: true,
+      manager_id: true,
       email: true,
       passwordHash: true,
     },
@@ -127,7 +129,7 @@ export async function activateAccountWithToken(token: string, passwordHash: stri
     }
 
     const user = activationToken.user;
-    if (user.deletedAt || !user.isActive) {
+    if (user.deleted_at || !user.is_active) {
       throw forbidden('Conta inativa');
     }
 
@@ -139,11 +141,11 @@ export async function activateAccountWithToken(token: string, passwordHash: stri
       throw badRequest('A conta já está ativa');
     }
 
-    if (user.role !== UserRole.ADMIN && user.companyId) {
+    if (user.role !== UserRole.ADMIN && user.company_id) {
       const company = await tx.company.findFirst({
         where: {
-          id: user.companyId,
-          deletedAt: null,
+          id: user.company_id,
+          deleted_at: null,
         },
         select: {
           id: true,
@@ -175,8 +177,8 @@ export async function activateAccountWithToken(token: string, passwordHash: stri
     const updated = await tx.user.updateMany({
       where: {
         id: user.id,
-        deletedAt: null,
-        isActive: true,
+        deleted_at: null,
+        is_active: true,
         passwordHash: null,
       },
       data: {
@@ -190,7 +192,7 @@ export async function activateAccountWithToken(token: string, passwordHash: stri
 
     await tx.accountActivationToken.updateMany({
       where: {
-        userId: user.id,
+        user_id: user.id,
         usedAt: null,
       },
       data: {
@@ -211,16 +213,16 @@ export async function activateAccountWithToken(token: string, passwordHash: stri
 function assertResendScope(
   actor: AuthActor,
   target: {
-    companyId: string | null;
+    company_id: string | null;
     role: UserRole;
-    managerId: string | null;
+    manager_id: string | null;
   },
 ) {
   if (actor.role === UserRole.ADMIN) {
     return;
   }
 
-  if (!actor.companyId || actor.companyId !== target.companyId) {
+  if (!actor.company_id || actor.company_id !== target.company_id) {
     throw forbidden('Você não tem acesso ao escopo desta empresa');
   }
 
@@ -229,7 +231,7 @@ function assertResendScope(
   }
 
   if (actor.role === UserRole.GERENTE_COMERCIAL && target.role === UserRole.SUPERVISOR) {
-    if (target.managerId !== actor.userId) {
+    if (target.manager_id !== actor.user_id) {
       throw forbidden('Você não tem permissão para reenviar convite deste supervisor');
     }
   }
@@ -252,3 +254,5 @@ function assertUserCanReceiveActivationInvite(
     throw badRequest('O usuário já possui senha');
   }
 }
+
+

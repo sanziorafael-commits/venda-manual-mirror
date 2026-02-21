@@ -15,6 +15,7 @@ import {
   getUserReadScopeWhere,
   resolveActorCompanyScope,
 } from '../utils/rbac-scope-policy.js';
+import { createUuidV7 } from '../utils/uuid.js';
 
 import { resolveSellerScopeByPhone } from './seller-scope-resolver.service.js';
 
@@ -32,13 +33,13 @@ type LocatedClientActorScope = {
 const EMPTY_WHERE: Prisma.LocatedClientWhereInput = {};
 
 export async function listLocatedClients(actor: AuthActor, input: LocatedClientListInput) {
-  const pagination = getPagination(input.page, input.pageSize);
-  const companyId = resolveActorCompanyScope(actor, input.companyId);
-  const actorScope = await buildActorScope(actor, companyId);
-  const range = parseDateRange(input.startDate, input.endDate);
+  const pagination = getPagination(input.page, input.page_size);
+  const company_id = resolveActorCompanyScope(actor, input.company_id);
+  const actorScope = await buildActorScope(actor, company_id);
+  const range = parseDateRange(input.start_date, input.end_date);
   const where = buildListWhere({
     actorScope,
-    companyId,
+    company_id,
     range,
     seller: input.seller,
     status: input.status,
@@ -49,7 +50,7 @@ export async function listLocatedClients(actor: AuthActor, input: LocatedClientL
       where,
       skip: pagination.skip,
       take: pagination.take,
-      orderBy: [{ identifiedAt: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [{ identified_at: 'desc' }, { created_at: 'desc' }],
       include: {
         company: {
           select: {
@@ -60,13 +61,13 @@ export async function listLocatedClients(actor: AuthActor, input: LocatedClientL
         identifiedByUser: {
           select: {
             id: true,
-            fullName: true,
+            full_name: true,
           },
         },
         visitedByUser: {
           select: {
             id: true,
-            fullName: true,
+            full_name: true,
           },
         },
       },
@@ -78,9 +79,9 @@ export async function listLocatedClients(actor: AuthActor, input: LocatedClientL
     items: items.map(mapLocatedClient),
     meta: {
       page: pagination.page,
-      pageSize: pagination.pageSize,
+      page_size: pagination.page_size,
       total,
-      totalPages: Math.max(1, Math.ceil(total / pagination.pageSize)),
+      total_pages: Math.max(1, Math.ceil(total / pagination.page_size)),
     },
   };
 }
@@ -89,7 +90,7 @@ export async function getLocatedClientById(actor: AuthActor, locatedClientId: st
   const locatedClient = await prisma.locatedClient.findFirst({
     where: {
       id: locatedClientId,
-      deletedAt: null,
+      deleted_at: null,
     },
     include: {
       company: {
@@ -101,13 +102,13 @@ export async function getLocatedClientById(actor: AuthActor, locatedClientId: st
       identifiedByUser: {
         select: {
           id: true,
-          fullName: true,
+          full_name: true,
         },
       },
       visitedByUser: {
         select: {
           id: true,
-          fullName: true,
+          full_name: true,
         },
       },
     },
@@ -131,7 +132,7 @@ export async function updateLocatedClientStatus(
   const existing = await prisma.locatedClient.findFirst({
     where: {
       id: locatedClientId,
-      deletedAt: null,
+      deleted_at: null,
     },
   });
 
@@ -148,8 +149,8 @@ export async function updateLocatedClientStatus(
     },
     data: {
       status: input.status,
-      visitedAt: isVisited ? new Date() : null,
-      visitedByUserId: isVisited ? actor.userId : null,
+      visited_at: isVisited ? new Date() : null,
+      visited_by_user_id: isVisited ? actor.user_id : null,
     },
     include: {
       company: {
@@ -161,13 +162,13 @@ export async function updateLocatedClientStatus(
       identifiedByUser: {
         select: {
           id: true,
-          fullName: true,
+          full_name: true,
         },
       },
       visitedByUser: {
         select: {
           id: true,
-          fullName: true,
+          full_name: true,
         },
       },
     },
@@ -182,7 +183,7 @@ export async function deleteLocatedClient(actor: AuthActor, locatedClientId: str
   const existing = await prisma.locatedClient.findFirst({
     where: {
       id: locatedClientId,
-      deletedAt: null,
+      deleted_at: null,
     },
   });
 
@@ -197,68 +198,69 @@ export async function deleteLocatedClient(actor: AuthActor, locatedClientId: str
       id: locatedClientId,
     },
     data: {
-      deletedAt: new Date(),
+      deleted_at: new Date(),
     },
   });
 }
 
 export async function ingestLocatedClientWebhookMessages(messages: LocatedClientWebhookMessageInput[]) {
   let inserted = 0;
-  let linkedUsers = 0;
+  let linked_users = 0;
 
   for (const message of messages) {
     const normalized = normalizeLocatedClientWebhookMessage(message);
     const resolvedScope = await resolveSellerScopeByPhone({
-      userId: normalized.userId,
-      companyId: normalized.companyId,
-      sellerPhone: normalized.sellerPhone,
+      user_id: normalized.user_id,
+      company_id: normalized.company_id,
+      seller_phone: normalized.seller_phone,
     });
 
     await prisma.locatedClient.create({
       data: {
-        companyId: resolvedScope.companyId ?? undefined,
-        identifiedByUserId: resolvedScope.userId ?? undefined,
-        sourceSellerPhone: resolvedScope.sellerPhone ?? normalized.sellerPhone,
-        customerName: normalized.customerName,
+        id: createUuidV7(),
+        company_id: resolvedScope.company_id ?? undefined,
+        identified_by_user_id: resolvedScope.user_id ?? undefined,
+        source_seller_phone: resolvedScope.seller_phone ?? normalized.seller_phone,
+        customer_name: normalized.customer_name,
         city: normalized.city,
         state: normalized.state,
         address: normalized.address,
-        mapUrl: normalized.mapUrl ?? undefined,
-        identifiedAt: normalized.identifiedAt ?? new Date(),
+        map_url: normalized.map_url ?? undefined,
+        identified_at: normalized.identified_at ?? new Date(),
       },
     });
 
     inserted += 1;
-    if (resolvedScope.userId) {
-      linkedUsers += 1;
+    if (resolvedScope.user_id) {
+      linked_users += 1;
     }
   }
 
   return {
     inserted,
-    linkedUsers,
+    linked_users,
   };
 }
 
 async function assertActorCanAccessLocatedClient(
   actor: AuthActor,
   locatedClient: {
-    companyId: string | null;
-    identifiedByUserId: string | null;
-    sourceSellerPhone: string;
+    company_id: string | null;
+    identified_by_user_id: string | null;
+    source_seller_phone: string;
   },
 ) {
-  assertActorCompanyScope(actor, locatedClient.companyId);
+  assertActorCompanyScope(actor, locatedClient.company_id);
 
   if (actor.role === UserRole.ADMIN || actor.role === UserRole.DIRETOR) {
     return;
   }
 
-  const scope = await buildActorScope(actor, locatedClient.companyId);
-  const sourcePhone = normalizePhone(locatedClient.sourceSellerPhone);
+  const scope = await buildActorScope(actor, locatedClient.company_id);
+  const sourcePhone = normalizePhone(locatedClient.source_seller_phone);
   const hasUserMatch =
-    Boolean(locatedClient.identifiedByUserId) &&
-    scope.userIds.includes(locatedClient.identifiedByUserId as string);
+    Boolean(locatedClient.identified_by_user_id) &&
+    scope.userIds.includes(locatedClient.identified_by_user_id as string);
   const hasPhoneMatch = sourcePhone.length > 0 && scope.userPhones.includes(sourcePhone);
 
   if (!hasUserMatch && !hasPhoneMatch) {
@@ -266,7 +268,7 @@ async function assertActorCanAccessLocatedClient(
   }
 }
 
-async function buildActorScope(actor: AuthActor, companyId: string | null): Promise<LocatedClientActorScope> {
+async function buildActorScope(actor: AuthActor, company_id: string | null): Promise<LocatedClientActorScope> {
   if (actor.role === UserRole.ADMIN || actor.role === UserRole.DIRETOR) {
     return {
       isRestricted: false,
@@ -279,12 +281,12 @@ async function buildActorScope(actor: AuthActor, companyId: string | null): Prom
   const where: Prisma.UserWhereInput = {
     AND: [
       {
-        deletedAt: null,
+        deleted_at: null,
       },
-      ...(companyId
+      ...(company_id
         ? [
             {
-              companyId,
+              company_id,
             } as Prisma.UserWhereInput,
           ]
         : []),
@@ -311,26 +313,26 @@ async function buildActorScope(actor: AuthActor, companyId: string | null): Prom
 
 function buildListWhere(input: {
   actorScope: LocatedClientActorScope;
-  companyId: string | null;
+  company_id: string | null;
   range: DateRange | null;
   seller?: string;
   status?: LocatedClientStatus;
 }): Prisma.LocatedClientWhereInput {
   const andFilters: Prisma.LocatedClientWhereInput[] = [
     {
-      deletedAt: null,
+      deleted_at: null,
     },
   ];
 
-  if (input.companyId) {
+  if (input.company_id) {
     andFilters.push({
-      companyId: input.companyId,
+      company_id: input.company_id,
     });
   }
 
   if (input.range) {
     andFilters.push({
-      identifiedAt: {
+      identified_at: {
         gte: input.range.startAt,
         lte: input.range.endAt,
       },
@@ -353,7 +355,7 @@ function buildListWhere(input: {
 
       if (input.actorScope.userIds.length > 0) {
         orFilters.push({
-          identifiedByUserId: {
+          identified_by_user_id: {
             in: input.actorScope.userIds,
           },
         });
@@ -361,7 +363,7 @@ function buildListWhere(input: {
 
       if (input.actorScope.userPhones.length > 0) {
         orFilters.push({
-          sourceSellerPhone: {
+          source_seller_phone: {
             in: input.actorScope.userPhones,
           },
         });
@@ -375,12 +377,12 @@ function buildListWhere(input: {
 
   const seller = sanitizeText(input.seller);
   if (seller) {
-    const sellerPhone = normalizePhone(seller);
+    const seller_phone = normalizePhone(seller);
     const sellerFilters: Prisma.LocatedClientWhereInput[] = [
       {
         identifiedByUser: {
           is: {
-            fullName: {
+            full_name: {
               contains: seller,
               mode: 'insensitive',
             },
@@ -389,10 +391,10 @@ function buildListWhere(input: {
       },
     ];
 
-    if (sellerPhone.length > 0) {
+    if (seller_phone.length > 0) {
       sellerFilters.push({
-        sourceSellerPhone: {
-          contains: sellerPhone,
+        source_seller_phone: {
+          contains: seller_phone,
         },
       });
     }
@@ -411,17 +413,17 @@ function buildListWhere(input: {
   };
 }
 
-function parseDateRange(startDate?: string, endDate?: string): DateRange | null {
-  if (!startDate && !endDate) {
+function parseDateRange(start_date?: string, end_date?: string): DateRange | null {
+  if (!start_date && !end_date) {
     return null;
   }
 
-  const startAt = startDate
-    ? new Date(`${startDate}T00:00:00.000Z`)
-    : new Date(`${endDate}T00:00:00.000Z`);
-  const endAt = endDate
-    ? new Date(`${endDate}T23:59:59.999Z`)
-    : new Date(`${startDate}T23:59:59.999Z`);
+  const startAt = start_date
+    ? new Date(`${start_date}T00:00:00.000Z`)
+    : new Date(`${end_date}T00:00:00.000Z`);
+  const endAt = end_date
+    ? new Date(`${end_date}T23:59:59.999Z`)
+    : new Date(`${start_date}T23:59:59.999Z`);
 
   if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
     throw badRequest('Periodo de data invalido');
@@ -440,42 +442,38 @@ function parseDateRange(startDate?: string, endDate?: string): DateRange | null 
 function normalizeLocatedClientWebhookMessage(message: LocatedClientWebhookMessageInput) {
   const sellerPhoneRaw =
     message.seller_phone ??
-    message.sellerPhone ??
     message.vendedor_telefone ??
-    message.vendedorTelefone ??
     '';
-  const sellerPhone = normalizePhone(sellerPhoneRaw);
-  if (!sellerPhone) {
+  const seller_phone = normalizePhone(sellerPhoneRaw);
+  if (!seller_phone) {
     throw badRequest('Telefone do vendedor invalido');
   }
 
-  const customerName = sanitizeText(
-    message.customer_name ?? message.customerName ?? message.cliente_nome ?? message.clienteNome,
+  const customer_name = sanitizeText(
+    message.customer_name ?? message.cliente_nome,
   );
   const city = sanitizeText(message.city ?? message.cidade);
   const state = sanitizeText(message.state ?? message.estado);
   const address = sanitizeText(message.address ?? message.endereco);
 
-  if (!customerName || !city || !state || !address) {
+  if (!customer_name || !city || !state || !address) {
     throw badRequest('Dados obrigatorios do cliente localizado nao informados');
   }
 
   return {
-    sellerPhone,
-    customerName,
+    seller_phone,
+    customer_name,
     city,
     state,
     address,
-    mapUrl: sanitizeText(message.map_url ?? message.mapUrl),
-    identifiedAt: parseDateTime(
+    map_url: sanitizeText(message.map_url),
+    identified_at: parseDateTime(
       message.identified_at ??
-        message.identifiedAt ??
         message.timestamp_iso ??
-        message.timestampIso ??
         null,
     ),
-    companyId: sanitizeText(message.company_id ?? message.companyId ?? null),
-    userId: sanitizeText(message.user_id ?? message.userId ?? null),
+    company_id: sanitizeText(message.company_id ?? null),
+    user_id: sanitizeText(message.user_id ?? null),
   };
 }
 
@@ -510,42 +508,44 @@ function assertNonAdminMutation(actor: AuthActor) {
 
 function mapLocatedClient(locatedClient: {
   id: string;
-  companyId: string | null;
+  company_id: string | null;
   company?: { id: string; name: string } | null;
-  identifiedByUserId: string | null;
-  identifiedByUser?: { id: string; fullName: string } | null;
-  sourceSellerPhone: string;
-  customerName: string;
+  identified_by_user_id: string | null;
+  identifiedByUser?: { id: string; full_name: string } | null;
+  source_seller_phone: string;
+  customer_name: string;
   city: string;
   state: string;
   address: string;
-  mapUrl: string | null;
-  identifiedAt: Date;
+  map_url: string | null;
+  identified_at: Date;
   status: LocatedClientStatus;
-  visitedAt: Date | null;
-  visitedByUserId: string | null;
-  visitedByUser?: { id: string; fullName: string } | null;
-  createdAt: Date;
-  updatedAt: Date;
+  visited_at: Date | null;
+  visited_by_user_id: string | null;
+  visitedByUser?: { id: string; full_name: string } | null;
+  created_at: Date;
+  updated_at: Date;
 }) {
   return {
     id: locatedClient.id,
-    companyId: locatedClient.companyId,
-    companyName: locatedClient.company?.name ?? null,
-    identifiedByUserId: locatedClient.identifiedByUserId,
-    identifiedByUserName: locatedClient.identifiedByUser?.fullName ?? null,
-    sourceSellerPhone: locatedClient.sourceSellerPhone,
-    customerName: locatedClient.customerName,
+    company_id: locatedClient.company_id,
+    company_name: locatedClient.company?.name ?? null,
+    identified_by_user_id: locatedClient.identified_by_user_id,
+    identified_by_user_name: locatedClient.identifiedByUser?.full_name ?? null,
+    source_seller_phone: locatedClient.source_seller_phone,
+    customer_name: locatedClient.customer_name,
     city: locatedClient.city,
     state: locatedClient.state,
     address: locatedClient.address,
-    mapUrl: locatedClient.mapUrl,
-    identifiedAt: locatedClient.identifiedAt,
+    map_url: locatedClient.map_url,
+    identified_at: locatedClient.identified_at,
     status: locatedClient.status,
-    visitedAt: locatedClient.visitedAt,
-    visitedByUserId: locatedClient.visitedByUserId,
-    visitedByUserName: locatedClient.visitedByUser?.fullName ?? null,
-    createdAt: locatedClient.createdAt,
-    updatedAt: locatedClient.updatedAt,
+    visited_at: locatedClient.visited_at,
+    visited_by_user_id: locatedClient.visited_by_user_id,
+    visited_by_user_name: locatedClient.visitedByUser?.full_name ?? null,
+    created_at: locatedClient.created_at,
+    updated_at: locatedClient.updated_at,
   };
 }
+
+

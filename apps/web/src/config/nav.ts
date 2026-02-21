@@ -35,3 +35,4 @@ export function getMainNavByRole(role: DashboardRole): NavItem[] {
 export function getPageTitleByPath(pathname: string) {
   return getDashboardTitleByPath(pathname);
 }
+

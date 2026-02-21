@@ -31,187 +31,187 @@ export const productObjectionTypeSchema = z.enum([
 
 export const productObjectionSchema = z
   .object({
-    objecaoCliente: z.string().trim().min(1).max(2000),
-    tipoObjecao: productObjectionTypeSchema,
-    tipoObjecaoOutro: optionalTextSchema,
-    respostaArgumento: z.string().trim().min(1).max(2000),
-    quandoUsar: optionalTextSchema,
+    objecao_cliente: z.string().trim().min(1).max(2000),
+    tipo_objecao: productObjectionTypeSchema,
+    tipo_objecao_outro: optionalTextSchema,
+    resposta_argumento: z.string().trim().min(1).max(2000),
+    quando_usar: optionalTextSchema,
   })
   .superRefine((value, context) => {
-    if (value.tipoObjecao === 'OUTRO' && !value.tipoObjecaoOutro?.trim()) {
+    if (value.tipo_objecao === 'OUTRO' && !value.tipo_objecao_outro?.trim()) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['tipoObjecaoOutro'],
-        message: 'tipoObjecaoOutro e obrigatorio quando tipoObjecao = OUTRO',
+        path: ['tipo_objecao_outro'],
+        message: 'tipo_objecao_outro e obrigatorio quando tipo_objecao = OUTRO',
       });
     }
 
-    if (value.tipoObjecao !== 'OUTRO' && value.tipoObjecaoOutro?.trim()) {
+    if (value.tipo_objecao !== 'OUTRO' && value.tipo_objecao_outro?.trim()) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['tipoObjecaoOutro'],
-        message: 'tipoObjecaoOutro deve ser vazio quando tipoObjecao != OUTRO',
+        path: ['tipo_objecao_outro'],
+        message: 'tipo_objecao_outro deve ser vazio quando tipo_objecao != OUTRO',
       });
     }
   });
 
 const productPayloadBaseSchema = z.object({
   nome: z.string().trim().min(1).max(255),
-  descricaoComercial: optionalTextSchema,
-  codigoInternoSku: optionalShortTextSchema,
+  descricao_comercial: optionalTextSchema,
+  codigo_interno_sku: optionalShortTextSchema,
   marca: optionalShortTextSchema,
   categorias: z.array(z.string().trim().min(1).max(120)).max(30).default([]),
-  categoriaOutro: optionalTextSchema,
-  tipologiasClientes: z.array(z.string().trim().min(1).max(120)).max(30).default([]),
-  tipologiaClienteOutro: optionalTextSchema,
-  sugestoesReceitas: optionalTextSchema,
-  codigoBarrasEan: optionalShortTextSchema,
-  codigoBarrasDun: optionalShortTextSchema,
-  codigoFiscalNcm: optionalShortTextSchema,
-  tipoConservacao: productConservationTypeSchema.nullable().optional(),
-  tipoConservacaoOutro: optionalTextSchema,
-  validadeEmbalagemFechada: optionalShortTextSchema,
-  validadeAposAbertura: optionalShortTextSchema,
-  validadeAposPreparo: optionalShortTextSchema,
-  instrucoesConservacaoProduto: optionalTextSchema,
-  restricoesProduto: optionalTextSchema,
-  unidadeVenda: productSaleUnitSchema.nullable().optional(),
-  unidadeVendaOutro: optionalTextSchema,
-  pesoLiquidoVolume: optionalShortTextSchema,
-  pesoBruto: optionalShortTextSchema,
-  qtdUnidadesPorCaixa: optionalShortTextSchema,
-  instrucoesConservacaoEmbalagem: optionalTextSchema,
-  restricoesEmbalagem: optionalTextSchema,
-  possuiIngredientes: z.boolean().nullable().optional(),
+  categoria_outro: optionalTextSchema,
+  tipologias_clientes: z.array(z.string().trim().min(1).max(120)).max(30).default([]),
+  tipologia_cliente_outro: optionalTextSchema,
+  sugestoes_receitas: optionalTextSchema,
+  codigo_barras_ean: optionalShortTextSchema,
+  codigo_barras_dun: optionalShortTextSchema,
+  codigo_fiscal_ncm: optionalShortTextSchema,
+  tipo_conservacao: productConservationTypeSchema.nullable().optional(),
+  tipo_conservacao_outro: optionalTextSchema,
+  validade_embalagem_fechada: optionalShortTextSchema,
+  validade_apos_abertura: optionalShortTextSchema,
+  validade_apos_preparo: optionalShortTextSchema,
+  instrucoes_conservacao_produto: optionalTextSchema,
+  restricoes_produto: optionalTextSchema,
+  unidade_venda: productSaleUnitSchema.nullable().optional(),
+  unidade_venda_outro: optionalTextSchema,
+  peso_liquido_volume: optionalShortTextSchema,
+  peso_bruto: optionalShortTextSchema,
+  qtd_unidades_por_caixa: optionalShortTextSchema,
+  instrucoes_conservacao_embalagem: optionalTextSchema,
+  restricoes_embalagem: optionalTextSchema,
+  possui_ingredientes: z.boolean().nullable().optional(),
   ingredientes: optionalTextSchema,
   alergenos: optionalTextSchema,
-  produtoProntoUso: productReadyToUseSchema.nullable().optional(),
-  produtoProntoUsoOutro: optionalTextSchema,
-  modoPreparo: optionalTextSchema,
-  observacoesUso: optionalTextSchema,
-  objecoesArgumentacoes: z.array(productObjectionSchema).max(30).default([]),
-  fotosProduto: z.array(z.string().url().max(2048)).max(100).default([]),
-  videosMaterial: z.array(z.string().url().max(2048)).max(30).default([]),
-  observacoesImagens: optionalTextSchema,
-  informacoesTecnicasComplementares: optionalTextSchema,
-  certificacoesRegistros: optionalTextSchema,
-  observacoesComerciais: optionalTextSchema,
-  diferenciaisProduto: optionalTextSchema,
-  observacoesGerais: optionalTextSchema,
+  produto_pronto_uso: productReadyToUseSchema.nullable().optional(),
+  produto_pronto_uso_outro: optionalTextSchema,
+  modo_preparo: optionalTextSchema,
+  observacoes_uso: optionalTextSchema,
+  objecoes_argumentacoes: z.array(productObjectionSchema).max(30).default([]),
+  fotos_produto: z.array(z.string().url().max(2048)).max(100).default([]),
+  videos_material: z.array(z.string().url().max(2048)).max(30).default([]),
+  observacoes_imagens: optionalTextSchema,
+  informacoes_tecnicas_complementares: optionalTextSchema,
+  certificacoes_registros: optionalTextSchema,
+  observacoes_comerciais: optionalTextSchema,
+  diferenciais_produto: optionalTextSchema,
+  observacoes_gerais: optionalTextSchema,
 });
 
 function validateOtherFieldRules(
   value: {
     categorias?: string[];
-    categoriaOutro?: string | null;
-    tipologiasClientes?: string[];
-    tipologiaClienteOutro?: string | null;
-    tipoConservacao?: string | null;
-    tipoConservacaoOutro?: string | null;
-    unidadeVenda?: string | null;
-    unidadeVendaOutro?: string | null;
-    produtoProntoUso?: string | null;
-    produtoProntoUsoOutro?: string | null;
+    categoria_outro?: string | null;
+    tipologias_clientes?: string[];
+    tipologia_cliente_outro?: string | null;
+    tipo_conservacao?: string | null;
+    tipo_conservacao_outro?: string | null;
+    unidade_venda?: string | null;
+    unidade_venda_outro?: string | null;
+    produto_pronto_uso?: string | null;
+    produto_pronto_uso_outro?: string | null;
   },
   context: z.RefinementCtx,
   options: { strict: boolean },
 ) {
-  const hasCategoriaOutro = Boolean(value.categoriaOutro?.trim());
+  const hasCategoriaOutro = Boolean(value.categoria_outro?.trim());
   const categoriaHasOutro = value.categorias?.includes('OUTRO') ?? false;
   if (categoriaHasOutro && !hasCategoriaOutro) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
-      path: ['categoriaOutro'],
-      message: 'categoriaOutro e obrigatorio quando categorias inclui OUTRO',
+      path: ['categoria_outro'],
+      message: 'categoria_outro e obrigatorio quando categorias inclui OUTRO',
     });
   }
   if (options.strict && !categoriaHasOutro && hasCategoriaOutro) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
-      path: ['categoriaOutro'],
-      message: 'categoriaOutro deve ser vazio quando OUTRO nao estiver selecionado',
+      path: ['categoria_outro'],
+      message: 'categoria_outro deve ser vazio quando OUTRO nao estiver selecionado',
     });
   }
 
-  const hasTipologiaOutro = Boolean(value.tipologiaClienteOutro?.trim());
-  const tipologiaHasOutro = value.tipologiasClientes?.includes('OUTRO') ?? false;
+  const hasTipologiaOutro = Boolean(value.tipologia_cliente_outro?.trim());
+  const tipologiaHasOutro = value.tipologias_clientes?.includes('OUTRO') ?? false;
   if (tipologiaHasOutro && !hasTipologiaOutro) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
-      path: ['tipologiaClienteOutro'],
-      message: 'tipologiaClienteOutro e obrigatorio quando tipologiasClientes inclui OUTRO',
+      path: ['tipologia_cliente_outro'],
+      message: 'tipologia_cliente_outro e obrigatorio quando tipologias_clientes inclui OUTRO',
     });
   }
   if (options.strict && !tipologiaHasOutro && hasTipologiaOutro) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
-      path: ['tipologiaClienteOutro'],
-      message: 'tipologiaClienteOutro deve ser vazio quando OUTRO nao estiver selecionado',
+      path: ['tipologia_cliente_outro'],
+      message: 'tipologia_cliente_outro deve ser vazio quando OUTRO nao estiver selecionado',
     });
   }
 
-  const hasConservacaoOutro = Boolean(value.tipoConservacaoOutro?.trim());
-  if (value.tipoConservacao === 'OUTRO' && !hasConservacaoOutro) {
+  const hasConservacaoOutro = Boolean(value.tipo_conservacao_outro?.trim());
+  if (value.tipo_conservacao === 'OUTRO' && !hasConservacaoOutro) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
-      path: ['tipoConservacaoOutro'],
-      message: 'tipoConservacaoOutro e obrigatorio quando tipoConservacao = OUTRO',
+      path: ['tipo_conservacao_outro'],
+      message: 'tipo_conservacao_outro e obrigatorio quando tipo_conservacao = OUTRO',
     });
   }
-  if (options.strict && value.tipoConservacao !== 'OUTRO' && hasConservacaoOutro) {
+  if (options.strict && value.tipo_conservacao !== 'OUTRO' && hasConservacaoOutro) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
-      path: ['tipoConservacaoOutro'],
-      message: 'tipoConservacaoOutro deve ser vazio quando tipoConservacao != OUTRO',
-    });
-  }
-
-  const hasUnidadeOutro = Boolean(value.unidadeVendaOutro?.trim());
-  if (value.unidadeVenda === 'OUTRO' && !hasUnidadeOutro) {
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['unidadeVendaOutro'],
-      message: 'unidadeVendaOutro e obrigatorio quando unidadeVenda = OUTRO',
-    });
-  }
-  if (options.strict && value.unidadeVenda !== 'OUTRO' && hasUnidadeOutro) {
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['unidadeVendaOutro'],
-      message: 'unidadeVendaOutro deve ser vazio quando unidadeVenda != OUTRO',
+      path: ['tipo_conservacao_outro'],
+      message: 'tipo_conservacao_outro deve ser vazio quando tipo_conservacao != OUTRO',
     });
   }
 
-  const hasProntoUsoOutro = Boolean(value.produtoProntoUsoOutro?.trim());
-  if (value.produtoProntoUso === 'OUTRO' && !hasProntoUsoOutro) {
+  const hasUnidadeOutro = Boolean(value.unidade_venda_outro?.trim());
+  if (value.unidade_venda === 'OUTRO' && !hasUnidadeOutro) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
-      path: ['produtoProntoUsoOutro'],
-      message: 'produtoProntoUsoOutro e obrigatorio quando produtoProntoUso = OUTRO',
+      path: ['unidade_venda_outro'],
+      message: 'unidade_venda_outro e obrigatorio quando unidade_venda = OUTRO',
     });
   }
-  if (options.strict && value.produtoProntoUso !== 'OUTRO' && hasProntoUsoOutro) {
+  if (options.strict && value.unidade_venda !== 'OUTRO' && hasUnidadeOutro) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
-      path: ['produtoProntoUsoOutro'],
-      message: 'produtoProntoUsoOutro deve ser vazio quando produtoProntoUso != OUTRO',
+      path: ['unidade_venda_outro'],
+      message: 'unidade_venda_outro deve ser vazio quando unidade_venda != OUTRO',
+    });
+  }
+
+  const hasProntoUsoOutro = Boolean(value.produto_pronto_uso_outro?.trim());
+  if (value.produto_pronto_uso === 'OUTRO' && !hasProntoUsoOutro) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['produto_pronto_uso_outro'],
+      message: 'produto_pronto_uso_outro e obrigatorio quando produto_pronto_uso = OUTRO',
+    });
+  }
+  if (options.strict && value.produto_pronto_uso !== 'OUTRO' && hasProntoUsoOutro) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['produto_pronto_uso_outro'],
+      message: 'produto_pronto_uso_outro deve ser vazio quando produto_pronto_uso != OUTRO',
     });
   }
 }
 
 export const productQuerySchema = z.object({
   q: z.string().optional(),
-  companyId: z.string().cuid().optional(),
+  company_id: z.string().uuid().optional(),
   page: z.coerce.number().int().positive().default(1),
-  pageSize: z.coerce.number().int().positive().max(100).default(10),
+  page_size: z.coerce.number().int().positive().max(100).default(10),
 });
 
 export const productReadScopeQuerySchema = z.object({
-  companyId: z.string().cuid().optional(),
+  company_id: z.string().uuid().optional(),
 });
 
 export const productParamSchema = z.object({
-  productId: z.string().uuid(),
+  product_id: z.string().uuid(),
 });
 
 export const createProductSchema = productPayloadBaseSchema
@@ -226,10 +226,10 @@ export const updateProductSchema = productPayloadBaseSchema
   .partial()
   .superRefine((value, context) => {
     const hasCategorias = value.categorias !== undefined;
-    const hasTipologias = value.tipologiasClientes !== undefined;
-    const hasConservacao = value.tipoConservacao !== undefined;
-    const hasUnidade = value.unidadeVenda !== undefined;
-    const hasProntoUso = value.produtoProntoUso !== undefined;
+    const hasTipologias = value.tipologias_clientes !== undefined;
+    const hasConservacao = value.tipo_conservacao !== undefined;
+    const hasUnidade = value.unidade_venda !== undefined;
+    const hasProntoUso = value.produto_pronto_uso !== undefined;
 
     if (Object.keys(value).length === 0) {
       context.addIssue({
@@ -239,58 +239,60 @@ export const updateProductSchema = productPayloadBaseSchema
       return;
     }
 
-    if (hasCategorias || value.categoriaOutro !== undefined) {
+    if (hasCategorias || value.categoria_outro !== undefined) {
       validateOtherFieldRules(
         {
           categorias: value.categorias,
-          categoriaOutro: value.categoriaOutro,
+          categoria_outro: value.categoria_outro,
         },
         context,
         { strict: hasCategorias },
       );
     }
 
-    if (hasTipologias || value.tipologiaClienteOutro !== undefined) {
+    if (hasTipologias || value.tipologia_cliente_outro !== undefined) {
       validateOtherFieldRules(
         {
-          tipologiasClientes: value.tipologiasClientes,
-          tipologiaClienteOutro: value.tipologiaClienteOutro,
+          tipologias_clientes: value.tipologias_clientes,
+          tipologia_cliente_outro: value.tipologia_cliente_outro,
         },
         context,
         { strict: hasTipologias },
       );
     }
 
-    if (hasConservacao || value.tipoConservacaoOutro !== undefined) {
+    if (hasConservacao || value.tipo_conservacao_outro !== undefined) {
       validateOtherFieldRules(
         {
-          tipoConservacao: value.tipoConservacao,
-          tipoConservacaoOutro: value.tipoConservacaoOutro,
+          tipo_conservacao: value.tipo_conservacao,
+          tipo_conservacao_outro: value.tipo_conservacao_outro,
         },
         context,
         { strict: hasConservacao },
       );
     }
 
-    if (hasUnidade || value.unidadeVendaOutro !== undefined) {
+    if (hasUnidade || value.unidade_venda_outro !== undefined) {
       validateOtherFieldRules(
         {
-          unidadeVenda: value.unidadeVenda,
-          unidadeVendaOutro: value.unidadeVendaOutro,
+          unidade_venda: value.unidade_venda,
+          unidade_venda_outro: value.unidade_venda_outro,
         },
         context,
         { strict: hasUnidade },
       );
     }
 
-    if (hasProntoUso || value.produtoProntoUsoOutro !== undefined) {
+    if (hasProntoUso || value.produto_pronto_uso_outro !== undefined) {
       validateOtherFieldRules(
         {
-          produtoProntoUso: value.produtoProntoUso,
-          produtoProntoUsoOutro: value.produtoProntoUsoOutro,
+          produto_pronto_uso: value.produto_pronto_uso,
+          produto_pronto_uso_outro: value.produto_pronto_uso_outro,
         },
         context,
         { strict: hasProntoUso },
       );
     }
   });
+
+

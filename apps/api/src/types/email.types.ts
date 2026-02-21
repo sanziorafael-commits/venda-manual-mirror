@@ -1,11 +1,13 @@
 export type ActivationInviteEmailInput = {
   to: string;
-  fullName: string;
+  full_name: string;
   token: string;
 };
 
 export type ResetPasswordEmailInput = {
   to: string;
-  fullName: string;
+  full_name: string;
   token: string;
 };
+
+

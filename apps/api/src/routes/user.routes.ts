@@ -31,9 +31,11 @@ router.post('/reassign-supervisor', authorize(UserRole.ADMIN, UserRole.GERENTE_C
 router.post('/reassign-manager-team', authorize(UserRole.ADMIN), reassignManagerTeamHandler);
 
 router.get('/', listUsersHandler);
-router.get('/:userId', getUserByIdHandler);
+router.get('/:user_id', getUserByIdHandler);
 router.post('/', createUserHandler);
-router.patch('/:userId', updateUserHandler);
-router.delete('/:userId', deleteUserHandler);
+router.patch('/:user_id', updateUserHandler);
+router.delete('/:user_id', deleteUserHandler);
 
 export default router;
+
+

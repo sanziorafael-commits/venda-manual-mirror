@@ -4,19 +4,21 @@ export const uploadTargetSchema = z.enum(['COMPANY_LOGO', 'PRODUCT_IMAGE', 'PROD
 
 export const createUploadSignedUrlSchema = z.object({
   target: uploadTargetSchema,
-  fileName: z.string().trim().min(1).max(255),
-  contentType: z.string().trim().min(3).max(120),
-  contentLength: z.coerce.number().int().positive().max(500 * 1024 * 1024),
-  companyId: z.string().cuid().optional(),
-  entityId: z.string().trim().min(1).max(100).optional(),
+  file_name: z.string().trim().min(1).max(255),
+  content_type: z.string().trim().min(3).max(120),
+  content_length: z.coerce.number().int().positive().max(500 * 1024 * 1024),
+  company_id: z.string().uuid().optional(),
+  entity_id: z.string().trim().min(1).max(100).optional(),
 }).superRefine((value, context) => {
   const isProductUpload = value.target === 'PRODUCT_IMAGE' || value.target === 'PRODUCT_VIDEO';
 
-  if (isProductUpload && !value.entityId) {
+  if (isProductUpload && !value.entity_id) {
     context.addIssue({
       code: 'custom',
-      path: ['entityId'],
-      message: 'entityId e obrigatorio para upload de midia de produto',
+      path: ['entity_id'],
+      message: 'entity_id e obrigatorio para upload de midia de produto',
     });
   }
 });
+
+

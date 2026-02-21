@@ -1,8 +1,9 @@
 import type { DashboardOverview, DashboardSeries } from "@/schemas/dashboard";
 
 export type OverviewRankingItem =
-  DashboardOverview["userRanking"]["highestVolume"][number];
+  DashboardOverview["user_ranking"]["highest_volume"][number];
 export type OverviewProductItem =
-  DashboardOverview["productRanking"]["mostCited"][number];
+  DashboardOverview["product_ranking"]["most_cited"][number];
 export type OverviewSeriesPoint = DashboardSeries["points"][number];
+
 

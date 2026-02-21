@@ -13,7 +13,7 @@ export async function sendActivationInviteEmail(input: ActivationInviteEmailInpu
   const activationLink = createAppLink(env.APP_ACTIVATION_PATH, input.token);
   const subject = 'Ativação de conta Handsell';
   const text = [
-    `Olá, ${input.fullName}.`,
+    `Olá, ${input.full_name}.`,
     '',
     'Recebemos um cadastro para seu acesso no Portal Handsell.',
     `Ative sua conta no link: ${activationLink}`,
@@ -22,7 +22,7 @@ export async function sendActivationInviteEmail(input: ActivationInviteEmailInpu
   ].join('\n');
 
   const html = [
-    `<p>Olá, ${escapeHtml(input.fullName)}.</p>`,
+    `<p>Olá, ${escapeHtml(input.full_name)}.</p>`,
     '<p>Recebemos um cadastro para seu acesso no Portal Handsell.</p>',
     `<p><a href="${activationLink}">Clique aqui para ativar sua conta</a></p>`,
     '<p>Se você não reconhece este cadastro, ignore este e-mail.</p>',
@@ -40,7 +40,7 @@ export async function sendResetPasswordEmail(input: ResetPasswordEmailInput) {
   const resetLink = createAppLink(env.APP_RESET_PASSWORD_PATH, input.token);
   const subject = 'Recuperação de senha Handsell';
   const text = [
-    `Olá, ${input.fullName}.`,
+    `Olá, ${input.full_name}.`,
     '',
     'Recebemos um pedido para redefinir sua senha.',
     `Redefina no link: ${resetLink}`,
@@ -49,7 +49,7 @@ export async function sendResetPasswordEmail(input: ResetPasswordEmailInput) {
   ].join('\n');
 
   const html = [
-    `<p>Olá, ${escapeHtml(input.fullName)}.</p>`,
+    `<p>Olá, ${escapeHtml(input.full_name)}.</p>`,
     '<p>Recebemos um pedido para redefinir sua senha.</p>',
     `<p><a href="${resetLink}">Clique aqui para redefinir sua senha</a></p>`,
     '<p>Se você não solicitou, ignore este e-mail.</p>',
@@ -110,3 +110,5 @@ function escapeHtml(value: string) {
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
 }
+
+

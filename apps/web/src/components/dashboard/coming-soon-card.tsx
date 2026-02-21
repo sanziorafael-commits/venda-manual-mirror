@@ -9,3 +9,4 @@ export function ComingSoonCard({ title }: ComingSoonCardProps) {
     </div>
   );
 }
+

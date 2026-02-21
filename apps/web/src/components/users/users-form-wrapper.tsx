@@ -52,7 +52,7 @@ export function UsersFormWrapper() {
     createEmptyPaginationMeta<UserListMeta>(),
   );
   const [pageIndex, setPageIndex] = React.useState(0);
-  const [pageSize, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
+  const [page_size, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
   const [roleFilterValue, setRoleFilterValue] = React.useState<
     "ALL" | UserRole
   >("ALL");
@@ -90,32 +90,32 @@ export function UsersFormWrapper() {
 
     if (isAdmin && !selectedCompanyContext) {
       setUsers([]);
-      setMeta(createEmptyPaginationMeta<UserListMeta>(pageSize));
+      setMeta(createEmptyPaginationMeta<UserListMeta>(page_size));
       setIsLoadingUsers(false);
       return;
     }
 
     const params = new URLSearchParams();
     params.set("page", String(pageIndex + 1));
-    params.set("pageSize", String(pageSize));
+    params.set("page_size", String(page_size));
 
     if (query.trim().length > 0) {
       params.set("q", query.trim());
     }
 
     if (statusFilterValue === "ACTIVE") {
-      params.set("isActive", "true");
+      params.set("is_active", "true");
     }
 
     if (statusFilterValue === "INACTIVE") {
-      params.set("isActive", "false");
+      params.set("is_active", "false");
     }
 
     if (isAdmin) {
       if (isPlatformAdminSelected) {
         params.set("role", "ADMIN");
       } else if (selectedCompanyContext) {
-        params.set("companyId", selectedCompanyContext);
+        params.set("company_id", selectedCompanyContext);
 
         if (roleFilterValue !== "ALL") {
           params.set("role", roleFilterValue);
@@ -136,7 +136,7 @@ export function UsersFormWrapper() {
       if (!parsed.success) {
         toast.error("Resposta inesperada ao carregar usuários.");
         setUsers([]);
-        setMeta(createEmptyPaginationMeta<UserListMeta>(pageSize));
+        setMeta(createEmptyPaginationMeta<UserListMeta>(page_size));
         return;
       }
 
@@ -154,7 +154,7 @@ export function UsersFormWrapper() {
 
       toast.error(parseApiError(error));
       setUsers([]);
-      setMeta(createEmptyPaginationMeta<UserListMeta>(pageSize));
+      setMeta(createEmptyPaginationMeta<UserListMeta>(page_size));
     } finally {
       if (currentRequestId === usersRequestIdRef.current) {
         setIsLoadingUsers(false);
@@ -165,7 +165,7 @@ export function UsersFormWrapper() {
     isAdmin,
     isPlatformAdminSelected,
     pageIndex,
-    pageSize,
+    page_size,
     query,
     roleFilterValue,
     selectedCompanyContext,
@@ -234,12 +234,12 @@ export function UsersFormWrapper() {
     (user: UserListItem) =>
       canResendActivationInvite(authUser, {
         role: user.role,
-        companyId: user.companyId,
-        managerId: user.managerId,
+        company_id: user.company_id,
+        manager_id: user.manager_id,
         email: user.email,
-        isActive: user.isActive,
-        deletedAt: user.deletedAt,
-        passwordStatus: user.passwordStatus,
+        is_active: user.is_active,
+        deleted_at: user.deleted_at,
+        password_status: user.password_status,
       }),
     [authUser],
   );
@@ -252,7 +252,7 @@ export function UsersFormWrapper() {
       }
 
       const confirmed = window.confirm(
-        `Confirma reenviar o link de ativacao para "${user.fullName}"?`,
+        `Confirma reenviar o link de ativacao para "${user.full_name}"?`,
       );
       if (!confirmed) {
         return;
@@ -264,7 +264,7 @@ export function UsersFormWrapper() {
         await apiFetch<unknown>("/auth/resend-activation", {
           method: "POST",
           body: {
-            userId: user.id,
+            user_id: user.id,
           },
         });
 
@@ -287,13 +287,13 @@ export function UsersFormWrapper() {
         return;
       }
 
-      if (user.deletedAt) {
+      if (user.deleted_at) {
         toast.error("Usuario ja esta excluido.");
         return;
       }
 
       const confirmed = window.confirm(
-        `Confirma a exclusao do usuario "${user.fullName}"? Esta acao e irreversivel.`,
+        `Confirma a exclusao do usuario "${user.full_name}"? Esta acao e irreversivel.`,
       );
 
       if (!confirmed) {
@@ -337,13 +337,13 @@ export function UsersFormWrapper() {
         return;
       }
 
-      if (user.isActive) {
+      if (user.is_active) {
         toast.error("Usuario ja esta ativo.");
         return;
       }
 
       const confirmed = window.confirm(
-        `Confirma reativar o usuario "${user.fullName}"?`,
+        `Confirma reativar o usuario "${user.full_name}"?`,
       );
       if (!confirmed) {
         return;
@@ -355,7 +355,7 @@ export function UsersFormWrapper() {
         const response = await apiFetch<unknown>(`/users/${user.id}`, {
           method: "PATCH",
           body: {
-            isActive: true,
+            is_active: true,
           },
         });
 
@@ -394,7 +394,7 @@ export function UsersFormWrapper() {
 
       <UsersFilterForm
         searchValue={searchDraft}
-        pageSize={pageSize}
+        page_size={page_size}
         isLoading={isLoadingUsers}
         isAdmin={isAdmin}
         roleFilterValue={roleFilterValue}
@@ -421,8 +421,8 @@ export function UsersFormWrapper() {
           isAdmin={isAdmin}
           canManageUsers={canManageUsers}
           pageIndex={pageIndex}
-          pageSize={pageSize}
-          totalPages={meta.totalPages}
+          page_size={page_size}
+          total_pages={meta.total_pages}
           onPageChange={setPageIndex}
           onEditUser={handleEditUser}
           canResendActivationForUser={canResendActivationForUser}
@@ -434,3 +434,4 @@ export function UsersFormWrapper() {
     </section>
   );
 }
+

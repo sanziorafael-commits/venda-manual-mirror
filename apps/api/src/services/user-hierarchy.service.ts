@@ -5,25 +5,25 @@ import type { AuthActor } from '../types/auth.types.js';
 import { badRequest, forbidden, notFound } from '../utils/app-error.js';
 
 export type ResolvedHierarchy = {
-  managerId: string | null;
-  supervisorId: string | null;
+  manager_id: string | null;
+  supervisor_id: string | null;
 };
 
 type ExistingHierarchyInput = {
   role: UserRole;
-  managerId: string | null;
-  supervisorId: string | null;
-  companyId: string | null;
-  supervisor: { id: string; managerId: string | null } | null;
+  manager_id: string | null;
+  supervisor_id: string | null;
+  company_id: string | null;
+  supervisor: { id: string; manager_id: string | null } | null;
 };
 
 export async function resolveHierarchyForCreate(
   actor: AuthActor,
   input: {
     role: UserRole;
-    companyId: string | null;
-    managerId?: string | null;
-    supervisorId?: string | null;
+    company_id: string | null;
+    manager_id?: string | null;
+    supervisor_id?: string | null;
   },
 ): Promise<ResolvedHierarchy> {
   if (
@@ -31,72 +31,72 @@ export async function resolveHierarchyForCreate(
     input.role === UserRole.DIRETOR ||
     input.role === UserRole.GERENTE_COMERCIAL
   ) {
-    if (input.managerId || input.supervisorId) {
-      throw badRequest('managerId e supervisorId não são permitidos para este cargo');
+    if (input.manager_id || input.supervisor_id) {
+      throw badRequest('manager_id e supervisor_id não são permitidos para este cargo');
     }
 
     return {
-      managerId: null,
-      supervisorId: null,
+      manager_id: null,
+      supervisor_id: null,
     };
   }
 
   if (input.role === UserRole.SUPERVISOR) {
-    if (input.supervisorId) {
-      throw badRequest('supervisorId não é permitido para cargo SUPERVISOR');
+    if (input.supervisor_id) {
+      throw badRequest('supervisor_id não é permitido para cargo SUPERVISOR');
     }
 
     if (actor.role === UserRole.GERENTE_COMERCIAL) {
-      if (input.managerId && input.managerId !== actor.userId) {
+      if (input.manager_id && input.manager_id !== actor.user_id) {
         throw forbidden('Gerente só pode vincular supervisor a si mesmo');
       }
 
       return {
-        managerId: actor.userId,
-        supervisorId: null,
+        manager_id: actor.user_id,
+        supervisor_id: null,
       };
     }
 
-    const managerId = input.managerId;
-    if (!managerId || !input.companyId) {
-      throw badRequest('managerId obrigatório para criar SUPERVISOR');
+    const manager_id = input.manager_id;
+    if (!manager_id || !input.company_id) {
+      throw badRequest('manager_id obrigatório para criar SUPERVISOR');
     }
 
-    await assertManagerLink(managerId, input.companyId);
+    await assertManagerLink(manager_id, input.company_id);
     return {
-      managerId,
-      supervisorId: null,
+      manager_id,
+      supervisor_id: null,
     };
   }
 
-  if (input.managerId) {
-    throw badRequest('managerId não é permitido para cargo VENDEDOR');
+  if (input.manager_id) {
+    throw badRequest('manager_id não é permitido para cargo VENDEDOR');
   }
 
   if (actor.role === UserRole.SUPERVISOR) {
-    if (input.supervisorId && input.supervisorId !== actor.userId) {
+    if (input.supervisor_id && input.supervisor_id !== actor.user_id) {
       throw forbidden('Supervisor só pode vincular vendedor a si mesmo');
     }
 
     return {
-      managerId: null,
-      supervisorId: actor.userId,
+      manager_id: null,
+      supervisor_id: actor.user_id,
     };
   }
 
-  const supervisorId = input.supervisorId;
-  if (!supervisorId || !input.companyId) {
-    throw badRequest('supervisorId obrigatório para criar VENDEDOR');
+  const supervisor_id = input.supervisor_id;
+  if (!supervisor_id || !input.company_id) {
+    throw badRequest('supervisor_id obrigatório para criar VENDEDOR');
   }
 
-  const supervisor = await assertSupervisorLink(supervisorId, input.companyId);
-  if (actor.role === UserRole.GERENTE_COMERCIAL && supervisor.managerId !== actor.userId) {
+  const supervisor = await assertSupervisorLink(supervisor_id, input.company_id);
+  if (actor.role === UserRole.GERENTE_COMERCIAL && supervisor.manager_id !== actor.user_id) {
     throw forbidden('Você só pode vincular vendedores a supervisores do seu escopo');
   }
 
   return {
-    managerId: null,
-    supervisorId,
+    manager_id: null,
+    supervisor_id,
   };
 }
 
@@ -105,105 +105,105 @@ export async function resolveHierarchyForUpdate(
   input: {
     existing: ExistingHierarchyInput;
     nextRole: UserRole;
-    companyId: string | null;
-    managerId?: string | null;
-    supervisorId?: string | null;
+    company_id: string | null;
+    manager_id?: string | null;
+    supervisor_id?: string | null;
   },
 ): Promise<ResolvedHierarchy> {
-  const { existing, nextRole, companyId } = input;
+  const { existing, nextRole, company_id } = input;
 
   if (
     nextRole === UserRole.ADMIN ||
     nextRole === UserRole.DIRETOR ||
     nextRole === UserRole.GERENTE_COMERCIAL
   ) {
-    if (input.managerId || input.supervisorId) {
-      throw badRequest('managerId e supervisorId não são permitidos para este cargo');
+    if (input.manager_id || input.supervisor_id) {
+      throw badRequest('manager_id e supervisor_id não são permitidos para este cargo');
     }
 
     return {
-      managerId: null,
-      supervisorId: null,
+      manager_id: null,
+      supervisor_id: null,
     };
   }
 
   if (nextRole === UserRole.SUPERVISOR) {
-    if (input.supervisorId) {
-      throw badRequest('supervisorId não é permitido para cargo SUPERVISOR');
+    if (input.supervisor_id) {
+      throw badRequest('supervisor_id não é permitido para cargo SUPERVISOR');
     }
 
-    if (!companyId) {
-      throw badRequest('companyId obrigatório para SUPERVISOR');
+    if (!company_id) {
+      throw badRequest('company_id obrigatório para SUPERVISOR');
     }
 
     if (actor.role === UserRole.GERENTE_COMERCIAL) {
-      if (input.managerId !== undefined && input.managerId !== actor.userId) {
+      if (input.manager_id !== undefined && input.manager_id !== actor.user_id) {
         throw forbidden('Gerente só pode vincular supervisor a si mesmo');
       }
 
       return {
-        managerId: actor.userId,
-        supervisorId: null,
+        manager_id: actor.user_id,
+        supervisor_id: null,
       };
     }
 
-    const managerId = input.managerId === undefined ? existing.managerId : input.managerId;
-    if (!managerId) {
-      throw badRequest('managerId obrigatório para cargo SUPERVISOR');
+    const manager_id = input.manager_id === undefined ? existing.manager_id : input.manager_id;
+    if (!manager_id) {
+      throw badRequest('manager_id obrigatório para cargo SUPERVISOR');
     }
 
-    await assertManagerLink(managerId, companyId);
+    await assertManagerLink(manager_id, company_id);
     return {
-      managerId,
-      supervisorId: null,
+      manager_id,
+      supervisor_id: null,
     };
   }
 
-  if (!companyId) {
-    throw badRequest('companyId obrigatório para VENDEDOR');
+  if (!company_id) {
+    throw badRequest('company_id obrigatório para VENDEDOR');
   }
 
-  if (input.managerId) {
-    throw badRequest('managerId não é permitido para cargo VENDEDOR');
+  if (input.manager_id) {
+    throw badRequest('manager_id não é permitido para cargo VENDEDOR');
   }
 
   if (actor.role === UserRole.SUPERVISOR) {
-    if (input.supervisorId !== undefined && input.supervisorId !== actor.userId) {
+    if (input.supervisor_id !== undefined && input.supervisor_id !== actor.user_id) {
       throw forbidden('Supervisor não pode mover vendedor para outro supervisor');
     }
 
     return {
-      managerId: null,
-      supervisorId: actor.userId,
+      manager_id: null,
+      supervisor_id: actor.user_id,
     };
   }
 
-  const supervisorId =
-    input.supervisorId === undefined ? existing.supervisorId : input.supervisorId;
-  if (!supervisorId) {
-    throw badRequest('supervisorId obrigatório para cargo VENDEDOR');
+  const supervisor_id =
+    input.supervisor_id === undefined ? existing.supervisor_id : input.supervisor_id;
+  if (!supervisor_id) {
+    throw badRequest('supervisor_id obrigatório para cargo VENDEDOR');
   }
 
-  const supervisor = await assertSupervisorLink(supervisorId, companyId);
-  if (actor.role === UserRole.GERENTE_COMERCIAL && supervisor.managerId !== actor.userId) {
+  const supervisor = await assertSupervisorLink(supervisor_id, company_id);
+  if (actor.role === UserRole.GERENTE_COMERCIAL && supervisor.manager_id !== actor.user_id) {
     throw forbidden('Você só pode vincular vendedor a supervisores do seu escopo');
   }
 
   return {
-    managerId: null,
-    supervisorId,
+    manager_id: null,
+    supervisor_id,
   };
 }
 
-export async function assertCompanyExistsIfRequired(companyId: string | null) {
-  if (!companyId) {
+export async function assertCompanyExistsIfRequired(company_id: string | null) {
+  if (!company_id) {
     return;
   }
 
   const company = await prisma.company.findFirst({
     where: {
-      id: companyId,
-      deletedAt: null,
+      id: company_id,
+      deleted_at: null,
     },
     select: { id: true },
   });
@@ -213,55 +213,55 @@ export async function assertCompanyExistsIfRequired(companyId: string | null) {
   }
 }
 
-export async function getSupervisorForReassign(supervisorId: string) {
+export async function getSupervisorForReassign(supervisor_id: string) {
   const supervisor = await prisma.user.findFirst({
     where: {
-      id: supervisorId,
+      id: supervisor_id,
       role: UserRole.SUPERVISOR,
-      deletedAt: null,
+      deleted_at: null,
     },
     select: {
       id: true,
-      companyId: true,
-      managerId: true,
+      company_id: true,
+      manager_id: true,
     },
   });
 
-  if (!supervisor || !supervisor.companyId) {
+  if (!supervisor || !supervisor.company_id) {
     throw badRequest('Supervisor de origem ou destino inválido');
   }
 
   return supervisor;
 }
 
-export async function getManagerForReassign(managerId: string) {
+export async function getManagerForReassign(manager_id: string) {
   const manager = await prisma.user.findFirst({
     where: {
-      id: managerId,
+      id: manager_id,
       role: UserRole.GERENTE_COMERCIAL,
-      deletedAt: null,
+      deleted_at: null,
     },
     select: {
       id: true,
-      companyId: true,
+      company_id: true,
     },
   });
 
-  if (!manager || !manager.companyId) {
+  if (!manager || !manager.company_id) {
     throw badRequest('Gerente comercial de origem ou destino inválido');
   }
 
   return manager;
 }
 
-async function assertManagerLink(managerId: string, companyId: string) {
+async function assertManagerLink(manager_id: string, company_id: string) {
   const manager = await prisma.user.findFirst({
     where: {
-      id: managerId,
+      id: manager_id,
       role: UserRole.GERENTE_COMERCIAL,
-      companyId,
-      isActive: true,
-      deletedAt: null,
+      company_id,
+      is_active: true,
+      deleted_at: null,
     },
     select: { id: true },
   });
@@ -271,18 +271,18 @@ async function assertManagerLink(managerId: string, companyId: string) {
   }
 }
 
-async function assertSupervisorLink(supervisorId: string, companyId: string) {
+async function assertSupervisorLink(supervisor_id: string, company_id: string) {
   const supervisor = await prisma.user.findFirst({
     where: {
-      id: supervisorId,
+      id: supervisor_id,
       role: UserRole.SUPERVISOR,
-      companyId,
-      isActive: true,
-      deletedAt: null,
+      company_id,
+      is_active: true,
+      deleted_at: null,
     },
     select: {
       id: true,
-      managerId: true,
+      manager_id: true,
     },
   });
 
@@ -292,3 +292,5 @@ async function assertSupervisorLink(supervisorId: string, companyId: string) {
 
   return supervisor;
 }
+
+

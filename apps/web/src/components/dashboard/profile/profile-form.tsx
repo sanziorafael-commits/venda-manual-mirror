@@ -45,10 +45,10 @@ export function ProfileForm({ className }: ProfileFormProps) {
   } = useForm<ProfileSchema>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      fullName: "",
+      full_name: "",
       email: "",
-      newPassword: "",
-      confirmPassword: "",
+      new_password: "",
+      confirm_password: "",
     },
   });
 
@@ -58,10 +58,10 @@ export function ProfileForm({ className }: ProfileFormProps) {
     }
 
     reset({
-      fullName: profileUser.fullName,
+      full_name: profileUser.full_name,
       email: profileUser.email ?? "",
-      newPassword: "",
-      confirmPassword: "",
+      new_password: "",
+      confirm_password: "",
     });
   }, [profileUser, reset]);
 
@@ -71,12 +71,12 @@ export function ProfileForm({ className }: ProfileFormProps) {
     }
 
     const payload: Record<string, string> = {};
-    const nextFullName = data.fullName.trim();
+    const nextFullName = data.full_name.trim();
     const nextEmail = data.email.trim();
-    const nextPassword = data.newPassword.trim();
+    const nextPassword = data.new_password.trim();
 
-    if (nextFullName !== profileUser.fullName) {
-      payload.fullName = nextFullName;
+    if (nextFullName !== profileUser.full_name) {
+      payload.full_name = nextFullName;
     }
 
     if (nextEmail !== (profileUser.email ?? "")) {
@@ -84,7 +84,7 @@ export function ProfileForm({ className }: ProfileFormProps) {
     }
 
     if (nextPassword.length > 0) {
-      payload.newPassword = nextPassword;
+      payload.new_password = nextPassword;
     }
 
     if (Object.keys(payload).length === 0) {
@@ -115,10 +115,10 @@ export function ProfileForm({ className }: ProfileFormProps) {
       setUser(toAuthUser(updatedUser));
 
       reset({
-        fullName: updatedUser.fullName,
+        full_name: updatedUser.full_name,
         email: updatedUser.email ?? "",
-        newPassword: "",
-        confirmPassword: "",
+        new_password: "",
+        confirm_password: "",
       });
     } finally {
       setSaving(false);
@@ -166,12 +166,12 @@ export function ProfileForm({ className }: ProfileFormProps) {
     >
       <FieldGroup className="gap-0">
         <Field className="mb-4 gap-2">
-          <FieldLabel htmlFor="fullName" className="font-bold">
+          <FieldLabel htmlFor="full_name" className="font-bold">
             Nome completo
           </FieldLabel>
-          <Input id="fullName" {...register("fullName")} required />
-          {errors.fullName ? (
-            <p className="text-sm text-red-500">{errors.fullName.message}</p>
+          <Input id="full_name" {...register("full_name")} required />
+          {errors.full_name ? (
+            <p className="text-sm text-red-500">{errors.full_name.message}</p>
           ) : null}
         </Field>
 
@@ -187,20 +187,20 @@ export function ProfileForm({ className }: ProfileFormProps) {
 
         <PasswordField
           className="mb-4"
-          id="newPassword"
+          id="new_password"
           label="Nova senha (opcional)"
-          registration={register("newPassword")}
+          registration={register("new_password")}
           autoComplete="new-password"
-          error={errors.newPassword?.message}
+          error={errors.new_password?.message}
         />
 
         <PasswordField
           className="mb-4"
-          id="confirmPassword"
+          id="confirm_password"
           label="Confirmar nova senha"
-          registration={register("confirmPassword")}
+          registration={register("confirm_password")}
           autoComplete="new-password"
-          error={errors.confirmPassword?.message}
+          error={errors.confirm_password?.message}
           description="Preencha senha e confirmação apenas se quiser alterar a senha atual."
         />
 
@@ -220,3 +220,4 @@ export function ProfileForm({ className }: ProfileFormProps) {
     </form>
   );
 }
+

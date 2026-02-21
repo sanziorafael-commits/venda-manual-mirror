@@ -89,19 +89,19 @@ const SUPERVISOR_SCOPE_OPTIONS: DashboardFilterOption<DashboardScope>[] = [
 ];
 
 export async function getDashboardOverview(actor: AuthActor, input: DashboardOverviewInput) {
-  const companyId = resolveScopedCompanyId(actor, input.companyId);
-  const scope = resolveDashboardScope(actor, input.scope, input.viewBy);
+  const company_id = resolveScopedCompanyId(actor, input.company_id);
+  const scope = resolveDashboardScope(actor, input.scope, input.view_by);
   const range = buildRange({
     period: input.period ?? '365d',
-    startDate: input.startDate,
-    endDate: input.endDate,
+    start_date: input.start_date,
+    end_date: input.end_date,
   });
-  const rankLimit = input.rankLimit ?? 3;
-  const actorScopeContext = await buildActorScopeContext(actor, companyId);
+  const rank_limit = input.rank_limit ?? 3;
+  const actorScopeContext = await buildActorScopeContext(actor, company_id);
   const actorScopePrismaWhere = buildHistoryActorScopePrismaWhere(actorScopeContext, scope);
   const actorScopeSqlWhere = buildHistoryActorScopeSqlWhere(actorScopeContext, scope, 'h');
   const historyWhere = buildHistoryWhere(
-    companyId,
+    company_id,
     range.startAt,
     range.endAt,
     actorScopePrismaWhere,
@@ -120,10 +120,10 @@ export async function getDashboardOverview(actor: AuthActor, input: DashboardOve
     topProducts,
     bottomProducts,
   ] = await Promise.all([
-    companyId
+    company_id
       ? prisma.company.findFirst({
           where: {
-            id: companyId,
+            id: company_id,
           },
           select: {
             id: true,
@@ -134,60 +134,60 @@ export async function getDashboardOverview(actor: AuthActor, input: DashboardOve
     prisma.historico_conversas.count({
       where: historyWhere,
     }),
-    computeVendorAdoption(actor, companyId, historyWhere),
+    computeVendorAdoption(actor, company_id, historyWhere),
     scope === 'all' || scope === 'supervisors'
-      ? computeSupervisorAdoption(actor, companyId, range.startAt, range.endAt, actorScopeSqlWhere)
+      ? computeSupervisorAdoption(actor, company_id, range.startAt, range.endAt, actorScopeSqlWhere)
       : Promise.resolve(null),
     getVendorRanking(
-      companyId,
+      company_id,
       range.startAt,
       range.endAt,
-      rankLimit,
+      rank_limit,
       'desc',
       actorScopeSqlWhere,
     ),
     getVendorRanking(
-      companyId,
+      company_id,
       range.startAt,
       range.endAt,
-      rankLimit,
+      rank_limit,
       'asc',
       actorScopeSqlWhere,
     ),
     scope === 'all' || scope === 'supervisors'
       ? getSupervisorRanking(
-          companyId,
+          company_id,
           range.startAt,
           range.endAt,
-          rankLimit,
+          rank_limit,
           'desc',
           actorScopeSqlWhere,
         )
       : Promise.resolve([]),
     scope === 'all' || scope === 'supervisors'
       ? getSupervisorRanking(
-          companyId,
+          company_id,
           range.startAt,
           range.endAt,
-          rankLimit,
+          rank_limit,
           'asc',
           actorScopeSqlWhere,
         )
       : Promise.resolve([]),
-    countDistinctClients(companyId, range.startAt, range.endAt, actorScopeSqlWhere),
+    countDistinctClients(company_id, range.startAt, range.endAt, actorScopeSqlWhere),
     getProductRanking(
-      companyId,
+      company_id,
       range.startAt,
       range.endAt,
-      rankLimit,
+      rank_limit,
       'desc',
       actorScopeSqlWhere,
     ),
     getProductRanking(
-      companyId,
+      company_id,
       range.startAt,
       range.endAt,
-      rankLimit,
+      rank_limit,
       'asc',
       actorScopeSqlWhere,
     ),
@@ -204,57 +204,57 @@ export async function getDashboardOverview(actor: AuthActor, input: DashboardOve
   return {
     period: range.period,
     scope,
-    viewBy: resolveLegacyViewByFromScope(scope),
-    startAt: range.startAt,
-    endAt: range.endAt,
+    view_by: resolveLegacyViewByFromScope(scope),
+    start_at: range.startAt,
+    end_at: range.endAt,
     company: company ? { id: company.id, name: company.name } : null,
-    totalInteractions,
-    adoptionRate: {
-      entityType: scope === 'supervisors' ? 'supervisor' : 'vendedor',
-      activeEntities: selectedAdoption.activeEntities,
-      activeVendors: selectedAdoption.activeEntities,
-      activeWithInteractions: selectedAdoption.activeWithInteractions,
-      ratePercent: selectedAdoption.ratePercent,
+    total_interactions: totalInteractions,
+    adoption_rate: {
+      entity_type: scope === 'supervisors' ? 'supervisor' : 'vendedor',
+      active_entities: selectedAdoption.activeEntities,
+      active_vendors: selectedAdoption.activeEntities,
+      active_with_interactions: selectedAdoption.activeWithInteractions,
+      rate_percent: selectedAdoption.ratePercent,
     },
-    adoptionRateByScope: {
+    adoption_rate_by_scope: {
       vendors: {
-        activeEntities: vendorAdoption.activeEntities,
-        activeWithInteractions: vendorAdoption.activeWithInteractions,
-        ratePercent: vendorAdoption.ratePercent,
+        active_entities: vendorAdoption.activeEntities,
+        active_with_interactions: vendorAdoption.activeWithInteractions,
+        rate_percent: vendorAdoption.ratePercent,
       },
       supervisors: supervisorAdoption
         ? {
-            activeEntities: supervisorAdoption.activeEntities,
-            activeWithInteractions: supervisorAdoption.activeWithInteractions,
-            ratePercent: supervisorAdoption.ratePercent,
+            active_entities: supervisorAdoption.activeEntities,
+            active_with_interactions: supervisorAdoption.activeWithInteractions,
+            rate_percent: supervisorAdoption.ratePercent,
           }
         : null,
     },
-    vendorRanking: {
-      highestVolume: selectedRanking.highest,
-      lowestVolume: selectedRanking.lowest,
+    vendor_ranking: {
+      highest_volume: selectedRanking.highest,
+      lowest_volume: selectedRanking.lowest,
     },
-    userRanking: {
-      highestVolume: selectedRanking.highest,
-      lowestVolume: selectedRanking.lowest,
+    user_ranking: {
+      highest_volume: selectedRanking.highest,
+      lowest_volume: selectedRanking.lowest,
     },
-    rankingsByScope: {
+    rankings_by_scope: {
       vendors: {
-        highestVolume: vendorHighest,
-        lowestVolume: vendorLowest,
+        highest_volume: vendorHighest,
+        lowest_volume: vendorLowest,
       },
       supervisors:
         scope === 'all' || scope === 'supervisors'
           ? {
-              highestVolume: supervisorHighest,
-              lowestVolume: supervisorLowest,
+              highest_volume: supervisorHighest,
+              lowest_volume: supervisorLowest,
             }
           : null,
     },
-    newLocatedClients: newClients,
-    productRanking: {
-      mostCited: topProducts,
-      leastCited: bottomProducts,
+    new_located_clients: newClients,
+    product_ranking: {
+      most_cited: topProducts,
+      least_cited: bottomProducts,
     },
   };
 }
@@ -263,16 +263,16 @@ export async function getDashboardInteractionsSeries(
   actor: AuthActor,
   input: DashboardInteractionsSeriesInput,
 ) {
-  const companyId = resolveScopedCompanyId(actor, input.companyId);
-  const scope = resolveDashboardScope(actor, input.scope, input.viewBy);
+  const company_id = resolveScopedCompanyId(actor, input.company_id);
+  const scope = resolveDashboardScope(actor, input.scope, input.view_by);
   const range = buildRange({
     period: input.period ?? '365d',
-    startDate: input.startDate,
-    endDate: input.endDate,
+    start_date: input.start_date,
+    end_date: input.end_date,
   });
-  const actorScopeContext = await buildActorScopeContext(actor, companyId);
+  const actorScopeContext = await buildActorScopeContext(actor, company_id);
   const actorScopeSqlWhere = buildHistoryActorScopeSqlWhere(actorScopeContext, scope, 'h');
-  const whereSql = buildHistorySqlWhere(companyId, range.startAt, range.endAt, 'h', actorScopeSqlWhere);
+  const whereSql = buildHistorySqlWhere(company_id, range.startAt, range.endAt, 'h', actorScopeSqlWhere);
 
   const rows = await prisma.$queryRaw<SeriesRow[]>(Prisma.sql`
     SELECT
@@ -296,7 +296,7 @@ export async function getDashboardInteractionsSeries(
   const points = generateBuckets(range).map((bucketDate) => {
     const key = formatBucketKey(bucketDate, range.granularity);
     return {
-      bucketStart: bucketDate,
+      bucket_start: bucketDate,
       label: formatBucketLabel(bucketDate, range.granularity),
       interactions: interactionsByBucket.get(key) ?? 0,
     };
@@ -307,18 +307,18 @@ export async function getDashboardInteractionsSeries(
   return {
     period: range.period,
     scope,
-    viewBy: resolveLegacyViewByFromScope(scope),
+    view_by: resolveLegacyViewByFromScope(scope),
     granularity: range.granularity,
-    startAt: range.startAt,
-    endAt: range.endAt,
-    companyId,
-    totalInteractions,
+    start_at: range.startAt,
+    end_at: range.endAt,
+    company_id,
+    total_interactions: totalInteractions,
     points,
   };
 }
 
 export async function getDashboardFilterOptions(actor: AuthActor, input: DashboardFilterOptionsInput) {
-  const scopedCompanyId = resolveScopedCompanyId(actor, input.companyId);
+  const scopedCompanyId = resolveScopedCompanyId(actor, input.company_id);
   const defaultScope = resolveDashboardScope(actor, undefined, undefined);
   const scopeOptions = resolveScopeOptionsByRole(actor.role);
 
@@ -326,7 +326,7 @@ export async function getDashboardFilterOptions(actor: AuthActor, input: Dashboa
     actor.role === UserRole.ADMIN
       ? await prisma.company.findMany({
           where: {
-            deletedAt: null,
+            deleted_at: null,
           },
           select: {
             id: true,
@@ -340,7 +340,7 @@ export async function getDashboardFilterOptions(actor: AuthActor, input: Dashboa
         ? await prisma.company.findMany({
             where: {
               id: scopedCompanyId,
-              deletedAt: null,
+              deleted_at: null,
             },
             select: {
               id: true,
@@ -353,23 +353,23 @@ export async function getDashboardFilterOptions(actor: AuthActor, input: Dashboa
 
   return {
     role: actor.role,
-    periodOptions: PERIOD_OPTIONS,
-    scopeOptions,
-    viewByOptions:
+    period_options: PERIOD_OPTIONS,
+    scope_options: scopeOptions,
+    view_by_options:
       actor.role === UserRole.GERENTE_COMERCIAL || actor.role === UserRole.DIRETOR
         ? VIEW_BY_OPTIONS
         : VIEW_BY_OPTIONS.filter((option) => option.value === 'vendedor'),
-    companyOptions: companyOptions.map((company) => ({
+    company_options: companyOptions.map((company) => ({
       value: company.id,
       label: company.name,
     })),
     defaults: {
       period: '365d' as DashboardPeriod,
       scope: defaultScope,
-      viewBy: resolveLegacyViewByFromScope(defaultScope) as DashboardViewBy,
-      companyId: scopedCompanyId,
+      view_by: resolveLegacyViewByFromScope(defaultScope) as DashboardViewBy,
+      company_id: scopedCompanyId,
     },
-    teamSummary: {
+    team_summary: {
       supervisors: actorScopeContext.supervisorNames.length,
       vendors: actorScopeContext.vendorIds.length,
     },
@@ -381,11 +381,11 @@ function resolveScopedCompanyId(actor: AuthActor, requestedCompanyId?: string) {
     return requestedCompanyId ?? null;
   }
 
-  if (!actor.companyId) {
+  if (!actor.company_id) {
     throw forbidden('Usuário não vinculado à empresa');
   }
 
-  return actor.companyId;
+  return actor.company_id;
 }
 
 function resolveDashboardScope(
@@ -426,8 +426,8 @@ function resolveScopeOptionsByRole(role: UserRole): DashboardFilterOption<Dashbo
   return ADMIN_SCOPE_OPTIONS;
 }
 
-function mapLegacyViewByToScope(viewBy: DashboardViewBy): DashboardScope {
-  return viewBy === 'supervisor' ? 'supervisors' : 'vendors';
+function mapLegacyViewByToScope(view_by: DashboardViewBy): DashboardScope {
+  return view_by === 'supervisor' ? 'supervisors' : 'vendors';
 }
 
 function resolveLegacyViewByFromScope(scope: DashboardScope): DashboardViewBy {
@@ -436,7 +436,7 @@ function resolveLegacyViewByFromScope(scope: DashboardScope): DashboardViewBy {
 
 async function buildActorScopeContext(
   actor: AuthActor,
-  companyId: string | null,
+  company_id: string | null,
 ): Promise<DashboardActorScopeContext> {
   if (actor.role === UserRole.ADMIN) {
     return {
@@ -450,7 +450,7 @@ async function buildActorScopeContext(
     };
   }
 
-  if (!companyId) {
+  if (!company_id) {
     return {
       isRestricted: true,
       vendorIds: [],
@@ -479,25 +479,25 @@ async function buildActorScopeContext(
       prisma.user.findMany({
         where: {
           role: UserRole.SUPERVISOR,
-          managerId: actor.userId,
-          companyId,
-          deletedAt: null,
+          manager_id: actor.user_id,
+          company_id,
+          deleted_at: null,
         },
         select: {
           id: true,
-          fullName: true,
+          full_name: true,
           phone: true,
         },
       }),
       prisma.user.findMany({
         where: {
           role: UserRole.VENDEDOR,
-          companyId,
-          deletedAt: null,
+          company_id,
+          deleted_at: null,
           supervisor: {
             is: {
-              managerId: actor.userId,
-              deletedAt: null,
+              manager_id: actor.user_id,
+              deleted_at: null,
             },
           },
         },
@@ -511,7 +511,7 @@ async function buildActorScopeContext(
     const supervisorNames = Array.from(
       new Set(
         supervisors
-          .map((supervisor) => sanitizeText(supervisor.fullName))
+          .map((supervisor) => sanitizeText(supervisor.full_name))
           .filter((value): value is string => Boolean(value)),
       ),
     );
@@ -548,9 +548,9 @@ async function buildActorScopeContext(
   const vendors = await prisma.user.findMany({
     where: {
       role: UserRole.VENDEDOR,
-      companyId,
-      supervisorId: actor.userId,
-      deletedAt: null,
+      company_id,
+      supervisor_id: actor.user_id,
+      deleted_at: null,
     },
     select: {
       id: true,
@@ -688,10 +688,10 @@ function buildHistoryActorScopeSqlWhere(
 
 function buildRange(input: {
   period: DashboardPeriod;
-  startDate?: string;
-  endDate?: string;
+  start_date?: string;
+  end_date?: string;
 }): DashboardRange {
-  const customRange = parseCustomDateRange(input.startDate, input.endDate);
+  const customRange = parseCustomDateRange(input.start_date, input.end_date);
   if (customRange) {
     return {
       period: input.period,
@@ -755,17 +755,17 @@ function buildRange(input: {
   };
 }
 
-function parseCustomDateRange(startDate?: string, endDate?: string) {
-  if (!startDate && !endDate) {
+function parseCustomDateRange(start_date?: string, end_date?: string) {
+  if (!start_date && !end_date) {
     return null;
   }
 
-  const startAt = startDate
-    ? new Date(`${startDate}T00:00:00.000Z`)
-    : new Date(`${endDate}T00:00:00.000Z`);
-  const endAt = endDate
-    ? new Date(`${endDate}T23:59:59.999Z`)
-    : new Date(`${startDate}T23:59:59.999Z`);
+  const startAt = start_date
+    ? new Date(`${start_date}T00:00:00.000Z`)
+    : new Date(`${end_date}T00:00:00.000Z`);
+  const endAt = end_date
+    ? new Date(`${end_date}T23:59:59.999Z`)
+    : new Date(`${start_date}T23:59:59.999Z`);
 
   if (Number.isNaN(startAt.getTime()) || Number.isNaN(endAt.getTime())) {
     throw badRequest('Periodo de data invalido');
@@ -796,7 +796,7 @@ function resolveRangeGranularity(startAt: Date, endAt: Date): 'hour' | 'day' | '
 }
 
 function buildHistoryWhere(
-  companyId: string | null,
+  company_id: string | null,
   startAt: Date,
   endAt: Date,
   actorScopeWhere: PrismaType.historico_conversasWhereInput = EMPTY_HISTORY_SCOPE_WHERE,
@@ -827,9 +827,9 @@ function buildHistoryWhere(
     },
   ];
 
-  if (companyId) {
+  if (company_id) {
     filters.push({
-      company_id: companyId,
+      company_id: company_id,
     });
   }
 
@@ -844,27 +844,27 @@ function buildHistoryWhere(
 
 async function computeVendorAdoption(
   actor: AuthActor,
-  companyId: string | null,
+  company_id: string | null,
   historyWhere: PrismaType.historico_conversasWhereInput,
 ): Promise<DashboardAdoptionMetrics> {
   const activeVendorWhere: PrismaType.UserWhereInput = {
     role: UserRole.VENDEDOR,
-    isActive: true,
-    deletedAt: null,
-    ...(companyId ? { companyId } : {}),
+    is_active: true,
+    deleted_at: null,
+    ...(company_id ? { company_id } : {}),
   };
 
   if (actor.role === UserRole.GERENTE_COMERCIAL) {
     activeVendorWhere.supervisor = {
       is: {
-        managerId: actor.userId,
-        deletedAt: null,
+        manager_id: actor.user_id,
+        deleted_at: null,
       },
     };
   }
 
   if (actor.role === UserRole.SUPERVISOR) {
-    activeVendorWhere.supervisorId = actor.userId;
+    activeVendorWhere.supervisor_id = actor.user_id;
   }
 
   const activeVendors = await prisma.user.findMany({
@@ -972,7 +972,7 @@ async function computeVendorAdoption(
 
 async function computeSupervisorAdoption(
   actor: AuthActor,
-  companyId: string | null,
+  company_id: string | null,
   startAt: Date,
   endAt: Date,
   actorScopeSqlWhere: Prisma.Sql,
@@ -987,19 +987,19 @@ async function computeSupervisorAdoption(
 
   const activeSupervisorWhere: PrismaType.UserWhereInput = {
     role: UserRole.SUPERVISOR,
-    isActive: true,
-    deletedAt: null,
-    ...(companyId ? { companyId } : {}),
+    is_active: true,
+    deleted_at: null,
+    ...(company_id ? { company_id } : {}),
   };
 
   if (actor.role === UserRole.GERENTE_COMERCIAL) {
-    activeSupervisorWhere.managerId = actor.userId;
+    activeSupervisorWhere.manager_id = actor.user_id;
   }
 
   const activeSupervisors = await prisma.user.findMany({
     where: activeSupervisorWhere,
     select: {
-      fullName: true,
+      full_name: true,
     },
   });
 
@@ -1011,7 +1011,7 @@ async function computeSupervisorAdoption(
     };
   }
 
-  const whereSql = buildHistorySqlWhere(companyId, startAt, endAt, 'h', actorScopeSqlWhere);
+  const whereSql = buildHistorySqlWhere(company_id, startAt, endAt, 'h', actorScopeSqlWhere);
   const rows = await prisma.$queryRaw<{ supervisor_name: string }[]>(Prisma.sql`
     SELECT DISTINCT TRIM(h.supervisor) AS supervisor_name
     FROM "historico_conversas" h
@@ -1021,7 +1021,7 @@ async function computeSupervisorAdoption(
   `);
 
   const activeSupervisorNameKeys = new Set(
-    activeSupervisors.map((supervisor) => normalizeNameKey(supervisor.fullName)),
+    activeSupervisors.map((supervisor) => normalizeNameKey(supervisor.full_name)),
   );
   const supervisorNameKeysWithInteractions = new Set(
     rows.map((row) => normalizeNameKey(row.supervisor_name)).filter((value) => value.length > 0),
@@ -1047,14 +1047,14 @@ async function computeSupervisorAdoption(
 }
 
 async function getSupervisorRanking(
-  companyId: string | null,
+  company_id: string | null,
   startAt: Date,
   endAt: Date,
   limit: number,
   direction: 'asc' | 'desc',
   actorScopeSqlWhere: Prisma.Sql,
 ): Promise<DashboardRankingItem[]> {
-  const whereSql = buildHistorySqlWhere(companyId, startAt, endAt, 'h', actorScopeSqlWhere);
+  const whereSql = buildHistorySqlWhere(company_id, startAt, endAt, 'h', actorScopeSqlWhere);
   const orderSql = direction === 'desc' ? Prisma.sql`DESC` : Prisma.sql`ASC`;
 
   const rows = await prisma.$queryRaw<VendorRankingRow[]>(Prisma.sql`
@@ -1070,21 +1070,21 @@ async function getSupervisorRanking(
   `);
 
   return rows.map((row) => ({
-    userName: row.user_name,
-    userPhone: null,
+    user_name: row.user_name,
+    user_phone: null,
     interactions: toSafeNumber(row.interactions),
   }));
 }
 
 async function getVendorRanking(
-  companyId: string | null,
+  company_id: string | null,
   startAt: Date,
   endAt: Date,
   limit: number,
   direction: 'asc' | 'desc',
   actorScopeSqlWhere: Prisma.Sql,
 ): Promise<DashboardRankingItem[]> {
-  const whereSql = buildHistorySqlWhere(companyId, startAt, endAt, 'h', actorScopeSqlWhere);
+  const whereSql = buildHistorySqlWhere(company_id, startAt, endAt, 'h', actorScopeSqlWhere);
   const orderSql = direction === 'desc' ? Prisma.sql`DESC` : Prisma.sql`ASC`;
 
   const rows = await prisma.$queryRaw<VendorRankingRow[]>(Prisma.sql`
@@ -1100,21 +1100,21 @@ async function getVendorRanking(
   `);
 
   return rows.map((row) => ({
-    userName: row.user_name,
-    userPhone: row.user_phone,
+    user_name: row.user_name,
+    user_phone: row.user_phone,
     interactions: toSafeNumber(row.interactions),
   }));
 }
 
 async function getProductRanking(
-  companyId: string | null,
+  company_id: string | null,
   startAt: Date,
   endAt: Date,
   limit: number,
   direction: 'asc' | 'desc',
   actorScopeSqlWhere: Prisma.Sql,
 ): Promise<DashboardProductRankingItem[]> {
-  const whereSql = buildProductSqlWhere(companyId, startAt, endAt, actorScopeSqlWhere);
+  const whereSql = buildProductSqlWhere(company_id, startAt, endAt, actorScopeSqlWhere);
   const orderSql = direction === 'desc' ? Prisma.sql`DESC` : Prisma.sql`ASC`;
 
   const rows = await prisma.$queryRaw<ProductRankingRow[]>(Prisma.sql`
@@ -1132,19 +1132,19 @@ async function getProductRanking(
   `);
 
   return rows.map((row) => ({
-    productId: row.product_id,
-    productName: row.product_name,
+    product_id: row.product_id,
+    product_name: row.product_name,
     citations: toSafeNumber(row.citations),
   }));
 }
 
 async function countDistinctClients(
-  companyId: string | null,
+  company_id: string | null,
   startAt: Date,
   endAt: Date,
   actorScopeSqlWhere: Prisma.Sql,
 ) {
-  const whereSql = buildHistorySqlWhere(companyId, startAt, endAt, 'h', actorScopeSqlWhere);
+  const whereSql = buildHistorySqlWhere(company_id, startAt, endAt, 'h', actorScopeSqlWhere);
 
   const rows = await prisma.$queryRaw<CountRow[]>(Prisma.sql`
     SELECT COUNT(*)::int AS total
@@ -1162,7 +1162,7 @@ async function countDistinctClients(
 }
 
 function buildHistorySqlWhere(
-  companyId: string | null,
+  company_id: string | null,
   startAt: Date,
   endAt: Date,
   tableAlias: string,
@@ -1175,15 +1175,15 @@ function buildHistorySqlWhere(
     actorScopeSqlWhere,
   ];
 
-  if (companyId) {
-    conditions.push(Prisma.sql`${alias}.company_id = ${companyId}`);
+  if (company_id) {
+    conditions.push(Prisma.sql`${alias}.company_id = ${company_id}`);
   }
 
   return Prisma.sql`${Prisma.join(conditions, ' AND ')}`;
 }
 
 function buildProductSqlWhere(
-  companyId: string | null,
+  company_id: string | null,
   startAt: Date,
   endAt: Date,
   actorScopeSqlWhere: Prisma.Sql,
@@ -1195,9 +1195,9 @@ function buildProductSqlWhere(
     Prisma.sql`p.deleted_at IS NULL`,
   ];
 
-  if (companyId) {
+  if (company_id) {
     conditions.push(
-      Prisma.sql`(hcp.company_id = ${companyId} OR (hcp.company_id IS NULL AND p.company_id = ${companyId}))`,
+      Prisma.sql`(hcp.company_id = ${company_id} OR (hcp.company_id IS NULL AND p.company_id = ${company_id}))`,
     );
   }
 
@@ -1308,3 +1308,5 @@ function sanitizeText(value: string | null | undefined) {
   const normalized = value.replace(/\s+/g, ' ').trim();
   return normalized.length > 0 ? normalized : null;
 }
+
+

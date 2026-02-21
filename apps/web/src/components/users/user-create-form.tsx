@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -94,12 +94,12 @@ function formatCpfInput(value: string) {
 
 async function fetchAllCompaniesForSelect(): Promise<SelectOption[] | null> {
   let page = 1;
-  let totalPages = 1;
+  let total_pages = 1;
   const options: SelectOption[] = [];
 
-  while (page <= totalPages) {
+  while (page <= total_pages) {
     const response = await apiFetch<unknown>(
-      `/companies?page=${page}&pageSize=${COMPANIES_PAGE_SIZE}`,
+      `/companies?page=${page}&page_size=${COMPANIES_PAGE_SIZE}`,
     );
     const parsed = companiesApiResponseSchema.safeParse(response);
     if (!parsed.success) {
@@ -113,7 +113,7 @@ async function fetchAllCompaniesForSelect(): Promise<SelectOption[] | null> {
       })),
     );
 
-    totalPages = parsed.data.meta.totalPages;
+    total_pages = parsed.data.meta.total_pages;
     page += 1;
   }
 
@@ -122,21 +122,21 @@ async function fetchAllCompaniesForSelect(): Promise<SelectOption[] | null> {
 
 async function fetchUserOptionsByRole(input: {
   role: UserRole;
-  companyId?: string;
+  company_id?: string;
 }): Promise<SelectOption[] | null> {
   let page = 1;
-  let totalPages = 1;
+  let total_pages = 1;
   const options: SelectOption[] = [];
 
-  while (page <= totalPages) {
+  while (page <= total_pages) {
     const params = new URLSearchParams();
     params.set("role", input.role);
-    params.set("isActive", "true");
+    params.set("is_active", "true");
     params.set("page", String(page));
-    params.set("pageSize", String(USERS_OPTIONS_PAGE_SIZE));
+    params.set("page_size", String(USERS_OPTIONS_PAGE_SIZE));
 
-    if (input.companyId) {
-      params.set("companyId", input.companyId);
+    if (input.company_id) {
+      params.set("company_id", input.company_id);
     }
 
     const response = await apiFetch<unknown>(`/users?${params.toString()}`);
@@ -148,11 +148,11 @@ async function fetchUserOptionsByRole(input: {
     options.push(
       ...parsed.data.data.map((user: UserListItem) => ({
         id: user.id,
-        label: user.fullName,
+        label: user.full_name,
       })),
     );
 
-    totalPages = parsed.data.meta.totalPages;
+    total_pages = parsed.data.meta.total_pages;
     page += 1;
   }
 
@@ -168,7 +168,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
   const managersRequestIdRef = React.useRef(0);
   const supervisorsRequestIdRef = React.useRef(0);
 
-  const [companyOptions, setCompanyOptions] = React.useState<SelectOption[]>([]);
+  const [company_options, setCompanyOptions] = React.useState<SelectOption[]>([]);
   const [managerOptions, setManagerOptions] = React.useState<SelectOption[]>([]);
   const [supervisorOptions, setSupervisorOptions] = React.useState<SelectOption[]>([]);
   const [isLoadingCompanies, setIsLoadingCompanies] = React.useState(false);
@@ -190,20 +190,20 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
   } = useForm<CreateUserFormInput>({
     resolver: zodResolver(createUserFormSchema),
     defaultValues: {
-      fullName: "",
+      full_name: "",
       cpf: "",
       email: "",
       phone: "",
       role: "VENDEDOR",
-      companyId: "",
+      company_id: "",
       password: "",
-      managerId: "",
-      supervisorId: "",
+      manager_id: "",
+      supervisor_id: "",
     },
   });
 
   const selectedRole = watch("role");
-  const selectedCompanyId = watch("companyId");
+  const selectedCompanyId = watch("company_id");
   const actorRole = authUser?.role ?? null;
   const isAdminActor = actorRole === "ADMIN";
   const isDirectorActor = actorRole === "DIRETOR";
@@ -232,18 +232,18 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
 
     const defaultRole = getDefaultRole(authUser.role);
     reset({
-      fullName: "",
+      full_name: "",
       cpf: "",
       email: "",
       phone: "",
       role: defaultRole,
-      companyId:
+      company_id:
         authUser.role === "ADMIN"
           ? prefilledCompanyIdValue
-          : (authUser.companyId ?? ""),
+          : (authUser.company_id ?? ""),
       password: "",
-      managerId: "",
-      supervisorId: "",
+      manager_id: "",
+      supervisor_id: "",
     });
 
     setupDoneRef.current = true;
@@ -251,11 +251,11 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
 
   React.useEffect(() => {
     if (selectedRole !== "SUPERVISOR") {
-      setValue("managerId", "");
+      setValue("manager_id", "");
     }
 
     if (selectedRole !== "VENDEDOR") {
-      setValue("supervisorId", "");
+      setValue("supervisor_id", "");
     }
 
     if (selectedRole !== "ADMIN") {
@@ -263,7 +263,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
     }
 
     if (isAdminActor && !shouldShowCompanyField) {
-      setValue("companyId", "");
+      setValue("company_id", "");
     }
   }, [isAdminActor, selectedRole, setValue, shouldShowCompanyField]);
 
@@ -272,8 +272,8 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
       return;
     }
 
-    setValue("managerId", "");
-    setValue("supervisorId", "");
+    setValue("manager_id", "");
+    setValue("supervisor_id", "");
   }, [isAdminActor, selectedCompanyId, setValue]);
 
   React.useEffect(() => {
@@ -292,7 +292,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
         }
 
         if (!options) {
-          toast.error("Não foi possível carregar empresas.");
+          toast.error("N�o foi poss�vel carregar empresas.");
           setCompanyOptions([]);
           return;
         }
@@ -328,14 +328,14 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
       try {
         const options = await fetchUserOptionsByRole({
           role: "GERENTE_COMERCIAL",
-          companyId: selectedCompanyId,
+          company_id: selectedCompanyId,
         });
         if (currentRequestId !== managersRequestIdRef.current) {
           return;
         }
 
         if (!options) {
-          toast.error("Não foi possível carregar gerentes da empresa.");
+          toast.error("N�o foi poss�vel carregar gerentes da empresa.");
           setManagerOptions([]);
           return;
         }
@@ -372,7 +372,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
         const options = await fetchUserOptionsByRole({
           role: "SUPERVISOR",
           ...((isAdminActor || isDirectorActor) && selectedCompanyId
-            ? { companyId: selectedCompanyId }
+            ? { company_id: selectedCompanyId }
             : {}),
         });
         if (currentRequestId !== supervisorsRequestIdRef.current) {
@@ -380,7 +380,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
         }
 
         if (!options) {
-          toast.error("Não foi possível carregar supervisores.");
+          toast.error("N�o foi poss�vel carregar supervisores.");
           setSupervisorOptions([]);
           return;
         }
@@ -411,34 +411,34 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
 
   const onSubmit = async (input: CreateUserFormInput) => {
     if (!authUser) {
-      toast.error("Não foi possível identificar o usuário autenticado.");
+      toast.error("N�o foi poss�vel identificar o usu�rio autenticado.");
       return;
     }
 
-    const companyId = input.companyId?.trim() ?? "";
-    const managerId = input.managerId?.trim() ?? "";
-    const supervisorId = input.supervisorId?.trim() ?? "";
+    const company_id = input.company_id?.trim() ?? "";
+    const manager_id = input.manager_id?.trim() ?? "";
+    const supervisor_id = input.supervisor_id?.trim() ?? "";
 
-    if (shouldShowCompanyField && !companyId) {
-      setError("companyId", {
+    if (shouldShowCompanyField && !company_id) {
+      setError("company_id", {
         type: "manual",
-        message: "Empresa obrigatória para este cargo.",
+        message: "Empresa obrigat�ria para este cargo.",
       });
       return;
     }
 
-    if (shouldShowManagerField && !managerId) {
-      setError("managerId", {
+    if (shouldShowManagerField && !manager_id) {
+      setError("manager_id", {
         type: "manual",
-        message: "Selecione um Gerente responsável.",
+        message: "Selecione um Gerente respons�vel.",
       });
       return;
     }
 
-    if (shouldShowSupervisorField && !supervisorId) {
-      setError("supervisorId", {
+    if (shouldShowSupervisorField && !supervisor_id) {
+      setError("supervisor_id", {
         type: "manual",
-        message: "Selecione um Supervisor responsável.",
+        message: "Selecione um Supervisor respons�vel.",
       });
       return;
     }
@@ -446,7 +446,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
     try {
       const payload: Record<string, string> = {
         role: input.role,
-        fullName: input.fullName.trim(),
+        full_name: input.full_name.trim(),
         cpf: input.cpf.replace(/\D/g, ""),
         phone: input.phone.replace(/\D/g, ""),
       };
@@ -461,15 +461,15 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
       }
 
       if (isAdminActor && input.role !== "ADMIN") {
-        payload.companyId = companyId;
+        payload.company_id = company_id;
       }
 
       if ((isAdminActor || isDirectorActor) && input.role === "SUPERVISOR") {
-        payload.managerId = managerId;
+        payload.manager_id = manager_id;
       }
 
       if ((isAdminActor || isDirectorActor || isManagerActor) && input.role === "VENDEDOR") {
-        payload.supervisorId = supervisorId;
+        payload.supervisor_id = supervisor_id;
       }
 
       const response = await apiFetch<unknown>("/users", {
@@ -479,11 +479,11 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
 
       const parsed = createdUserApiResponseSchema.safeParse(response);
       if (!parsed.success) {
-        toast.error("Resposta inesperada ao Cadastrar usuário.");
+        toast.error("Resposta inesperada ao Cadastrar usu�rio.");
         return;
       }
 
-      toast.success("usuário cadastrado com sucesso!");
+      toast.success("usu�rio cadastrado com sucesso!");
       router.push("/dashboard/users");
     } catch (error) {
       toast.error(parseApiError(error));
@@ -508,7 +508,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
   if (!authUser) {
     return (
       <div className="rounded-xl border p-6 text-sm text-destructive">
-        Não foi possível carregar o contexto do usuário autenticado.
+        N�o foi poss�vel carregar o contexto do usu�rio autenticado.
       </div>
     );
   }
@@ -519,7 +519,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
       onSubmit={handleSubmit(onSubmit)}
     >
       <FieldGroup className="gap-4">
-        <h4 className="text-2xl font-semibold">Novo usuário</h4>
+        <h4 className="text-2xl font-semibold">Novo usu�rio</h4>
 
         <Field className="gap-2">
           <FieldLabel htmlFor="user-full-name" className="font-semibold">
@@ -528,11 +528,11 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
           <Input
             id="user-full-name"
             placeholder="Nome e sobrenome"
-            {...register("fullName")}
+            {...register("full_name")}
             disabled={isSubmitting}
           />
-          {errors.fullName ? (
-            <p className="text-sm text-destructive">{errors.fullName.message}</p>
+          {errors.full_name ? (
+            <p className="text-sm text-destructive">{errors.full_name.message}</p>
           ) : null}
         </Field>
 
@@ -617,18 +617,18 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
               id="user-company"
               className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
               value={selectedCompanyId ?? ""}
-              onChange={(event) => setValue("companyId", event.target.value)}
+              onChange={(event) => setValue("company_id", event.target.value)}
               disabled={isSubmitting || isLoadingCompanies}
             >
               <option value="">Selecione a empresa</option>
-              {companyOptions.map((companyOption) => (
+              {company_options.map((companyOption) => (
                 <option key={companyOption.id} value={companyOption.id}>
                   {companyOption.label}
                 </option>
               ))}
             </select>
-            {errors.companyId ? (
-              <p className="text-sm text-destructive">{errors.companyId.message}</p>
+            {errors.company_id ? (
+              <p className="text-sm text-destructive">{errors.company_id.message}</p>
             ) : null}
           </Field>
         ) : null}
@@ -636,13 +636,13 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
         {shouldShowManagerField ? (
           <Field className="gap-2">
             <FieldLabel htmlFor="user-manager" className="font-semibold">
-              Gerente responsável
+              Gerente respons�vel
             </FieldLabel>
             <select
               id="user-manager"
               className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-              value={watch("managerId") ?? ""}
-              onChange={(event) => setValue("managerId", event.target.value)}
+              value={watch("manager_id") ?? ""}
+              onChange={(event) => setValue("manager_id", event.target.value)}
               disabled={isSubmitting || isLoadingManagers}
             >
               <option value="">Selecione o gerente</option>
@@ -652,8 +652,8 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
                 </option>
               ))}
             </select>
-            {errors.managerId ? (
-              <p className="text-sm text-destructive">{errors.managerId.message}</p>
+            {errors.manager_id ? (
+              <p className="text-sm text-destructive">{errors.manager_id.message}</p>
             ) : null}
           </Field>
         ) : null}
@@ -661,13 +661,13 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
         {shouldShowSupervisorField ? (
           <Field className="gap-2">
             <FieldLabel htmlFor="user-supervisor" className="font-semibold">
-              Supervisor responsável
+              Supervisor respons�vel
             </FieldLabel>
             <select
               id="user-supervisor"
               className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-              value={watch("supervisorId") ?? ""}
-              onChange={(event) => setValue("supervisorId", event.target.value)}
+              value={watch("supervisor_id") ?? ""}
+              onChange={(event) => setValue("supervisor_id", event.target.value)}
               disabled={isSubmitting || isLoadingSupervisors}
             >
               <option value="">Selecione o supervisor</option>
@@ -677,8 +677,8 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
                 </option>
               ))}
             </select>
-            {errors.supervisorId ? (
-              <p className="text-sm text-destructive">{errors.supervisorId.message}</p>
+            {errors.supervisor_id ? (
+              <p className="text-sm text-destructive">{errors.supervisor_id.message}</p>
             ) : null}
           </Field>
         ) : null}
@@ -709,7 +709,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
                 Cadastrando
               </span>
             ) : (
-              <>Cadastrar usuário</>
+              <>Cadastrar usu�rio</>
             )}
           </Button>
         </div>
@@ -717,4 +717,5 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
     </form>
   );
 }
+
 

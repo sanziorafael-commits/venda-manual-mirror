@@ -44,3 +44,5 @@ export function notFound(message: string) {
 export function tooManyRequests(message = 'Muitas tentativas. Tente novamente mais tarde.', details?: unknown) {
   return new AppError(429, 'too_many_requests', message, details);
 }
+
+

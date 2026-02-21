@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,7 +25,7 @@ import { Spinner } from "@/components/ui/spinner";
 import Image from "next/image";
 
 type CompanyEditFormProps = {
-  companyId: string;
+  company_id: string;
 };
 
 const MAX_LOGO_FILE_SIZE_BYTES = 3 * 1024 * 1024;
@@ -67,7 +67,7 @@ function extractValidLogoFile(fileList: FileList | null) {
   if (!file) return null;
 
   if (!ACCEPTED_LOGO_MIME_TYPES.includes(file.type)) {
-    toast.error("Formato de logo inválido. Use SVG, PNG, JPG ou GIF.");
+    toast.error("Formato de logo inv�lido. Use SVG, PNG, JPG ou GIF.");
     return null;
   }
 
@@ -80,9 +80,9 @@ function extractValidLogoFile(fileList: FileList | null) {
 }
 
 async function fetchCompanyById(
-  companyId: string,
+  company_id: string,
 ): Promise<CompanyDetails | null> {
-  const response = await apiFetch<unknown>(`/companies/${companyId}`);
+  const response = await apiFetch<unknown>(`/companies/${company_id}`);
   const parsed = companyDetailsApiResponseSchema.safeParse(response);
   if (!parsed.success) {
     return null;
@@ -92,17 +92,17 @@ async function fetchCompanyById(
 }
 
 async function requestCompanyLogoSignedUrl(
-  companyId: string,
+  company_id: string,
   file: File,
 ): Promise<UploadSignedUrlData | null> {
   const response = await apiFetch<unknown>("/uploads/signed-url", {
     method: "POST",
     body: {
       target: "COMPANY_LOGO",
-      companyId,
-      fileName: file.name,
-      contentType: file.type,
-      contentLength: file.size,
+      company_id,
+      file_name: file.name,
+      content_type: file.type,
+      content_length: file.size,
     },
   });
 
@@ -118,20 +118,20 @@ async function uploadFileToSignedUrl(
   signedUrlData: UploadSignedUrlData,
   file: File,
 ) {
-  const response = await fetch(signedUrlData.uploadUrl, {
-    method: signedUrlData.uploadMethod,
+  const response = await fetch(signedUrlData.upload_url, {
+    method: signedUrlData.upload_method,
     headers: {
-      "Content-Type": signedUrlData.uploadHeaders["Content-Type"],
+      "Content-Type": signedUrlData.upload_headers["Content-Type"],
     },
     body: file,
   });
 
   if (!response.ok) {
-    throw new Error("Não foi possível enviar a logo para o storage.");
+    throw new Error("N�o foi poss�vel enviar a logo para o storage.");
   }
 }
 
-export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
+export function CompanyEditForm({ company_id }: CompanyEditFormProps) {
   const router = useRouter();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [company, setCompany] = React.useState<CompanyDetails | null>(null);
@@ -161,10 +161,10 @@ export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
       setLoadError(null);
 
       try {
-        const companyData = await fetchCompanyById(companyId);
+        const companyData = await fetchCompanyById(company_id);
         if (!companyData) {
           setCompany(null);
-          setLoadError("Não foi possível carregar os dados da empresa.");
+          setLoadError("N�o foi poss�vel carregar os dados da empresa.");
           return;
         }
 
@@ -182,7 +182,7 @@ export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
     };
 
     void loadCompany();
-  }, [companyId, reset]);
+  }, [company_id, reset]);
 
   const handleLogoFileSelection = (fileList: FileList | null) => {
     const file = extractValidLogoFile(fileList);
@@ -196,7 +196,7 @@ export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
 
   const onSubmit = async (input: CreateCompanyFormInput) => {
     if (!company) {
-      toast.error("Não foi possível carregar a empresa para edição.");
+      toast.error("N�o foi poss�vel carregar a empresa para edi��o.");
       return;
     }
 
@@ -220,18 +220,18 @@ export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
         );
 
         if (!signedUrlData) {
-          toast.error("Não foi possível preparar o upload da logo.");
+          toast.error("N�o foi poss�vel preparar o upload da logo.");
           return;
         }
 
         await uploadFileToSignedUrl(signedUrlData, logoFile);
-        payload.logoUrl = signedUrlData.publicUrl;
-      } else if (removeCurrentLogo && company.logoUrl) {
-        payload.logoUrl = null;
+        payload.logo_url = signedUrlData.public_url;
+      } else if (removeCurrentLogo && company.logo_url) {
+        payload.logo_url = null;
       }
 
       if (Object.keys(payload).length === 0) {
-        toast.info("Nenhuma alteração para salvar.");
+        toast.info("Nenhuma altera��o para salvar.");
         return;
       }
 
@@ -264,15 +264,15 @@ export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
   if (!company) {
     return (
       <div className="rounded-xl border p-6 text-sm text-destructive">
-        {loadError ?? "Não foi possível carregar a empresa."}
+        {loadError ?? "N�o foi poss�vel carregar a empresa."}
       </div>
     );
   }
 
   const hasCurrentLogo =
-    Boolean(company.logoUrl) && !removeCurrentLogo && !logoFile;
+    Boolean(company.logo_url) && !removeCurrentLogo && !logoFile;
   const currentLogoPreviewUrl =
-    company.logoSignedUrl ?? company.logoUrl ?? null;
+    company.logo_signed_url ?? company.logo_url ?? null;
 
   return (
     <form
@@ -366,7 +366,7 @@ export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
               />
             </div>
           ) : null}
-          {company.logoUrl && !logoFile ? (
+          {company.logo_url && !logoFile ? (
             <Button
               type="button"
               variant="ghost"
@@ -381,7 +381,7 @@ export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
               }
             >
               {removeCurrentLogo ? (
-                <>Cancelar remoção da logo atual</>
+                <>Cancelar remo��o da logo atual</>
               ) : (
                 <>
                   <Trash2 className="size-4" />
@@ -395,7 +395,7 @@ export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
           </div>
 
           <p className="text-sm font-medium border-separate">
-            Arraste para cá a nova logo da empresa ou{" "}
+            Arraste para c� a nova logo da empresa ou{" "}
             <button
               type="button"
               className="cursor-pointer underline underline-offset-2"
@@ -438,7 +438,7 @@ export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
                 Salvando
               </span>
             ) : (
-              <>Salvar alterações</>
+              <>Salvar altera��es</>
             )}
           </Button>
         </div>
@@ -446,4 +446,5 @@ export function CompanyEditForm({ companyId }: CompanyEditFormProps) {
     </form>
   );
 }
+
 

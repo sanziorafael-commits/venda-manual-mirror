@@ -6,15 +6,15 @@ const dateQuerySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 export const locatedClientListQuerySchema = z.object({
   seller: z.string().optional(),
   status: z.nativeEnum(LocatedClientStatus).optional(),
-  companyId: z.string().cuid().optional(),
-  startDate: dateQuerySchema.optional(),
-  endDate: dateQuerySchema.optional(),
+  company_id: z.string().uuid().optional(),
+  start_date: dateQuerySchema.optional(),
+  end_date: dateQuerySchema.optional(),
   page: z.coerce.number().int().positive().default(1),
-  pageSize: z.coerce.number().int().positive().max(100).default(10),
+  page_size: z.coerce.number().int().positive().max(100).default(10),
 });
 
 export const locatedClientParamSchema = z.object({
-  locatedClientId: z.string().uuid(),
+  located_client_id: z.string().uuid(),
 });
 
 export const locatedClientStatusUpdateSchema = z.object({
@@ -24,13 +24,9 @@ export const locatedClientStatusUpdateSchema = z.object({
 export const locatedClientWebhookMessageSchema = z
   .object({
     seller_phone: z.string().optional(),
-    sellerPhone: z.string().optional(),
     vendedor_telefone: z.string().optional(),
-    vendedorTelefone: z.string().optional(),
     customer_name: z.string().optional(),
-    customerName: z.string().optional(),
     cliente_nome: z.string().optional(),
-    clienteNome: z.string().optional(),
     city: z.string().optional(),
     cidade: z.string().optional(),
     state: z.string().optional(),
@@ -38,37 +34,31 @@ export const locatedClientWebhookMessageSchema = z
     address: z.string().optional(),
     endereco: z.string().optional(),
     map_url: z.string().nullable().optional(),
-    mapUrl: z.string().nullable().optional(),
     identified_at: z.string().optional(),
-    identifiedAt: z.string().optional(),
     timestamp_iso: z.string().optional(),
-    timestampIso: z.string().optional(),
     company_id: z.string().optional(),
-    companyId: z.string().optional(),
     user_id: z.string().optional(),
-    userId: z.string().optional(),
     source: z.string().optional(),
   })
   .superRefine((value, context) => {
-    const sellerPhone =
+    const seller_phone =
       value.seller_phone ??
-      value.sellerPhone ??
       value.vendedor_telefone ??
-      value.vendedorTelefone;
-    const customerName =
-      value.customer_name ?? value.customerName ?? value.cliente_nome ?? value.clienteNome;
+      null;
+    const customer_name =
+      value.customer_name ?? value.cliente_nome ?? null;
     const city = value.city ?? value.cidade;
     const state = value.state ?? value.estado;
     const address = value.address ?? value.endereco;
 
-    if (!sellerPhone) {
+    if (!seller_phone) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Telefone do vendedor e obrigatorio',
       });
     }
 
-    if (!customerName) {
+    if (!customer_name) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Nome do cliente e obrigatorio',
@@ -121,3 +111,5 @@ export type LocatedClientListQueryInput = z.infer<typeof locatedClientListQueryS
 export type LocatedClientStatusUpdateInput = z.infer<typeof locatedClientStatusUpdateSchema>;
 export type LocatedClientWebhookMessageInput = z.infer<typeof locatedClientWebhookMessageSchema>;
 export type LocatedClientWebhookBodyInput = z.infer<typeof locatedClientWebhookBodySchema>;
+
+

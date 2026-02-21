@@ -1,4 +1,4 @@
-﻿import type { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 
 import {
   activateAccountSchema,
@@ -41,13 +41,13 @@ export async function loginHandler(req: Request, res: Response) {
   });
 
   setAuthCookies(res, {
-    accessToken: data.tokens.accessToken,
-    refreshToken: data.tokens.refreshToken,
+    access_token: data.tokens.access_token,
+    refresh_token: data.tokens.refresh_token,
     user: {
       id: data.user.id,
-      companyId: data.user.companyId,
+      company_id: data.user.company_id,
       role: data.user.role,
-      fullName: data.user.fullName,
+      full_name: data.user.full_name,
       email: data.user.email,
     },
   });
@@ -56,27 +56,27 @@ export async function loginHandler(req: Request, res: Response) {
 }
 
 export async function refreshHandler(req: Request, res: Response) {
-  const refreshToken = getRefreshTokenFromRequest(req);
+  const refresh_token = getRefreshTokenFromRequest(req);
 
-  if (!refreshToken) {
+  if (!refresh_token) {
     clearAuthCookies(res);
-    throw unauthorized('Refresh token inválido');
+    throw unauthorized('Refresh token inv�lido');
   }
 
   try {
-    const data = await refreshSession(refreshToken, {
+    const data = await refreshSession(refresh_token, {
       userAgent: req.get('user-agent'),
       ipAddress: req.ip,
     });
 
     setAuthCookies(res, {
-      accessToken: data.tokens.accessToken,
-      refreshToken: data.tokens.refreshToken,
+      access_token: data.tokens.access_token,
+      refresh_token: data.tokens.refresh_token,
       user: {
         id: data.user.id,
-        companyId: data.user.companyId,
+        company_id: data.user.company_id,
         role: data.user.role,
-        fullName: data.user.fullName,
+        full_name: data.user.full_name,
         email: data.user.email,
       },
     });
@@ -89,11 +89,11 @@ export async function refreshHandler(req: Request, res: Response) {
 }
 
 export async function logoutHandler(req: Request, res: Response) {
-  const refreshToken = getRefreshTokenFromRequest(req);
+  const refresh_token = getRefreshTokenFromRequest(req);
 
-  if (refreshToken) {
+  if (refresh_token) {
     try {
-      await logout(refreshToken);
+      await logout(refresh_token);
     } catch {
       // Logout deve ser idempotente para o frontend.
     }
@@ -113,13 +113,13 @@ export async function activateAccountHandler(req: Request, res: Response) {
   });
 
   setAuthCookies(res, {
-    accessToken: data.tokens.accessToken,
-    refreshToken: data.tokens.refreshToken,
+    access_token: data.tokens.access_token,
+    refresh_token: data.tokens.refresh_token,
     user: {
       id: data.user.id,
-      companyId: data.user.companyId,
+      company_id: data.user.company_id,
       role: data.user.role,
-      fullName: data.user.fullName,
+      full_name: data.user.full_name,
       email: data.user.email,
     },
   });
@@ -147,3 +147,5 @@ export async function resetPasswordHandler(req: Request, res: Response) {
   const data = await resetPassword(payload);
   res.status(200).json({ data });
 }
+
+

@@ -2,17 +2,17 @@ import { prisma } from '../lib/prisma.js';
 import { normalizePhone } from '../utils/normalizers.js';
 
 type LinkConversationHistoryInput = {
-  userId: string;
-  companyId: string | null;
+  user_id: string;
+  company_id: string | null;
   phone: string;
 };
 
 export async function linkConversationHistoryByPhone({
-  userId,
-  companyId,
+  user_id,
+  company_id,
   phone,
 }: LinkConversationHistoryInput) {
-  if (!companyId) {
+  if (!company_id) {
     return 0;
   }
 
@@ -24,13 +24,15 @@ export async function linkConversationHistoryByPhone({
   const result = await prisma.historico_conversas.updateMany({
     where: {
       vendedor_telefone: normalizedPhone,
-      OR: [{ company_id: null }, { company_id: companyId }],
+      OR: [{ company_id: null }, { company_id: company_id }],
     },
     data: {
-      user_id: userId,
-      company_id: companyId,
+      user_id: user_id,
+      company_id: company_id,
     },
   });
 
   return result.count;
 }
+
+

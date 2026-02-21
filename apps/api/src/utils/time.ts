@@ -1,4 +1,4 @@
-﻿import { badRequest } from './app-error.js';
+import { badRequest } from './app-error.js';
 
 const UNIT_MS: Record<string, number> = {
   s: 1000,
@@ -11,7 +11,7 @@ export function ttlToMs(ttl: string) {
   const match = ttl.match(/^(\d+)([smhd])$/);
 
   if (!match) {
-    throw badRequest('Formato de TTL inválido. Use padrões como 15m, 12h, 7d.');
+    throw badRequest('Formato de TTL inv�lido. Use padr�es como 15m, 12h, 7d.');
   }
 
   const amount = Number(match[1]);
@@ -23,3 +23,5 @@ export function ttlToMs(ttl: string) {
 export function ttlToDate(ttl: string) {
   return new Date(Date.now() + ttlToMs(ttl));
 }
+
+

@@ -25,9 +25,9 @@ export function authenticate(req: Request, _res: Response, next: NextFunction) {
     }
 
     req.authUser = {
-      userId: payload.sub,
+      user_id: payload.sub,
       role: payload.role as UserRole,
-      companyId: typeof payload.companyId === 'string' ? payload.companyId : null,
+      company_id: typeof payload.company_id === 'string' ? payload.company_id : null,
     };
 
     next();
@@ -57,3 +57,5 @@ export function authorize(...roles: UserRole[]) {
     }
   };
 }
+
+

@@ -2,68 +2,70 @@ import type { UserRole } from '@prisma/client';
 
 export type UserListInput = {
   q?: string;
-  companyId?: string;
+  company_id?: string;
   role?: UserRole;
-  managerId?: string;
-  supervisorId?: string;
-  isActive?: boolean;
+  manager_id?: string;
+  supervisor_id?: string;
+  is_active?: boolean;
   page?: number;
-  pageSize?: number;
+  page_size?: number;
 };
 
 export type CreateUserInput = {
-  companyId?: string;
+  company_id?: string;
   role: UserRole;
-  fullName: string;
+  full_name: string;
   cpf: string;
   email?: string;
   phone: string;
   password?: string;
-  managerId?: string | null;
-  supervisorId?: string | null;
+  manager_id?: string | null;
+  supervisor_id?: string | null;
 };
 
-export type CreateUserByCompanyInput = Omit<CreateUserInput, 'companyId'>;
+export type CreateUserByCompanyInput = Omit<CreateUserInput, 'company_id'>;
 
 export type UpdateUserInput = {
-  companyId?: string;
+  company_id?: string;
   role?: UserRole;
-  fullName?: string;
+  full_name?: string;
   cpf?: string;
   email?: string | null;
   phone?: string;
   password?: string;
-  isActive?: boolean;
-  managerId?: string | null;
-  supervisorId?: string | null;
+  is_active?: boolean;
+  manager_id?: string | null;
+  supervisor_id?: string | null;
 };
 
 export type ReassignSupervisorInput = {
-  fromSupervisorId: string;
-  toSupervisorId: string;
+  from_supervisor_id: string;
+  to_supervisor_id: string;
 };
 
 export type ReassignManagerTeamInput = {
-  fromManagerId: string;
-  toManagerId: string;
+  from_manager_id: string;
+  to_manager_id: string;
 };
 
 export type PublicUserViewInput = {
   id: string;
-  companyId: string | null;
-  managerId?: string | null;
-  supervisorId?: string | null;
+  company_id: string | null;
+  manager_id?: string | null;
+  supervisor_id?: string | null;
   role: UserRole;
-  fullName: string;
+  full_name: string;
   cpf: string;
   email: string | null;
   phone: string;
   passwordHash?: string | null;
-  isActive: boolean;
-  deletedAt?: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
+  is_active: boolean;
+  deleted_at?: Date | null;
+  created_at: Date;
+  updated_at: Date;
   company?: { id: string; name: string } | null;
-  manager?: { id: string; fullName: string } | null;
-  supervisor?: { id: string; fullName: string } | null;
+  manager?: { id: string; full_name: string } | null;
+  supervisor?: { id: string; full_name: string } | null;
 };
+
+

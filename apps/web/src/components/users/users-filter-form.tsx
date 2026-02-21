@@ -9,7 +9,7 @@ type UserStatusFilter = "ALL" | "ACTIVE" | "INACTIVE";
 
 type UsersFilterFormProps = {
   searchValue: string;
-  pageSize: number;
+  page_size: number;
   isLoading: boolean;
   isAdmin: boolean;
   roleFilterValue: "ALL" | UserRole;
@@ -17,7 +17,7 @@ type UsersFilterFormProps = {
   forceAdminRole: boolean;
   canAddUser: boolean;
   onSearchValueChange: (value: string) => void;
-  onPageSizeChange: (pageSize: number) => void;
+  onPageSizeChange: (page_size: number) => void;
   onRoleFilterChange: (value: "ALL" | UserRole) => void;
   onStatusFilterChange: (value: UserStatusFilter) => void;
   onSubmit: () => void;
@@ -40,7 +40,7 @@ const STATUS_OPTIONS: Array<{ value: UserStatusFilter; label: string }> = [
 
 export function UsersFilterForm({
   searchValue,
-  pageSize,
+  page_size,
   isLoading,
   isAdmin,
   roleFilterValue,
@@ -146,7 +146,7 @@ export function UsersFilterForm({
               <select
                 id="users-page-size-mobile"
                 className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-                value={String(pageSize)}
+                value={String(page_size)}
                 onChange={(event) =>
                   onPageSizeChange(Number(event.target.value))
                 }
@@ -179,7 +179,7 @@ export function UsersFilterForm({
           <select
             id="users-page-size"
             className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-            value={String(pageSize)}
+            value={String(page_size)}
             onChange={(event) => onPageSizeChange(Number(event.target.value))}
             disabled={isLoading}
           >
@@ -194,3 +194,4 @@ export function UsersFilterForm({
     </div>
   );
 }
+

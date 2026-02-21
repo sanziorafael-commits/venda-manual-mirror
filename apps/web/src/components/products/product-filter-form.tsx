@@ -6,18 +6,18 @@ import { PAGE_SIZE_OPTIONS } from "@/lib/pagination";
 
 type ProductFilterFormProps = {
   searchValue: string;
-  pageSize: number;
+  page_size: number;
   isLoading: boolean;
   canAddProduct: boolean;
   onSearchValueChange: (value: string) => void;
-  onPageSizeChange: (pageSize: number) => void;
+  onPageSizeChange: (page_size: number) => void;
   onSubmit: () => void;
   onAddProduct: () => void;
 };
 
 export function ProductFilterForm({
   searchValue,
-  pageSize,
+  page_size,
   isLoading,
   canAddProduct,
   onSearchValueChange,
@@ -67,7 +67,7 @@ export function ProductFilterForm({
             <select
               id="products-page-size-mobile"
               className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-              value={String(pageSize)}
+              value={String(page_size)}
               onChange={(event) =>
                 onPageSizeChange(Number(event.target.value))
               }
@@ -98,7 +98,7 @@ export function ProductFilterForm({
             <select
               id="products-page-size"
               className="border-input bg-background h-9 rounded-md border px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
-              value={String(pageSize)}
+              value={String(page_size)}
               onChange={(event) => onPageSizeChange(Number(event.target.value))}
               disabled={isLoading}
             >
@@ -114,3 +114,4 @@ export function ProductFilterForm({
     </div>
   );
 }
+
