@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -67,7 +67,7 @@ function extractValidLogoFile(fileList: FileList | null) {
   if (!file) return null;
 
   if (!ACCEPTED_LOGO_MIME_TYPES.includes(file.type)) {
-    toast.error("Formato de logo inv�lido. Use SVG, PNG, JPG ou GIF.");
+    toast.error("Formato de logo inválido. Use SVG, PNG, JPG ou GIF.");
     return null;
   }
 
@@ -127,7 +127,7 @@ async function uploadFileToSignedUrl(
   });
 
   if (!response.ok) {
-    throw new Error("N�o foi poss�vel enviar a logo para o storage.");
+    throw new Error("Não foi possível enviar a logo para o storage.");
   }
 }
 
@@ -164,7 +164,7 @@ export function CompanyEditForm({ company_id }: CompanyEditFormProps) {
         const companyData = await fetchCompanyById(company_id);
         if (!companyData) {
           setCompany(null);
-          setLoadError("N�o foi poss�vel carregar os dados da empresa.");
+          setLoadError("Não foi possível carregar os dados da empresa.");
           return;
         }
 
@@ -196,7 +196,7 @@ export function CompanyEditForm({ company_id }: CompanyEditFormProps) {
 
   const onSubmit = async (input: CreateCompanyFormInput) => {
     if (!company) {
-      toast.error("N�o foi poss�vel carregar a empresa para edi��o.");
+      toast.error("Não foi possível carregar a empresa para edição.");
       return;
     }
 
@@ -220,7 +220,7 @@ export function CompanyEditForm({ company_id }: CompanyEditFormProps) {
         );
 
         if (!signedUrlData) {
-          toast.error("N�o foi poss�vel preparar o upload da logo.");
+          toast.error("Não foi possível preparar o upload da logo.");
           return;
         }
 
@@ -231,7 +231,7 @@ export function CompanyEditForm({ company_id }: CompanyEditFormProps) {
       }
 
       if (Object.keys(payload).length === 0) {
-        toast.info("Nenhuma altera��o para salvar.");
+        toast.info("Nenhuma alteração para salvar.");
         return;
       }
 
@@ -264,7 +264,7 @@ export function CompanyEditForm({ company_id }: CompanyEditFormProps) {
   if (!company) {
     return (
       <div className="rounded-xl border p-6 text-sm text-destructive">
-        {loadError ?? "N�o foi poss�vel carregar a empresa."}
+        {loadError ?? "Não foi possível carregar a empresa."}
       </div>
     );
   }
@@ -381,7 +381,7 @@ export function CompanyEditForm({ company_id }: CompanyEditFormProps) {
               }
             >
               {removeCurrentLogo ? (
-                <>Cancelar remo��o da logo atual</>
+                <>Cancelar remoção da logo atual</>
               ) : (
                 <>
                   <Trash2 className="size-4" />
@@ -395,7 +395,7 @@ export function CompanyEditForm({ company_id }: CompanyEditFormProps) {
           </div>
 
           <p className="text-sm font-medium border-separate">
-            Arraste para c� a nova logo da empresa ou{" "}
+            Arraste para cá a nova logo da empresa ou{" "}
             <button
               type="button"
               className="cursor-pointer underline underline-offset-2"
@@ -438,7 +438,7 @@ export function CompanyEditForm({ company_id }: CompanyEditFormProps) {
                 Salvando
               </span>
             ) : (
-              <>Salvar altera��es</>
+              <>Salvar alterações</>
             )}
           </Button>
         </div>
@@ -446,5 +446,6 @@ export function CompanyEditForm({ company_id }: CompanyEditFormProps) {
     </form>
   );
 }
+
 
 

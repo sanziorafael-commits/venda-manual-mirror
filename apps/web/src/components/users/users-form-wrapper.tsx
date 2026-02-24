@@ -247,12 +247,12 @@ export function UsersFormWrapper() {
   const handleResendActivation = React.useCallback(
     async (user: UserListItem) => {
       if (!canResendActivationForUser(user)) {
-        toast.error("Usuario sem permissao ou inelegivel para reenvio de ativacao.");
+        toast.error("Usuário sem permissão ou inelegível para reenvio de ativação.");
         return;
       }
 
       const confirmed = window.confirm(
-        `Confirma reenviar o link de ativacao para "${user.full_name}"?`,
+        `Confirma reenviar o link de ativação para "${user.full_name}"?`,
       );
       if (!confirmed) {
         return;
@@ -268,7 +268,7 @@ export function UsersFormWrapper() {
           },
         });
 
-        toast.success("Link de ativacao reenviado com sucesso.");
+        toast.success("Link de ativação reenviado com sucesso.");
       } catch (error) {
         toast.error(parseApiError(error));
       } finally {
@@ -283,17 +283,17 @@ export function UsersFormWrapper() {
   const handleDeleteUser = React.useCallback(
     async (user: UserListItem) => {
       if (!canManageUsers) {
-        toast.error("Perfil sem permissao para excluir usuarios.");
+        toast.error("Perfil sem permissão para excluir usuários.");
         return;
       }
 
       if (user.deleted_at) {
-        toast.error("Usuario ja esta excluido.");
+        toast.error("Usuário já está excluído.");
         return;
       }
 
       const confirmed = window.confirm(
-        `Confirma a exclusao do usuario "${user.full_name}"? Esta acao e irreversivel.`,
+        `Confirma a exclusão do usuário "${user.full_name}"? Esta ação é irreversível.`,
       );
 
       if (!confirmed) {
@@ -305,7 +305,7 @@ export function UsersFormWrapper() {
       try {
         const deleted = await tryApiDelete(
           `/users/${user.id}`,
-          "Usuario excluido com sucesso.",
+          "Usuário excluído com sucesso.",
         );
         if (!deleted) {
           return;
@@ -333,17 +333,17 @@ export function UsersFormWrapper() {
   const handleReactivateUser = React.useCallback(
     async (user: UserListItem) => {
       if (!canManageUsers) {
-        toast.error("Perfil sem permissao para reativar usuarios.");
+        toast.error("Perfil sem permissão para reativar usuários.");
         return;
       }
 
       if (user.is_active) {
-        toast.error("Usuario ja esta ativo.");
+        toast.error("Usuário já está ativo.");
         return;
       }
 
       const confirmed = window.confirm(
-        `Confirma reativar o usuario "${user.full_name}"?`,
+        `Confirma reativar o usuário "${user.full_name}"?`,
       );
       if (!confirmed) {
         return;
@@ -361,11 +361,11 @@ export function UsersFormWrapper() {
 
         const parsed = userDetailsApiResponseSchema.safeParse(response);
         if (!parsed.success) {
-          toast.error("Resposta inesperada ao reativar usuario.");
+          toast.error("Resposta inesperada ao reativar usuário.");
           return;
         }
 
-        toast.success("Usuario reativado com sucesso.");
+        toast.success("Usuário reativado com sucesso.");
 
         if (
           users.length === 1 &&

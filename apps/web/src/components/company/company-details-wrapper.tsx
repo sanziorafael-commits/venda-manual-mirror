@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { Plus } from "lucide-react";
@@ -65,7 +65,7 @@ export function CompanyDetailsWrapper({
 
       if (!parsed.success) {
         setCompany(null);
-        setCompanyLoadError("N�o foi poss�vel carregar os dados da empresa.");
+        setCompanyLoadError("Não foi possível carregar os dados da empresa.");
         return;
       }
 
@@ -99,7 +99,7 @@ export function CompanyDetailsWrapper({
 
       const parsed = companyUsersApiResponseSchema.safeParse(response);
       if (!parsed.success) {
-        toast.error("Resposta inesperada ao carregar Usu�rios da empresa.");
+        toast.error("Resposta inesperada ao carregar Usuários da empresa.");
         setUsers([]);
         setMeta(createEmptyPaginationMeta<CompanyListMeta>(page_size));
         return;
@@ -184,12 +184,12 @@ export function CompanyDetailsWrapper({
   const handleResendActivation = React.useCallback(
     async (user: CompanyUserItem) => {
       if (!canResendActivationForUser(user)) {
-        toast.error("Usu�rio sem permiss�o ou ineleg�vel para reenvio de ativa��o.");
+        toast.error("Usuário sem permissão ou inelegível para reenvio de ativação.");
         return;
       }
 
       const confirmed = window.confirm(
-        `Confirma reenviar o link de ativa��o para "${user.full_name}"?`,
+        `Confirma reenviar o link de ativação para "${user.full_name}"?`,
       );
       if (!confirmed) {
         return;
@@ -205,7 +205,7 @@ export function CompanyDetailsWrapper({
           },
         });
 
-        toast.success("Link de ativa��o reenviado com sucesso.");
+        toast.success("Link de ativação reenviado com sucesso.");
       } catch (error) {
         toast.error(parseApiError(error));
       } finally {
@@ -220,12 +220,12 @@ export function CompanyDetailsWrapper({
   const handleDeleteUser = React.useCallback(
     async (user: CompanyUserItem) => {
       if (user.deleted_at) {
-        toast.error("Usu�rio j� est� exclu�do.");
+        toast.error("Usuário já está excluído.");
         return;
       }
 
       const confirmed = window.confirm(
-        `Confirma a exclus�o do usu�rio "${user.full_name}"? Esta a��o � irrevers�vel.`,
+        `Confirma a exclusão do usuário "${user.full_name}"? Esta ação é irreversível.`,
       );
 
       if (!confirmed) {
@@ -237,7 +237,7 @@ export function CompanyDetailsWrapper({
       try {
         const deleted = await tryApiDelete(
           `/users/${user.id}`,
-          "Usu�rio exclu�do com sucesso.",
+          "Usuário excluído com sucesso.",
         );
         if (!deleted) {
           return;
@@ -261,12 +261,12 @@ export function CompanyDetailsWrapper({
   const handleReactivateUser = React.useCallback(
     async (user: CompanyUserItem) => {
       if (user.is_active) {
-        toast.error("Usu�rio j� est� ativo.");
+        toast.error("Usuário já está ativo.");
         return;
       }
 
       const confirmed = window.confirm(
-        `Confirma reativar o usu�rio "${user.full_name}"?`,
+        `Confirma reativar o usuário "${user.full_name}"?`,
       );
       if (!confirmed) {
         return;
@@ -284,11 +284,11 @@ export function CompanyDetailsWrapper({
 
         const parsed = userDetailsApiResponseSchema.safeParse(response);
         if (!parsed.success) {
-          toast.error("Resposta inesperada ao reativar usu�rio.");
+          toast.error("Resposta inesperada ao reativar usuário.");
           return;
         }
 
-        toast.success("Usu�rio reativado com sucesso.");
+        toast.success("Usuário reativado com sucesso.");
         void loadUsers();
       } catch (error) {
         toast.error(parseApiError(error));
@@ -312,7 +312,7 @@ export function CompanyDetailsWrapper({
   if (!company) {
     return (
       <div className="rounded-xl border p-6 text-sm text-destructive">
-        {companyLoadError ?? "N�o foi poss�vel carregar a empresa."}
+        {companyLoadError ?? "Não foi possível carregar a empresa."}
       </div>
     );
   }
@@ -323,13 +323,13 @@ export function CompanyDetailsWrapper({
 
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 className="text-2xl font-semibold">Usu�rios da empresa</h3>
+          <h3 className="text-2xl font-semibold">Usuários da empresa</h3>
           <Button
             type="button"
             className="bg-emerald-600 text-white hover:bg-emerald-700 lg:hidden"
             onClick={handleAddUser}
           >
-            Adicionar usu�rio
+            Adicionar usuário
             <Plus className="size-4" />
           </Button>
         </div>
@@ -362,5 +362,6 @@ export function CompanyDetailsWrapper({
     </section>
   );
 }
+
 
 

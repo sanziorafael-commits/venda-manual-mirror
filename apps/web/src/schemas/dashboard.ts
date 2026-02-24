@@ -6,6 +6,7 @@ export const dashboardPeriodSchema = z.enum(["today", "7d", "30d", "365d"]);
 export const dashboardOptionSchema = z.object({
   value: z.string().min(1),
   label: z.string().min(1),
+  logo_signed_url: z.string().url().nullable().optional(),
 });
 
 export const dashboardTeamSummarySchema = z.object({

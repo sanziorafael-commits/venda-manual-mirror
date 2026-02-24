@@ -1,10 +1,11 @@
-import * as React from "react";
+﻿import * as React from "react";
 import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { PaginationControls } from "@/components/ui/pagination-controls";
@@ -13,11 +14,14 @@ import type { CompanyListItem } from "@/schemas/company";
 type CompanyTableProps = {
   data: CompanyListItem[];
   isLoading: boolean;
+  actionCompanyId: string | null;
+  canDeleteCompanies: boolean;
   pageIndex: number;
   page_size: number;
   total_pages: number;
   onPageChange: (pageIndex: number) => void;
   onViewDetails: (company: CompanyListItem) => void;
+  onDeleteCompany: (company: CompanyListItem) => void;
 };
 
 function formatCnpj(value: string) {
@@ -33,17 +37,20 @@ function formatCnpj(value: string) {
 }
 
 function formatUsersCount(count: number) {
-  return `${count} ${count === 1 ? "usu�rio" : "Usu�rios"}`;
+  return `${count} ${count === 1 ? "usuário" : "Usuários"}`;
 }
 
 export function CompanyTable({
   data,
   isLoading,
+  actionCompanyId,
+  canDeleteCompanies,
   pageIndex,
   page_size,
   total_pages,
   onPageChange,
   onViewDetails,
+  onDeleteCompany,
 }: CompanyTableProps) {
   const columns = React.useMemo<ColumnDef<CompanyListItem>[]>(
     () => [
@@ -63,26 +70,43 @@ export function CompanyTable({
       },
       {
         accessorKey: "users_count",
-        header: "Usu�rios",
+        header: "Usuários",
         cell: ({ row }) => formatUsersCount(row.original.users_count),
       },
       {
-        id: "details",
-        header: "Detalhes",
+        id: "actions",
+        header: "Ações",
         cell: ({ row }) => (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
-            onClick={() => onViewDetails(row.original)}
-          >
-            Ver detalhes
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+              onClick={() => onViewDetails(row.original)}
+              disabled={isLoading || actionCompanyId === row.original.id}
+            >
+              Ver detalhes
+            </Button>
+            {canDeleteCompanies ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => onDeleteCompany(row.original)}
+                disabled={isLoading || actionCompanyId === row.original.id}
+                title={`Excluir empresa ${row.original.name}`}
+                aria-label={`Excluir empresa ${row.original.name}`}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            ) : null}
+          </div>
         ),
       },
     ],
-    [onViewDetails],
+    [actionCompanyId, canDeleteCompanies, isLoading, onDeleteCompany, onViewDetails],
   );
 
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -176,4 +200,5 @@ export function CompanyTable({
     </div>
   );
 }
+
 

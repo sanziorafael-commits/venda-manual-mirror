@@ -4,12 +4,14 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import { useAuthUser } from "@/hooks/use-auth-user";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
 import {
   createEmptyPaginationMeta,
   DEFAULT_PAGE_SIZE,
 } from "@/lib/pagination";
+import { tryApiDelete } from "@/lib/try-api";
 import {
   companiesApiResponseSchema,
   type CompanyListItem,
@@ -21,6 +23,8 @@ import { CompanyTable } from "./company-table";
 
 export function CompanyFormWrapper() {
   const router = useRouter();
+  const authUser = useAuthUser();
+  const canDeleteCompanies = authUser?.role === "ADMIN";
   const [searchDraft, setSearchDraft] = React.useState("");
   const [query, setQuery] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(true);
@@ -28,6 +32,7 @@ export function CompanyFormWrapper() {
   const [meta, setMeta] = React.useState<CompanyListMeta>(
     createEmptyPaginationMeta<CompanyListMeta>(),
   );
+  const [actionCompanyId, setActionCompanyId] = React.useState<string | null>(null);
   const [pageIndex, setPageIndex] = React.useState(0);
   const [page_size, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
   const requestIdRef = React.useRef(0);
@@ -109,6 +114,46 @@ export function CompanyFormWrapper() {
     router.push(`/dashboard/companies/${company.id}`);
   }, [router]);
 
+  const handleDeleteCompany = React.useCallback(
+    async (company: CompanyListItem) => {
+      if (!canDeleteCompanies) {
+        toast.error("Perfil sem permissão para excluir empresas.");
+        return;
+      }
+
+      const confirmed = window.confirm(
+        `Confirma a exclusão da empresa "${company.name}"?`,
+      );
+      if (!confirmed) {
+        return;
+      }
+
+      setActionCompanyId(company.id);
+
+      try {
+        const deleted = await tryApiDelete(
+          `/companies/${company.id}`,
+          "Empresa excluída com sucesso.",
+        );
+        if (!deleted) {
+          return;
+        }
+
+        if (companies.length === 1 && pageIndex > 0) {
+          setPageIndex((currentPage) => Math.max(0, currentPage - 1));
+          return;
+        }
+
+        void loadCompanies();
+      } finally {
+        setActionCompanyId((currentCompanyId) =>
+          currentCompanyId === company.id ? null : currentCompanyId,
+        );
+      }
+    },
+    [canDeleteCompanies, companies.length, loadCompanies, pageIndex],
+  );
+
   return (
     <section className="flex flex-col gap-5">
       <h3 className="text-xl font-semibold">Empresas cadastradas</h3>
@@ -126,11 +171,14 @@ export function CompanyFormWrapper() {
       <CompanyTable
         data={companies}
         isLoading={isLoading}
+        actionCompanyId={actionCompanyId}
+        canDeleteCompanies={canDeleteCompanies}
         pageIndex={pageIndex}
         page_size={page_size}
         total_pages={meta.total_pages}
         onPageChange={setPageIndex}
         onViewDetails={handleViewDetails}
+        onDeleteCompany={handleDeleteCompany}
       />
     </section>
   );

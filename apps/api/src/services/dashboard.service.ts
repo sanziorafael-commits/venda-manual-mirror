@@ -1,5 +1,6 @@
 import { Prisma, UserRole, type Prisma as PrismaType } from '@prisma/client';
 
+import { logger } from '../lib/logger.js';
 import { prisma } from '../lib/prisma.js';
 import type { AuthActor } from '../types/auth.types.js';
 import type {
@@ -15,6 +16,8 @@ import type {
 } from '../types/dashboard.types.js';
 import { badRequest, forbidden } from '../utils/app-error.js';
 import { normalizePhone } from '../utils/normalizers.js';
+
+import { createStorageSignedReadUrlByPublicUrl } from './storage.service.js';
 
 type DashboardRange = {
   period: DashboardPeriod;
@@ -321,6 +324,7 @@ export async function getDashboardFilterOptions(actor: AuthActor, input: Dashboa
   const scopedCompanyId = resolveScopedCompanyId(actor, input.company_id);
   const defaultScope = resolveDashboardScope(actor, undefined, undefined);
   const scopeOptions = resolveScopeOptionsByRole(actor.role);
+  const includeSignedCompanyLogo = actor.role !== UserRole.ADMIN;
 
   const companyOptions =
     actor.role === UserRole.ADMIN
@@ -331,6 +335,7 @@ export async function getDashboardFilterOptions(actor: AuthActor, input: Dashboa
           select: {
             id: true,
             name: true,
+            logo_url: true,
           },
           orderBy: {
             name: 'asc',
@@ -345,11 +350,19 @@ export async function getDashboardFilterOptions(actor: AuthActor, input: Dashboa
             select: {
               id: true,
               name: true,
+              logo_url: true,
             },
           })
         : [];
 
   const actorScopeContext = await buildActorScopeContext(actor, scopedCompanyId);
+  const mappedCompanyOptions = await Promise.all(
+    companyOptions.map((company) =>
+      mapDashboardCompanyOption(company, {
+        includeSignedLogo: includeSignedCompanyLogo,
+      }),
+    ),
+  );
 
   return {
     role: actor.role,
@@ -359,10 +372,7 @@ export async function getDashboardFilterOptions(actor: AuthActor, input: Dashboa
       actor.role === UserRole.GERENTE_COMERCIAL || actor.role === UserRole.DIRETOR
         ? VIEW_BY_OPTIONS
         : VIEW_BY_OPTIONS.filter((option) => option.value === 'vendedor'),
-    company_options: companyOptions.map((company) => ({
-      value: company.id,
-      label: company.name,
-    })),
+    company_options: mappedCompanyOptions,
     defaults: {
       period: '365d' as DashboardPeriod,
       scope: defaultScope,
@@ -373,6 +383,37 @@ export async function getDashboardFilterOptions(actor: AuthActor, input: Dashboa
       supervisors: actorScopeContext.supervisorNames.length,
       vendors: actorScopeContext.vendorIds.length,
     },
+  };
+}
+
+async function mapDashboardCompanyOption(
+  company: {
+    id: string;
+    name: string;
+    logo_url: string | null;
+  },
+  options: {
+    includeSignedLogo: boolean;
+  },
+) {
+  let logo_signed_url: string | null = null;
+
+  if (options.includeSignedLogo && company.logo_url) {
+    try {
+      const signedReadUrl = await createStorageSignedReadUrlByPublicUrl(company.logo_url);
+      logo_signed_url = signedReadUrl?.readUrl ?? null;
+    } catch (error) {
+      logger.warn(
+        { err: error, company_id: company.id, logo_url: company.logo_url },
+        'failed to create signed read url for dashboard company option logo',
+      );
+    }
+  }
+
+  return {
+    value: company.id,
+    label: company.name,
+    logo_signed_url,
   };
 }
 

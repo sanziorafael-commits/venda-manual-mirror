@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -57,7 +57,7 @@ function extractValidLogoFile(fileList: FileList | null) {
   if (!file) return null;
 
   if (!ACCEPTED_LOGO_MIME_TYPES.includes(file.type)) {
-    toast.error("Formato de logo inv�lido. Use SVG, PNG, JPG ou GIF.");
+    toast.error("Formato de logo inválido. Use SVG, PNG, JPG ou GIF.");
     return null;
   }
 
@@ -119,7 +119,7 @@ async function uploadFileToSignedUrl(signedUrlData: UploadSignedUrlData, file: F
   });
 
   if (!response.ok) {
-    throw new Error("N�o foi poss�vel enviar a logo para o storage.");
+    throw new Error("Não foi possível enviar a logo para o storage.");
   }
 }
 
@@ -186,7 +186,7 @@ export function CompanyCreateForm() {
 
       if (!signedUrlData) {
         toast.warning(
-          "Empresa criada, mas N�o foi poss�vel preparar o upload da logo.",
+          "Empresa criada, mas Não foi possível preparar o upload da logo.",
         );
         router.push("/dashboard/companies");
         return;
@@ -286,7 +286,7 @@ export function CompanyCreateForm() {
           </div>
 
           <p className="text-sm font-medium">
-            Arraste para c� a logo da empresa ou{" "}
+            Arraste para cá a logo da empresa ou{" "}
             <button
               type="button"
               className="cursor-pointer underline underline-offset-2"
@@ -335,5 +335,6 @@ export function CompanyCreateForm() {
     </form>
   );
 }
+
 
 

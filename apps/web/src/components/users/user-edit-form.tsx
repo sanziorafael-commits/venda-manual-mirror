@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -260,7 +260,7 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
 
         if (!loadedUser) {
           setUserData(null);
-          setLoadError("N�o foi poss�vel carregar os dados do usu�rio.");
+          setLoadError("Não foi possível carregar os dados do usuário.");
           return;
         }
 
@@ -353,7 +353,7 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
         }
 
         if (!options) {
-          toast.error("N�o foi poss�vel carregar empresas.");
+          toast.error("Não foi possível carregar empresas.");
           setCompanyOptions([]);
           return;
         }
@@ -396,7 +396,7 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
         }
 
         if (!options) {
-          toast.error("N�o foi poss�vel carregar gerentes da empresa.");
+          toast.error("Não foi possível carregar gerentes da empresa.");
           setManagerOptions([]);
           return;
         }
@@ -441,7 +441,7 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
         }
 
         if (!options) {
-          toast.error("N�o foi poss�vel carregar supervisores.");
+          toast.error("Não foi possível carregar supervisores.");
           setSupervisorOptions([]);
           return;
         }
@@ -472,7 +472,7 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
 
   const onSubmit = async (input: UpdateUserFormInput) => {
     if (!authUser || !userData) {
-      toast.error("N�o foi poss�vel carregar o contexto para edi��o.");
+      toast.error("Não foi possível carregar o contexto para edição.");
       return;
     }
 
@@ -484,7 +484,7 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
     if (shouldShowCompanyField && !company_id) {
       setError("company_id", {
         type: "manual",
-        message: "Empresa obrigat�ria para este cargo.",
+        message: "Empresa obrigatória para este cargo.",
       });
       return;
     }
@@ -492,7 +492,7 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
     if (shouldShowManagerField && !manager_id) {
       setError("manager_id", {
         type: "manual",
-        message: "Selecione um gerente respons�vel.",
+        message: "Selecione um gerente responsável.",
       });
       return;
     }
@@ -500,7 +500,7 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
     if (shouldShowSupervisorField && !supervisor_id) {
       setError("supervisor_id", {
         type: "manual",
-        message: "Selecione um supervisor respons�vel.",
+        message: "Selecione um supervisor responsável.",
       });
       return;
     }
@@ -512,7 +512,7 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
     ) {
       setError("password", {
         type: "manual",
-        message: "Senha obrigat�ria ao promover para admin.",
+        message: "Senha obrigatória ao promover para admin.",
       });
       return;
     }
@@ -559,11 +559,11 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
 
       const parsed = userDetailsApiResponseSchema.safeParse(response);
       if (!parsed.success) {
-        toast.error("Resposta inesperada ao atualizar usu�rio.");
+        toast.error("Resposta inesperada ao atualizar usuário.");
         return;
       }
 
-      toast.success("Usu�rio atualizado com sucesso!");
+      toast.success("Usuário atualizado com sucesso!");
       router.push(backHref);
     } catch (error) {
       toast.error(parseApiError(error));
@@ -588,7 +588,7 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
   if (!authUser || !userData) {
     return (
       <div className="rounded-xl border p-6 text-sm text-destructive">
-        {loadError ?? "N�o foi poss�vel carregar dados do usu�rio."}
+        {loadError ?? "Não foi possível carregar dados do usuário."}
       </div>
     );
   }
@@ -744,7 +744,7 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
         {shouldShowManagerField ? (
           <Field className="gap-2">
             <FieldLabel htmlFor="edit-user-manager" className="font-semibold">
-              Gerente respons�vel
+              Gerente responsável
             </FieldLabel>
             <select
               id="edit-user-manager"
@@ -774,7 +774,7 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
               htmlFor="edit-user-supervisor"
               className="font-semibold"
             >
-              Supervisor respons�vel
+              Supervisor responsável
             </FieldLabel>
             <select
               id="edit-user-supervisor"
@@ -826,7 +826,7 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
                 Salvando
               </span>
             ) : (
-              <>Salvar altera��es</>
+              <>Salvar alterações</>
             )}
           </Button>
         </div>
@@ -834,4 +834,5 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
     </form>
   );
 }
+
 

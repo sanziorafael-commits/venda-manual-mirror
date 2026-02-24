@@ -1,4 +1,4 @@
-import { Plus, Search } from "lucide-react";
+﻿import { Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +33,7 @@ export function CompanyUsersFilterForm({
         }}
       >
         <label htmlFor="company-users-search" className="text-sm font-medium">
-          Buscar por usu�rio
+          Buscar por usuário
         </label>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input
@@ -60,7 +60,7 @@ export function CompanyUsersFilterForm({
           onClick={onAddUser}
           disabled={isLoading}
         >
-          Adicionar usu�rio
+          Adicionar usuário
           <Plus className="size-4" />
         </Button>
 
@@ -86,4 +86,5 @@ export function CompanyUsersFilterForm({
     </div>
   );
 }
+
 

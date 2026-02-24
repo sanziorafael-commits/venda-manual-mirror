@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -292,7 +292,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
         }
 
         if (!options) {
-          toast.error("N�o foi poss�vel carregar empresas.");
+          toast.error("Não foi possível carregar empresas.");
           setCompanyOptions([]);
           return;
         }
@@ -335,7 +335,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
         }
 
         if (!options) {
-          toast.error("N�o foi poss�vel carregar gerentes da empresa.");
+          toast.error("Não foi possível carregar gerentes da empresa.");
           setManagerOptions([]);
           return;
         }
@@ -380,7 +380,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
         }
 
         if (!options) {
-          toast.error("N�o foi poss�vel carregar supervisores.");
+          toast.error("Não foi possível carregar supervisores.");
           setSupervisorOptions([]);
           return;
         }
@@ -411,7 +411,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
 
   const onSubmit = async (input: CreateUserFormInput) => {
     if (!authUser) {
-      toast.error("N�o foi poss�vel identificar o usu�rio autenticado.");
+      toast.error("Não foi possível identificar o usuário autenticado.");
       return;
     }
 
@@ -422,7 +422,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
     if (shouldShowCompanyField && !company_id) {
       setError("company_id", {
         type: "manual",
-        message: "Empresa obrigat�ria para este cargo.",
+        message: "Empresa obrigatória para este cargo.",
       });
       return;
     }
@@ -430,7 +430,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
     if (shouldShowManagerField && !manager_id) {
       setError("manager_id", {
         type: "manual",
-        message: "Selecione um Gerente respons�vel.",
+        message: "Selecione um Gerente responsável.",
       });
       return;
     }
@@ -438,7 +438,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
     if (shouldShowSupervisorField && !supervisor_id) {
       setError("supervisor_id", {
         type: "manual",
-        message: "Selecione um Supervisor respons�vel.",
+        message: "Selecione um Supervisor responsável.",
       });
       return;
     }
@@ -479,11 +479,11 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
 
       const parsed = createdUserApiResponseSchema.safeParse(response);
       if (!parsed.success) {
-        toast.error("Resposta inesperada ao Cadastrar usu�rio.");
+        toast.error("Resposta inesperada ao Cadastrar usuário.");
         return;
       }
 
-      toast.success("usu�rio cadastrado com sucesso!");
+      toast.success("usuário cadastrado com sucesso!");
       router.push("/dashboard/users");
     } catch (error) {
       toast.error(parseApiError(error));
@@ -508,7 +508,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
   if (!authUser) {
     return (
       <div className="rounded-xl border p-6 text-sm text-destructive">
-        N�o foi poss�vel carregar o contexto do usu�rio autenticado.
+        Não foi possível carregar o contexto do usuário autenticado.
       </div>
     );
   }
@@ -519,7 +519,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
       onSubmit={handleSubmit(onSubmit)}
     >
       <FieldGroup className="gap-4">
-        <h4 className="text-2xl font-semibold">Novo usu�rio</h4>
+        <h4 className="text-2xl font-semibold">Novo usuário</h4>
 
         <Field className="gap-2">
           <FieldLabel htmlFor="user-full-name" className="font-semibold">
@@ -636,7 +636,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
         {shouldShowManagerField ? (
           <Field className="gap-2">
             <FieldLabel htmlFor="user-manager" className="font-semibold">
-              Gerente respons�vel
+              Gerente responsável
             </FieldLabel>
             <select
               id="user-manager"
@@ -661,7 +661,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
         {shouldShowSupervisorField ? (
           <Field className="gap-2">
             <FieldLabel htmlFor="user-supervisor" className="font-semibold">
-              Supervisor respons�vel
+              Supervisor responsável
             </FieldLabel>
             <select
               id="user-supervisor"
@@ -709,7 +709,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
                 Cadastrando
               </span>
             ) : (
-              <>Cadastrar usu�rio</>
+              <>Cadastrar usuário</>
             )}
           </Button>
         </div>
@@ -717,5 +717,6 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
     </form>
   );
 }
+
 
 

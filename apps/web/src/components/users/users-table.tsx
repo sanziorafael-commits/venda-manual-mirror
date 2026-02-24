@@ -1,4 +1,4 @@
-import * as React from "react";
+﻿import * as React from "react";
 import {
   type ColumnDef,
   flexRender,
@@ -66,7 +66,7 @@ export function UsersTable({
     const baseColumns: ColumnDef<UserListItem>[] = [
       {
         accessorKey: "full_name",
-        header: "Usu�rios",
+        header: "Usuários",
         cell: ({ row }) => (
           <span className="font-medium text-foreground">
             {row.original.full_name}
@@ -90,7 +90,7 @@ export function UsersTable({
       },
       {
         accessorKey: "role",
-        header: "Cargo do usu�rio",
+        header: "Cargo do usuário",
         cell: ({ row }) => ROLE_LABEL_BY_VALUE[row.original.role],
       },
       {
@@ -123,7 +123,7 @@ export function UsersTable({
     if (canManageUsers) {
       baseColumns.push({
         id: "details",
-        header: "A��es",
+        header: "Ações",
         cell: ({ row }) => {
           const isDeleted = Boolean(row.original.deleted_at);
           const isInactive = !row.original.is_active;
@@ -139,7 +139,7 @@ export function UsersTable({
                 className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
                 onClick={() => onEditUser(row.original)}
                 disabled={isLoading || isPendingAction}
-                title={`Editar usu�rio ${row.original.full_name}`}
+                title={`Editar usuário ${row.original.full_name}`}
               >
                 <Pencil className="size-3.5" />
                 Editar
@@ -152,8 +152,8 @@ export function UsersTable({
                   className="text-emerald-700 hover:bg-emerald-100 hover:text-emerald-700"
                   onClick={() => onResendActivation(row.original)}
                   disabled={isLoading || isPendingAction}
-                  title={`Reenviar ativa��o`}
-                  aria-label={`Reenviar ativa��o`}
+                  title={`Reenviar ativação`}
+                  aria-label={`Reenviar ativação`}
                 >
                   <Mail className="size-4" />
                 </Button>
@@ -166,8 +166,8 @@ export function UsersTable({
                   className="text-emerald-700 hover:bg-emerald-100 hover:text-emerald-700"
                   onClick={() => onReactivateUser(row.original)}
                   disabled={isLoading || isPendingAction}
-                  title={`Reativar usu�rio ${row.original.full_name}`}
-                  aria-label={`Reativar usu�rio ${row.original.full_name}`}
+                  title={`Reativar usuário ${row.original.full_name}`}
+                  aria-label={`Reativar usuário ${row.original.full_name}`}
                 >
                   <RotateCcw className="size-4" />
                 </Button>
@@ -179,8 +179,8 @@ export function UsersTable({
                   className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                   onClick={() => onDeleteUser(row.original)}
                   disabled={isDeleted || isLoading || isPendingAction}
-                  title={`Excluir usu�rio ${row.original.full_name}`}
-                  aria-label={`Excluir usu�rio ${row.original.full_name}`}
+                  title={`Excluir usuário ${row.original.full_name}`}
+                  aria-label={`Excluir usuário ${row.original.full_name}`}
                 >
                   <Trash2 className="size-4" />
                 </Button>
@@ -277,7 +277,7 @@ export function UsersTable({
                     colSpan={columns.length}
                     className="px-4 py-8 text-center text-sm text-muted-foreground"
                   >
-                    Nenhum usu�rio encontrado.
+                    Nenhum usuário encontrado.
                   </td>
                 </tr>
               ) : null}
@@ -295,4 +295,5 @@ export function UsersTable({
     </div>
   );
 }
+
 

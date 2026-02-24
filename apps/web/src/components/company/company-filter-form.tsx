@@ -1,4 +1,4 @@
-import { Plus, Search } from "lucide-react";
+﻿import { Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,7 +65,7 @@ export function CompanyFilterForm({
         </Button>
 
         <label htmlFor="company-page-size" className="sr-only">
-          Itens por p�gina
+          Itens por página
         </label>
         <select
           id="company-page-size"
@@ -84,4 +84,5 @@ export function CompanyFilterForm({
     </div>
   );
 }
+
 

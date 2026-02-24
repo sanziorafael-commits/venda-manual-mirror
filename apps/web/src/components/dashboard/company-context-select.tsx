@@ -3,6 +3,7 @@
 import * as React from "react";
 import { toast } from "sonner";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthHydrated, useAuthUser } from "@/hooks/use-auth-user";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
@@ -19,6 +20,7 @@ const PLATFORM_ADMIN_LABEL = "Handsell (admin)";
 type ContextOption = {
   value: string;
   label: string;
+  logo_signed_url?: string | null;
 };
 
 export function CompanyContextSelect() {
@@ -143,16 +145,22 @@ export function CompanyContextSelect() {
       return <CompanyNameSkeleton />;
     }
 
-    const company_name =
-      options.find((option) => option.value === authUser.company_id)?.label ??
-      options[0]?.label ??
-      "Sem empresa";
+    const selectedCompanyOption =
+      options.find((option) => option.value === authUser.company_id) ?? options[0] ?? null;
+    const company_name = selectedCompanyOption?.label ?? "Sem empresa";
+    const company_logo_url = selectedCompanyOption?.logo_signed_url ?? null;
 
     return (
       <div className="flex items-center gap-2">
-        <span className="bg-sidebar-primary text-sidebar-primary-foreground inline-flex size-7 items-center justify-center rounded-full text-xs font-semibold">
-          {initialFromName(company_name)}
-        </span>
+        <Avatar className="size-7">
+          <AvatarImage
+            src={company_logo_url ?? undefined}
+            alt={`Logo da empresa ${company_name}`}
+          />
+          <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-xs font-semibold">
+            {initialFromName(company_name)}
+          </AvatarFallback>
+        </Avatar>
         <span className="text-sm font-medium text-foreground">
           {company_name}
         </span>

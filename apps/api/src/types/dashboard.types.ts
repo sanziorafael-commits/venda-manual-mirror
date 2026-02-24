@@ -40,6 +40,7 @@ export type DashboardProductRankingItem = {
 export type DashboardFilterOption<T extends string = string> = {
   value: T;
   label: string;
+  logo_signed_url?: string | null;
 };
 
 
