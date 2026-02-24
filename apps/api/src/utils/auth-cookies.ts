@@ -13,6 +13,7 @@ const COOKIE_BASE_OPTIONS: CookieOptions = {
   sameSite: 'lax',
   secure: env.NODE_ENV === 'production',
   path: '/',
+  domain: '.handsell.com.br',
 };
 
 export function setAuthCookies(
