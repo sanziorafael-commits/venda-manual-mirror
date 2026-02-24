@@ -140,26 +140,33 @@ export function CompanyContextSelect() {
   }
 
   if (authUser.role !== "ADMIN") {
-    const isCompanyLoading = options.length === 0 && (!hasRequestedOptions || isLoadingOptions);
+    const isCompanyLoading =
+      options.length === 0 && (!hasRequestedOptions || isLoadingOptions);
     if (isCompanyLoading) {
       return <CompanyNameSkeleton />;
     }
 
     const selectedCompanyOption =
-      options.find((option) => option.value === authUser.company_id) ?? options[0] ?? null;
+      options.find((option) => option.value === authUser.company_id) ??
+      options[0] ??
+      null;
     const company_name = selectedCompanyOption?.label ?? "Sem empresa";
     const company_logo_url = selectedCompanyOption?.logo_signed_url ?? null;
 
     return (
       <div className="flex items-center gap-2">
         <Avatar className="size-7">
-          <AvatarImage
-            src={company_logo_url ?? undefined}
-            alt={`Logo da empresa ${company_name}`}
-          />
-          <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-xs font-semibold">
-            {initialFromName(company_name)}
-          </AvatarFallback>
+          {company_logo_url ? (
+            <AvatarImage
+              src={company_logo_url}
+              alt={`Logo da empresa ${company_name}`}
+              className="border overline-hidden rounded-full"
+            />
+          ) : (
+            <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-xs font-semibold">
+              {initialFromName(company_name)}
+            </AvatarFallback>
+          )}
         </Avatar>
         <span className="text-sm font-medium text-foreground">
           {company_name}
@@ -168,7 +175,8 @@ export function CompanyContextSelect() {
     );
   }
 
-  const isAdminLoading = options.length === 0 && (!hasRequestedOptions || isLoadingOptions);
+  const isAdminLoading =
+    options.length === 0 && (!hasRequestedOptions || isLoadingOptions);
   if (isAdminLoading) {
     return <CompanySelectSkeleton />;
   }
@@ -218,4 +226,3 @@ function CompanySelectSkeleton() {
     </div>
   );
 }
-

@@ -49,6 +49,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://storage.googleapis.com" crossOrigin="" />
+        <link rel="dns-prefetch" href="//storage.googleapis.com" />
+      </head>
       <body className={`${fustat.variable} antialiased`}>
         {children}
         <Toaster richColors position="top-right" />
