@@ -64,7 +64,7 @@ export function setAuthCookies(
     maxAge: ttlToMs(env.JWT_REFRESH_TOKEN_TTL),
   });
 
-  res.cookie(AUTH_USER_COOKIE_NAME, encodeURIComponent(JSON.stringify(input.user)), {
+  res.cookie(AUTH_USER_COOKIE_NAME, JSON.stringify(input.user), {
     ...COOKIE_BASE_OPTIONS,
     maxAge: ttlToMs(env.JWT_REFRESH_TOKEN_TTL),
   });
