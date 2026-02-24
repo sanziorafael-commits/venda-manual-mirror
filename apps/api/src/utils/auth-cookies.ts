@@ -8,12 +8,27 @@ export const AUTH_ACCESS_COOKIE_NAME = 'handsell.access_token';
 export const AUTH_REFRESH_COOKIE_NAME = 'handsell.refresh_token';
 export const AUTH_USER_COOKIE_NAME = 'handsell.user';
 
+function resolveCookieDomain() {
+  if (env.NODE_ENV !== 'production') {
+    return undefined;
+  }
+
+  const configuredDomain = env.AUTH_COOKIE_DOMAIN?.trim();
+  if (configuredDomain) {
+    return configuredDomain;
+  }
+
+  return '.handsell.com.br';
+}
+
+const COOKIE_DOMAIN = resolveCookieDomain();
+
 const COOKIE_BASE_OPTIONS: CookieOptions = {
   httpOnly: true,
   sameSite: 'lax',
   secure: env.NODE_ENV === 'production',
   path: '/',
-  domain: '.handsell.com.br',
+  ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}),
 };
 
 export function setAuthCookies(
@@ -53,7 +68,8 @@ export function clearAuthCookies(res: Response) {
 }
 
 export function getRefreshTokenFromRequest(req: Request) {
-  const bodyToken = typeof req.body?.refresh_token === 'string' ? req.body.refresh_token : undefined;
+  const bodyToken =
+    typeof req.body?.refresh_token === 'string' ? req.body.refresh_token : undefined;
   if (bodyToken?.trim()) {
     return bodyToken.trim();
   }
@@ -90,5 +106,3 @@ export function getCookieValue(req: Request, key: string) {
 
   return undefined;
 }
-
-
