@@ -4,9 +4,13 @@ import { env } from '../config/env.js';
 
 import { ttlToMs } from './time.js';
 
-export const AUTH_ACCESS_COOKIE_NAME = 'handsell.access_token';
-export const AUTH_REFRESH_COOKIE_NAME = 'handsell.refresh_token';
-export const AUTH_USER_COOKIE_NAME = 'handsell.user';
+const LEGACY_AUTH_ACCESS_COOKIE_NAME = 'handsell.access_token';
+const LEGACY_AUTH_REFRESH_COOKIE_NAME = 'handsell.refresh_token';
+const LEGACY_AUTH_USER_COOKIE_NAME = 'handsell.user';
+
+export const AUTH_ACCESS_COOKIE_NAME = 'handsell.access_token_v2';
+export const AUTH_REFRESH_COOKIE_NAME = 'handsell.refresh_token_v2';
+export const AUTH_USER_COOKIE_NAME = 'handsell.user_v2';
 
 function resolveCookieDomain() {
   if (env.NODE_ENV !== 'production') {
@@ -45,6 +49,11 @@ export function setAuthCookies(
     };
   },
 ) {
+  // Clear old cookie keys to avoid stale sessions after auth/cookie migrations.
+  res.clearCookie(LEGACY_AUTH_ACCESS_COOKIE_NAME, COOKIE_BASE_OPTIONS);
+  res.clearCookie(LEGACY_AUTH_REFRESH_COOKIE_NAME, COOKIE_BASE_OPTIONS);
+  res.clearCookie(LEGACY_AUTH_USER_COOKIE_NAME, COOKIE_BASE_OPTIONS);
+
   res.cookie(AUTH_ACCESS_COOKIE_NAME, input.access_token, {
     ...COOKIE_BASE_OPTIONS,
     maxAge: ttlToMs(env.JWT_ACCESS_TOKEN_TTL),
@@ -62,6 +71,10 @@ export function setAuthCookies(
 }
 
 export function clearAuthCookies(res: Response) {
+  res.clearCookie(LEGACY_AUTH_ACCESS_COOKIE_NAME, COOKIE_BASE_OPTIONS);
+  res.clearCookie(LEGACY_AUTH_REFRESH_COOKIE_NAME, COOKIE_BASE_OPTIONS);
+  res.clearCookie(LEGACY_AUTH_USER_COOKIE_NAME, COOKIE_BASE_OPTIONS);
+
   res.clearCookie(AUTH_ACCESS_COOKIE_NAME, COOKIE_BASE_OPTIONS);
   res.clearCookie(AUTH_REFRESH_COOKIE_NAME, COOKIE_BASE_OPTIONS);
   res.clearCookie(AUTH_USER_COOKIE_NAME, COOKIE_BASE_OPTIONS);

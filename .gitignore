@@ -72,5 +72,6 @@ apps/api/prisma.config.js
 AGENTS.md
 docs/
 exports/
+_exports/
 !apps/api/src/docs/
 !apps/api/src/docs/openapi.ts

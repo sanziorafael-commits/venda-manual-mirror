@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { format } from "date-fns";
-import { Eye, Search } from "lucide-react";
+import { Eye, Loader2, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
@@ -60,6 +60,8 @@ export function ConversationsHistoryWrapper() {
   const [page_size, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
   const [isLoadingConversations, setIsLoadingConversations] =
     React.useState(true);
+  const [hasLoadedConversationsOnce, setHasLoadedConversationsOnce] =
+    React.useState(false);
   const [conversations, setConversations] = React.useState<
     ConversationListItem[]
   >([]);
@@ -95,6 +97,7 @@ export function ConversationsHistoryWrapper() {
       setConversations([]);
       setMeta(createEmptyPaginationMeta<ConversationListMeta>(page_size));
       setIsLoadingConversations(false);
+      setHasLoadedConversationsOnce(false);
       return;
     }
 
@@ -132,8 +135,10 @@ export function ConversationsHistoryWrapper() {
       const parsed = conversationsApiResponseSchema.safeParse(response);
       if (!parsed.success) {
         toast.error("Resposta inesperada ao carregar histórico.");
-        setConversations([]);
-        setMeta(createEmptyPaginationMeta<ConversationListMeta>(page_size));
+        if (!hasLoadedConversationsOnce) {
+          setConversations([]);
+          setMeta(createEmptyPaginationMeta<ConversationListMeta>(page_size));
+        }
         return;
       }
 
@@ -150,16 +155,20 @@ export function ConversationsHistoryWrapper() {
       }
 
       toast.error(parseApiError(error));
-      setConversations([]);
-      setMeta(createEmptyPaginationMeta<ConversationListMeta>(page_size));
+      if (!hasLoadedConversationsOnce) {
+        setConversations([]);
+        setMeta(createEmptyPaginationMeta<ConversationListMeta>(page_size));
+      }
     } finally {
       if (currentRequestId === conversationsRequestRef.current) {
         setIsLoadingConversations(false);
+        setHasLoadedConversationsOnce(true);
       }
     }
   }, [
     authHydrated,
     end_date,
+    hasLoadedConversationsOnce,
     isAdmin,
     pageIndex,
     page_size,
@@ -204,6 +213,11 @@ export function ConversationsHistoryWrapper() {
     },
     [],
   );
+
+  const isConversationsSkeletonLoading =
+    isLoadingConversations && !hasLoadedConversationsOnce;
+  const isConversationsRefreshing =
+    isLoadingConversations && hasLoadedConversationsOnce;
 
   return (
     <section className="flex max-w-6xl flex-col gap-5">
@@ -273,7 +287,13 @@ export function ConversationsHistoryWrapper() {
           Selecione uma empresa no topo para visualizar o histórico.
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
+        <div className="relative overflow-hidden rounded-xl border bg-card shadow-xs">
+          {isConversationsRefreshing ? (
+            <div className="pointer-events-none absolute right-3 top-2 z-10 inline-flex items-center gap-1 rounded-md border bg-background/95 px-2 py-1 text-[11px] text-muted-foreground shadow-xs">
+              <Loader2 className="size-3 animate-spin" />
+              Atualizando
+            </div>
+          ) : null}
           <div className="overflow-x-auto">
             <table className="w-full min-w-230 border-collapse text-left text-sm">
               <thead className="bg-muted text-muted-foreground">
@@ -288,7 +308,7 @@ export function ConversationsHistoryWrapper() {
                 </tr>
               </thead>
               <tbody>
-                {isLoadingConversations
+                {isConversationsSkeletonLoading
                   ? Array.from(
                       { length: Math.max(4, Math.min(page_size, 8)) },
                       (_, rowIndex) => (
@@ -349,7 +369,7 @@ export function ConversationsHistoryWrapper() {
                       </tr>
                     ))}
 
-                {!isLoadingConversations && conversations.length === 0 ? (
+                {!isConversationsSkeletonLoading && conversations.length === 0 ? (
                   <tr>
                     <td
                       colSpan={isAdmin ? 5 : 4}
