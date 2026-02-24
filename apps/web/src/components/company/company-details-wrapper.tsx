@@ -46,6 +46,7 @@ export function CompanyDetailsWrapper({
   const [searchDraft, setSearchDraft] = React.useState("");
   const [query, setQuery] = React.useState("");
   const [isUsersLoading, setIsUsersLoading] = React.useState(true);
+  const [hasLoadedUsersOnce, setHasLoadedUsersOnce] = React.useState(false);
   const [users, setUsers] = React.useState<CompanyUserItem[]>([]);
   const [meta, setMeta] = React.useState<CompanyListMeta>(
     createEmptyPaginationMeta<CompanyListMeta>(),
@@ -100,8 +101,10 @@ export function CompanyDetailsWrapper({
       const parsed = companyUsersApiResponseSchema.safeParse(response);
       if (!parsed.success) {
         toast.error("Resposta inesperada ao carregar Usuários da empresa.");
-        setUsers([]);
-        setMeta(createEmptyPaginationMeta<CompanyListMeta>(page_size));
+        if (!hasLoadedUsersOnce) {
+          setUsers([]);
+          setMeta(createEmptyPaginationMeta<CompanyListMeta>(page_size));
+        }
         return;
       }
 
@@ -118,14 +121,17 @@ export function CompanyDetailsWrapper({
       }
 
       toast.error(parseApiError(error));
-      setUsers([]);
-      setMeta(createEmptyPaginationMeta<CompanyListMeta>(page_size));
+      if (!hasLoadedUsersOnce) {
+        setUsers([]);
+        setMeta(createEmptyPaginationMeta<CompanyListMeta>(page_size));
+      }
     } finally {
       if (currentRequestId === usersRequestIdRef.current) {
         setIsUsersLoading(false);
+        setHasLoadedUsersOnce(true);
       }
     }
-  }, [company_id, pageIndex, page_size, query]);
+  }, [company_id, hasLoadedUsersOnce, pageIndex, page_size, query]);
 
   React.useEffect(() => {
     void loadCompany();
@@ -317,6 +323,9 @@ export function CompanyDetailsWrapper({
     );
   }
 
+  const isUsersSkeletonLoading = isUsersLoading && !hasLoadedUsersOnce;
+  const isUsersRefreshing = isUsersLoading && hasLoadedUsersOnce;
+
   return (
     <section className="flex flex-col gap-8">
       <CompanyDetailsCard company={company} onEditCompany={handleEditCompany} />
@@ -346,7 +355,9 @@ export function CompanyDetailsWrapper({
 
         <CompanyUsersTable
           data={users}
-          isLoading={isUsersLoading}
+          isLoading={isUsersSkeletonLoading}
+          isRefreshing={isUsersRefreshing}
+          isBusy={isUsersLoading}
           actionUserId={actionUserId}
           pageIndex={pageIndex}
           page_size={page_size}

@@ -47,6 +47,7 @@ export function UsersFormWrapper() {
   const [searchDraft, setSearchDraft] = React.useState("");
   const [query, setQuery] = React.useState("");
   const [isLoadingUsers, setIsLoadingUsers] = React.useState(true);
+  const [hasLoadedUsersOnce, setHasLoadedUsersOnce] = React.useState(false);
   const [users, setUsers] = React.useState<UserListItem[]>([]);
   const [meta, setMeta] = React.useState<UserListMeta>(
     createEmptyPaginationMeta<UserListMeta>(),
@@ -92,6 +93,7 @@ export function UsersFormWrapper() {
       setUsers([]);
       setMeta(createEmptyPaginationMeta<UserListMeta>(page_size));
       setIsLoadingUsers(false);
+      setHasLoadedUsersOnce(false);
       return;
     }
 
@@ -135,8 +137,10 @@ export function UsersFormWrapper() {
       const parsed = usersApiResponseSchema.safeParse(response);
       if (!parsed.success) {
         toast.error("Resposta inesperada ao carregar usuários.");
-        setUsers([]);
-        setMeta(createEmptyPaginationMeta<UserListMeta>(page_size));
+        if (!hasLoadedUsersOnce) {
+          setUsers([]);
+          setMeta(createEmptyPaginationMeta<UserListMeta>(page_size));
+        }
         return;
       }
 
@@ -153,15 +157,19 @@ export function UsersFormWrapper() {
       }
 
       toast.error(parseApiError(error));
-      setUsers([]);
-      setMeta(createEmptyPaginationMeta<UserListMeta>(page_size));
+      if (!hasLoadedUsersOnce) {
+        setUsers([]);
+        setMeta(createEmptyPaginationMeta<UserListMeta>(page_size));
+      }
     } finally {
       if (currentRequestId === usersRequestIdRef.current) {
         setIsLoadingUsers(false);
+        setHasLoadedUsersOnce(true);
       }
     }
   }, [
     authHydrated,
+    hasLoadedUsersOnce,
     isAdmin,
     isPlatformAdminSelected,
     pageIndex,
@@ -388,6 +396,9 @@ export function UsersFormWrapper() {
     [canManageUsers, loadUsers, pageIndex, statusFilterValue, users.length],
   );
 
+  const isUsersSkeletonLoading = isLoadingUsers && !hasLoadedUsersOnce;
+  const isUsersRefreshing = isLoadingUsers && hasLoadedUsersOnce;
+
   return (
     <section className="flex flex-col gap-5">
       <h3 className="text-2xl font-semibold">Usuários cadastrados</h3>
@@ -416,7 +427,9 @@ export function UsersFormWrapper() {
       ) : (
         <UsersTable
           data={users}
-          isLoading={isLoadingUsers}
+          isLoading={isUsersSkeletonLoading}
+          isRefreshing={isUsersRefreshing}
+          isBusy={isLoadingUsers}
           actionUserId={actionUserId}
           isAdmin={isAdmin}
           canManageUsers={canManageUsers}
@@ -434,4 +447,3 @@ export function UsersFormWrapper() {
     </section>
   );
 }
-

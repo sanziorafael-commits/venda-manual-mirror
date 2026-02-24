@@ -54,6 +54,8 @@ export function ProductListWrapper() {
   const [searchDraft, setSearchDraft] = React.useState("");
   const [query, setQuery] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(true);
+  const [hasLoadedProductsOnce, setHasLoadedProductsOnce] =
+    React.useState(false);
   const [products, setProducts] = React.useState<ProductListItem[]>([]);
   const [meta, setMeta] = React.useState<ProductListMeta>(
     createEmptyPaginationMeta<ProductListMeta>(),
@@ -71,6 +73,7 @@ export function ProductListWrapper() {
       setProducts([]);
       setMeta(createEmptyPaginationMeta<ProductListMeta>(page_size));
       setIsLoading(false);
+      setHasLoadedProductsOnce(false);
       return;
     }
 
@@ -98,8 +101,10 @@ export function ProductListWrapper() {
       const parsed = productsApiResponseSchema.safeParse(response);
       if (!parsed.success) {
         toast.error("Resposta inesperada ao carregar produtos.");
-        setProducts([]);
-        setMeta(createEmptyPaginationMeta<ProductListMeta>(page_size));
+        if (!hasLoadedProductsOnce) {
+          setProducts([]);
+          setMeta(createEmptyPaginationMeta<ProductListMeta>(page_size));
+        }
         return;
       }
 
@@ -116,14 +121,25 @@ export function ProductListWrapper() {
       }
 
       toast.error(parseApiError(error));
-      setProducts([]);
-      setMeta(createEmptyPaginationMeta<ProductListMeta>(page_size));
+      if (!hasLoadedProductsOnce) {
+        setProducts([]);
+        setMeta(createEmptyPaginationMeta<ProductListMeta>(page_size));
+      }
     } finally {
       if (currentRequestId === requestIdRef.current) {
         setIsLoading(false);
+        setHasLoadedProductsOnce(true);
       }
     }
-  }, [authHydrated, isAdmin, pageIndex, page_size, query, selectedCompanyId]);
+  }, [
+    authHydrated,
+    hasLoadedProductsOnce,
+    isAdmin,
+    pageIndex,
+    page_size,
+    query,
+    selectedCompanyId,
+  ]);
 
   React.useEffect(() => {
     void loadProducts();
@@ -214,6 +230,9 @@ export function ProductListWrapper() {
     [canManageProducts, loadProducts, pageIndex, products.length],
   );
 
+  const isProductsSkeletonLoading = isLoading && !hasLoadedProductsOnce;
+  const isProductsRefreshing = isLoading && hasLoadedProductsOnce;
+
   return (
     <section className="flex flex-col gap-5">
       <h3 className="text-2xl font-semibold">Produtos cadastrados</h3>
@@ -236,7 +255,9 @@ export function ProductListWrapper() {
       ) : (
         <ProductTable
           data={products}
-          isLoading={isLoading}
+          isLoading={isProductsSkeletonLoading}
+          isRefreshing={isProductsRefreshing}
+          isBusy={isLoading}
           canManageProducts={canManageProducts}
           pageIndex={pageIndex}
           page_size={page_size}

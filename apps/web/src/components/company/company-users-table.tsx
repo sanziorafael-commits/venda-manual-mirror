@@ -5,7 +5,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Mail, Pencil, RotateCcw, Trash2 } from "lucide-react";
+import { Loader2, Mail, Pencil, RotateCcw, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { PaginationControls } from "@/components/ui/pagination-controls";
@@ -14,6 +14,8 @@ import type { CompanyUserItem } from "@/schemas/company";
 type CompanyUsersTableProps = {
   data: CompanyUserItem[];
   isLoading: boolean;
+  isRefreshing: boolean;
+  isBusy: boolean;
   actionUserId: string | null;
   pageIndex: number;
   page_size: number;
@@ -46,6 +48,8 @@ function formatCpf(value: string) {
 export function CompanyUsersTable({
   data,
   isLoading,
+  isRefreshing,
+  isBusy,
   actionUserId,
   pageIndex,
   page_size,
@@ -115,7 +119,7 @@ export function CompanyUsersTable({
                 size="sm"
                 className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
                 onClick={() => onEditUser(row.original)}
-                disabled={isLoading || isPendingAction}
+                disabled={isBusy || isPendingAction}
                 title={`Editar usuário ${row.original.full_name}`}
               >
                 <Pencil className="size-3.5" />
@@ -128,7 +132,7 @@ export function CompanyUsersTable({
                   size="icon-sm"
                   className="text-emerald-700 hover:bg-emerald-100 hover:text-emerald-700"
                   onClick={() => onResendActivation(row.original)}
-                  disabled={isLoading || isPendingAction}
+                  disabled={isBusy || isPendingAction}
                   title={`Reenviar ativação`}
                   aria-label={`Reenviar ativação `}
                 >
@@ -142,7 +146,7 @@ export function CompanyUsersTable({
                   size="icon-sm"
                   className="text-emerald-700 hover:bg-emerald-100 hover:text-emerald-700"
                   onClick={() => onReactivateUser(row.original)}
-                  disabled={isLoading || isPendingAction}
+                  disabled={isBusy || isPendingAction}
                   title={`Reativar usuário ${row.original.full_name}`}
                   aria-label={`Reativar usuário ${row.original.full_name}`}
                 >
@@ -155,7 +159,7 @@ export function CompanyUsersTable({
                   size="icon-sm"
                   className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                   onClick={() => onDeleteUser(row.original)}
-                  disabled={isDeleted || isLoading || isPendingAction}
+                  disabled={isDeleted || isBusy || isPendingAction}
                   title={`Excluir usuário ${row.original.full_name}`}
                   aria-label={`Excluir usuário ${row.original.full_name}`}
                 >
@@ -169,7 +173,7 @@ export function CompanyUsersTable({
     ],
     [
       actionUserId,
-      isLoading,
+      isBusy,
       canResendActivationForUser,
       onDeleteUser,
       onEditUser,
@@ -195,7 +199,14 @@ export function CompanyUsersTable({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
+      <div className="relative overflow-hidden rounded-xl border bg-card shadow-xs">
+        {isRefreshing ? (
+          <div className="pointer-events-none absolute right-3 top-2 z-10 inline-flex items-center gap-1 rounded-md border bg-background/95 px-2 py-1 text-[11px] text-muted-foreground shadow-xs">
+            <Loader2 className="size-3 animate-spin" />
+            Atualizando
+          </div>
+        ) : null}
+
         <div className="overflow-x-auto">
           <table className="min-w-245 w-full border-collapse text-left text-sm">
             <thead className="bg-muted text-muted-foreground">
@@ -263,11 +274,9 @@ export function CompanyUsersTable({
       <PaginationControls
         pageIndex={pageIndex}
         total_pages={total_pages}
-        isLoading={isLoading}
+        isLoading={isBusy}
         onPageChange={onPageChange}
       />
     </div>
   );
 }
-
-

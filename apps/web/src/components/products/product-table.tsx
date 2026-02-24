@@ -5,7 +5,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Loader2, Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { PaginationControls } from "@/components/ui/pagination-controls";
@@ -17,6 +17,8 @@ import {
 type ProductTableProps = {
   data: ProductListItem[];
   isLoading: boolean;
+  isRefreshing: boolean;
+  isBusy: boolean;
   canManageProducts: boolean;
   pageIndex: number;
   page_size: number;
@@ -58,6 +60,8 @@ function formatCategories(values: string[]) {
 export function ProductTable({
   data,
   isLoading,
+  isRefreshing,
+  isBusy,
   canManageProducts,
   pageIndex,
   page_size,
@@ -114,7 +118,7 @@ export function ProductTable({
               size="sm"
               className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
               onClick={() => onViewDetails(row.original)}
-              disabled={isLoading}
+              disabled={isBusy}
             >
               <Eye className="size-3.5" />
               Ver detalhes
@@ -127,7 +131,7 @@ export function ProductTable({
                   size="sm"
                   className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
                   onClick={() => onEditProduct(row.original)}
-                  disabled={isLoading}
+                  disabled={isBusy}
                 >
                   <Pencil className="size-3.5" />
                   Editar
@@ -138,7 +142,7 @@ export function ProductTable({
                   size="icon-sm"
                   className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                   onClick={() => onDeleteProduct(row.original)}
-                  disabled={isLoading}
+                  disabled={isBusy}
                   title={`Excluir produto ${row.original.nome}`}
                   aria-label={`Excluir produto ${row.original.nome}`}
                 >
@@ -154,7 +158,7 @@ export function ProductTable({
     return baseColumns;
   }, [
     canManageProducts,
-    isLoading,
+    isBusy,
     onDeleteProduct,
     onEditProduct,
     onViewDetails,
@@ -177,7 +181,13 @@ export function ProductTable({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
+      <div className="relative overflow-hidden rounded-xl border bg-card shadow-xs">
+        {isRefreshing ? (
+          <div className="pointer-events-none absolute right-3 top-2 z-10 inline-flex items-center gap-1 rounded-md border bg-background/95 px-2 py-1 text-[11px] text-muted-foreground shadow-xs">
+            <Loader2 className="size-3 animate-spin" />
+            Atualizando
+          </div>
+        ) : null}
         <div className="overflow-x-auto">
           <table className="min-w-260 w-full border-collapse text-left text-sm">
             <thead className="bg-muted text-muted-foreground">
@@ -244,7 +254,7 @@ export function ProductTable({
       <PaginationControls
         pageIndex={pageIndex}
         total_pages={total_pages}
-        isLoading={isLoading}
+        isLoading={isBusy}
         onPageChange={onPageChange}
       />
     </div>

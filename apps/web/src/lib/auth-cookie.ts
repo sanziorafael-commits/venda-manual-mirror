@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 
 import { authSessionUserSchema, type AuthUser } from "@/schemas/auth";
 
-export const AUTH_USER_COOKIE_KEY = "handsell.user";
+export const AUTH_USER_COOKIE_KEY = "handsell.user_v2";
 
 export async function getAuthUserFromServerCookies() {
   const cookieStore = await cookies();

@@ -6,8 +6,8 @@ import {
   type DashboardRole,
 } from "@/config/dashboard-access";
 
-const REFRESH_COOKIE_KEY = "handsell.refresh_token";
-const USER_COOKIE_KEY = "handsell.user";
+const REFRESH_COOKIE_KEY = "handsell.refresh_token_v2";
+const USER_COOKIE_KEY = "handsell.user_v2";
 
 type SessionUser = {
   role: DashboardRole;

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { format } from "date-fns";
-import { MapPin, Search, Trash2 } from "lucide-react";
+import { Loader2, MapPin, Search, Trash2 } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 
@@ -63,6 +63,8 @@ export function LocatedClientsWrapper() {
   const [page_size, setPageSize] = React.useState(DEFAULT_PAGE_SIZE);
   const [isLoadingLocatedClients, setIsLoadingLocatedClients] =
     React.useState(true);
+  const [hasLoadedLocatedClientsOnce, setHasLoadedLocatedClientsOnce] =
+    React.useState(false);
   const [locatedClients, setLocatedClients] = React.useState<
     LocatedClientListItem[]
   >([]);
@@ -98,6 +100,7 @@ export function LocatedClientsWrapper() {
       setLocatedClients([]);
       setMeta(createEmptyPaginationMeta<LocatedClientListMeta>(page_size));
       setIsLoadingLocatedClients(false);
+      setHasLoadedLocatedClientsOnce(false);
       return;
     }
 
@@ -135,8 +138,10 @@ export function LocatedClientsWrapper() {
       const parsed = locatedClientsApiResponseSchema.safeParse(response);
       if (!parsed.success) {
         toast.error("Resposta inesperada ao carregar clientes localizados.");
-        setLocatedClients([]);
-        setMeta(createEmptyPaginationMeta<LocatedClientListMeta>(page_size));
+        if (!hasLoadedLocatedClientsOnce) {
+          setLocatedClients([]);
+          setMeta(createEmptyPaginationMeta<LocatedClientListMeta>(page_size));
+        }
         return;
       }
 
@@ -153,16 +158,20 @@ export function LocatedClientsWrapper() {
       }
 
       toast.error(parseApiError(error));
-      setLocatedClients([]);
-      setMeta(createEmptyPaginationMeta<LocatedClientListMeta>(page_size));
+      if (!hasLoadedLocatedClientsOnce) {
+        setLocatedClients([]);
+        setMeta(createEmptyPaginationMeta<LocatedClientListMeta>(page_size));
+      }
     } finally {
       if (currentRequestId === requestRef.current) {
         setIsLoadingLocatedClients(false);
+        setHasLoadedLocatedClientsOnce(true);
       }
     }
   }, [
     authHydrated,
     end_date,
+    hasLoadedLocatedClientsOnce,
     isAdmin,
     pageIndex,
     page_size,
@@ -247,6 +256,11 @@ export function LocatedClientsWrapper() {
     ],
   );
 
+  const isLocatedClientsSkeletonLoading =
+    isLoadingLocatedClients && !hasLoadedLocatedClientsOnce;
+  const isLocatedClientsRefreshing =
+    isLoadingLocatedClients && hasLoadedLocatedClientsOnce;
+
   return (
     <section className="flex max-w-full flex-col gap-5">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
@@ -318,7 +332,13 @@ export function LocatedClientsWrapper() {
           Selecione uma empresa no topo para visualizar os clientes localizados.
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border bg-card shadow-xs">
+        <div className="relative overflow-hidden rounded-xl border bg-card shadow-xs">
+          {isLocatedClientsRefreshing ? (
+            <div className="pointer-events-none absolute right-3 top-2 z-10 inline-flex items-center gap-1 rounded-md border bg-background/95 px-2 py-1 text-[11px] text-muted-foreground shadow-xs">
+              <Loader2 className="size-3 animate-spin" />
+              Atualizando
+            </div>
+          ) : null}
           <div className="overflow-x-auto">
             <table className="w-full min-w-295 border-collapse text-left text-sm">
               <thead className="bg-muted text-muted-foreground">
@@ -338,7 +358,7 @@ export function LocatedClientsWrapper() {
                 </tr>
               </thead>
               <tbody>
-                {isLoadingLocatedClients
+                {isLocatedClientsSkeletonLoading
                   ? Array.from(
                       { length: Math.max(4, Math.min(page_size, 8)) },
                       (_, rowIndex) => (
@@ -418,7 +438,8 @@ export function LocatedClientsWrapper() {
                       </tr>
                     ))}
 
-                {!isLoadingLocatedClients && locatedClients.length === 0 ? (
+                {!isLocatedClientsSkeletonLoading &&
+                locatedClients.length === 0 ? (
                   <tr>
                     <td
                       colSpan={canMutateLocatedClients ? 8 : 7}
