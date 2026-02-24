@@ -1,4 +1,4 @@
-import { UserRole } from '@prisma/client';
+import { LocatedClientStatus, UserRole } from '@prisma/client';
 import bcrypt from 'bcrypt';
 
 import { prisma } from '../src/lib/prisma.js';
@@ -54,8 +54,23 @@ type SeedVendorConversation = {
   supervisorName: string;
 };
 
+type SeedUsersBundle = {
+  supervisorA1: SeededUser;
+  supervisorA2: SeededUser;
+  supervisorB: SeededUser;
+  supervisorC: SeededUser;
+  vendorConversations: SeedVendorConversation[];
+};
+
+type SeedLocatedClientsSummary = {
+  inserted: number;
+  visited: number;
+  pending_visit: number;
+};
+
 const PASSWORD = 'Handsell@123';
 const SEED_FLOW_NAME = 'seed_dashboard_v1';
+const SEED_LOCATED_CLIENT_NAME_PREFIX = 'Cliente Localizado Seed';
 
 const SEED_COMPANIES: SeedCompanyConfig[] = [
   {
@@ -304,6 +319,14 @@ async function upsertSeedUser(input: SeedUserInput, passwordHash: string | null)
 }
 
 async function cleanupPreviousSeedRows() {
+  await prisma.locatedClient.deleteMany({
+    where: {
+      customer_name: {
+        startsWith: SEED_LOCATED_CLIENT_NAME_PREFIX,
+      },
+    },
+  });
+
   await prisma.historico_conversas_produtos.deleteMany({
     where: {
       source: SEED_FLOW_NAME,
@@ -746,11 +769,101 @@ async function seedConversationHistory(vendors: SeedVendorConversation[]) {
   };
 }
 
+async function seedLocatedClients(seededUsers: SeedUsersBundle): Promise<SeedLocatedClientsSummary> {
+  const supervisorsByName = new Map<string, SeededUser>([
+    [seededUsers.supervisorA1.full_name, seededUsers.supervisorA1],
+    [seededUsers.supervisorA2.full_name, seededUsers.supervisorA2],
+    [seededUsers.supervisorB.full_name, seededUsers.supervisorB],
+    [seededUsers.supervisorC.full_name, seededUsers.supervisorC],
+  ]);
+
+  const locations = [
+    { city: 'Sao Paulo', state: 'SP', addressBase: 'Rua das Flores' },
+    { city: 'Campinas', state: 'SP', addressBase: 'Avenida Central' },
+    { city: 'Porto Alegre', state: 'RS', addressBase: 'Rua Bento Goncalves' },
+    { city: 'Curitiba', state: 'PR', addressBase: 'Rua XV de Novembro' },
+    { city: 'Belo Horizonte', state: 'MG', addressBase: 'Avenida Amazonas' },
+    { city: 'Florianopolis', state: 'SC', addressBase: 'Rua Beira Mar' },
+  ] as const;
+
+  const vendorEntries = seededUsers.vendorConversations.filter(
+    (entry) => entry.user.role === UserRole.VENDEDOR && Boolean(entry.user.company_id),
+  );
+
+  const now = new Date();
+  let inserted = 0;
+  let visited = 0;
+  let pending_visit = 0;
+
+  for (let vendorIndex = 0; vendorIndex < vendorEntries.length; vendorIndex += 1) {
+    const vendorEntry = vendorEntries[vendorIndex];
+    const vendor = vendorEntry.user;
+    const company_id = vendor.company_id;
+    if (!company_id) {
+      continue;
+    }
+
+    const supervisor = supervisorsByName.get(vendorEntry.supervisorName) ?? null;
+    const sellerPhone = normalizePhone(vendor.phone);
+
+    for (let clientIndex = 0; clientIndex < 2; clientIndex += 1) {
+      const location = locations[(vendorIndex + clientIndex) % locations.length];
+      const addressNumber = 120 + vendorIndex * 7 + clientIndex;
+      const customerName = `${SEED_LOCATED_CLIENT_NAME_PREFIX} ${vendorIndex + 1}-${clientIndex + 1}`;
+
+      const identified_at = new Date(now);
+      identified_at.setDate(identified_at.getDate() - (vendorIndex * 2 + clientIndex + 1));
+      identified_at.setHours(8 + ((vendorIndex + clientIndex) % 8), 15, 0, 0);
+
+      const markAsVisited = (vendorIndex + clientIndex) % 3 !== 0;
+      const visited_at = markAsVisited
+        ? new Date(identified_at.getTime() + 2 * 60 * 60 * 1000)
+        : null;
+
+      const mapQuery = encodeURIComponent(
+        `${location.addressBase}, ${addressNumber}, ${location.city} - ${location.state}`,
+      );
+
+      await prisma.locatedClient.create({
+        data: {
+          id: createUuidV7(),
+          company_id,
+          identified_by_user_id: vendor.id,
+          source_seller_phone: sellerPhone,
+          customer_name: customerName,
+          city: location.city,
+          state: location.state,
+          address: `${location.addressBase}, ${addressNumber}`,
+          map_url: `https://maps.google.com/?q=${mapQuery}`,
+          identified_at,
+          status: markAsVisited ? LocatedClientStatus.VISITADO : LocatedClientStatus.PENDENTE_VISITA,
+          visited_at,
+          visited_by_user_id: markAsVisited ? (supervisor?.id ?? vendor.id) : null,
+        },
+      });
+
+      inserted += 1;
+      if (markAsVisited) {
+        visited += 1;
+      } else {
+        pending_visit += 1;
+      }
+    }
+  }
+
+  return {
+    inserted,
+    visited,
+    pending_visit,
+  };
+}
+
 async function main() {
   const companies = await upsertSeedCompanies();
   await upsertSeedProducts(companies);
   const seededUsers = await seedUsers(companies);
   const seededHistory = await seedConversationHistory(seededUsers.vendorConversations);
+  const seededLocatedClients = await seedLocatedClients(seededUsers);
 
   const totalUsers = await prisma.user.count({
     where: {
@@ -777,6 +890,11 @@ async function main() {
   const totalProducts = await prisma.produtos.count();
   const totalHistory = await prisma.historico_conversas.count();
   const totalCitations = await prisma.historico_conversas_produtos.count();
+  const totalLocatedClients = await prisma.locatedClient.count({
+    where: {
+      deleted_at: null,
+    },
+  });
 
   console.log('Seed concluido com sucesso.');
   console.log(
@@ -805,6 +923,7 @@ async function main() {
           ],
         },
         seededHistory,
+        seededLocatedClients,
         totals: {
           companies: totalCompanies,
           products: totalProducts,
@@ -812,6 +931,7 @@ async function main() {
           usersByRole,
           history: totalHistory,
           citations: totalCitations,
+          located_clients: totalLocatedClients,
         },
       },
       null,

@@ -1,6 +1,7 @@
 import { Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { CompanyDetails } from "@/schemas/company";
 
 type CompanyDetailsCardProps = {
@@ -29,13 +30,31 @@ function formatCnpj(value: string) {
   );
 }
 
-export function CompanyDetailsCard({ company, onEditCompany }: CompanyDetailsCardProps) {
+export function CompanyDetailsCard({
+  company,
+  onEditCompany,
+}: CompanyDetailsCardProps) {
+  const companyLogoUrl = company.logo_signed_url ?? company.logo_url ?? null;
+
   return (
     <div className="flex w-full max-w-xl items-center justify-between gap-3 rounded-xl border bg-card p-5 shadow-xs">
       <div className="flex min-w-0 items-center gap-4">
-        <div className="flex size-12 items-center justify-center rounded-full bg-[#212a38] text-xl font-semibold text-white">
-          {getCompanyInitial(company.name)}
-        </div>
+        <Avatar className="size-12">
+          {companyLogoUrl ? (
+            <AvatarImage
+              src={companyLogoUrl}
+              alt={`Logo da empresa ${company.name}`}
+              className="rounded-full object-cover"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+            />
+          ) : (
+            <AvatarFallback className="bg-[#212a38] text-xl font-semibold text-white">
+              {getCompanyInitial(company.name)}
+            </AvatarFallback>
+          )}
+        </Avatar>
 
         <div className="flex min-w-0 flex-col">
           <p className="truncate text-2xl font-semibold">{company.name}</p>
@@ -57,5 +76,3 @@ export function CompanyDetailsCard({ company, onEditCompany }: CompanyDetailsCar
     </div>
   );
 }
-
-
