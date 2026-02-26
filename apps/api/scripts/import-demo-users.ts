@@ -1,8 +1,8 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
-import bcrypt from 'bcrypt';
 import { UserRole } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 import { prisma } from '../src/lib/prisma.js';
 import { normalizePhone } from '../src/utils/normalizers.js';
@@ -60,21 +60,21 @@ const DEFAULT_INPUT_CSV = path.resolve(
   process.cwd(),
   '..',
   '..',
-  '_exports',
+  'exports',
   'focatto_vendedores_dez_2025_organizado.csv',
 );
 const DEFAULT_OUTPUT_CSV = path.resolve(
   process.cwd(),
   '..',
   '..',
-  '_exports',
+  'exports',
   'focatto_demo_users_import_result.csv',
 );
 const DEFAULT_REMOVED_CSV = path.resolve(
   process.cwd(),
   '..',
   '..',
-  '_exports',
+  'exports',
   'focatto_demo_users_removed_rows.csv',
 );
 const DEFAULT_PASSWORD = 'focatto@321';
@@ -214,7 +214,10 @@ function parseCsvLine(line: string) {
 }
 
 function readCsvRows(text: string): RawVendorRow[] {
-  const sanitized = text.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const sanitized = text
+    .replace(/^\uFEFF/, '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n');
   const lines = sanitized.split('\n').filter((line) => line.trim().length > 0);
 
   if (lines.length < 2) {
@@ -575,7 +578,9 @@ async function main() {
   const company = await ensureCompanyExists(options.companyId);
 
   const reservedPhones = new Set(
-    Object.values(TOP_USERS).map((user) => normalizePhone(user.phone)).filter((phone) => phone.length > 0),
+    Object.values(TOP_USERS)
+      .map((user) => normalizePhone(user.phone))
+      .filter((phone) => phone.length > 0),
   );
 
   const { vendors, removed } = buildVendorList(parsedRows, reservedPhones);

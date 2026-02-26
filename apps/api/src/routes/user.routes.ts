@@ -21,14 +21,26 @@ router.use(
 
 router.post(
   '/actions/reassign-supervisor',
-  authorize(UserRole.ADMIN, UserRole.GERENTE_COMERCIAL),
+  authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL),
   reassignSupervisorHandler,
 );
-router.post('/actions/reassign-manager-team', authorize(UserRole.ADMIN), reassignManagerTeamHandler);
+router.post(
+  '/actions/reassign-manager-team',
+  authorize(UserRole.ADMIN, UserRole.DIRETOR),
+  reassignManagerTeamHandler,
+);
 
 // Compatibilidade temporaria para clientes legados.
-router.post('/reassign-supervisor', authorize(UserRole.ADMIN, UserRole.GERENTE_COMERCIAL), reassignSupervisorHandler);
-router.post('/reassign-manager-team', authorize(UserRole.ADMIN), reassignManagerTeamHandler);
+router.post(
+  '/reassign-supervisor',
+  authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL),
+  reassignSupervisorHandler,
+);
+router.post(
+  '/reassign-manager-team',
+  authorize(UserRole.ADMIN, UserRole.DIRETOR),
+  reassignManagerTeamHandler,
+);
 
 router.get('/', listUsersHandler);
 router.get('/:user_id', getUserByIdHandler);
