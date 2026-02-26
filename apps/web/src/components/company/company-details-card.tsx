@@ -49,11 +49,10 @@ export function CompanyDetailsCard({
               fetchPriority="high"
               decoding="async"
             />
-          ) : (
-            <AvatarFallback className="bg-[#212a38] text-xl font-semibold text-white">
-              {getCompanyInitial(company.name)}
-            </AvatarFallback>
-          )}
+          ) : null}
+          <AvatarFallback className="bg-[#212a38] text-xl font-semibold text-white">
+            {getCompanyInitial(company.name)}
+          </AvatarFallback>
         </Avatar>
 
         <div className="flex min-w-0 flex-col">
