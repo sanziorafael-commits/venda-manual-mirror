@@ -415,7 +415,7 @@ export const openApiDocument = {
     '/api/users/actions/reassign-supervisor': {
       post: {
         tags: ['users'],
-        summary: 'Reatribui carteira de supervisor',
+        summary: 'Reatribui carteira de supervisor (ADMIN, DIRETOR, GERENTE_COMERCIAL)',
         security: [{ bearerAuth: [] }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ReassignSupervisorRequest' } } } },
         responses: { '200': { description: 'OK' } },
@@ -424,7 +424,7 @@ export const openApiDocument = {
     '/api/users/actions/reassign-manager-team': {
       post: {
         tags: ['users'],
-        summary: 'Reatribui equipe de gerente',
+        summary: 'Reatribui equipe de gerente (ADMIN, DIRETOR)',
         security: [{ bearerAuth: [] }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ReassignManagerTeamRequest' } } } },
         responses: { '200': { description: 'OK' } },
@@ -433,7 +433,7 @@ export const openApiDocument = {
     '/api/users/reassign-supervisor': {
       post: {
         tags: ['users'],
-        summary: 'Reatribui carteira de supervisor (legado)',
+        summary: 'Reatribui carteira de supervisor (legado; ADMIN, DIRETOR, GERENTE_COMERCIAL)',
         deprecated: true,
         security: [{ bearerAuth: [] }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ReassignSupervisorRequest' } } } },
@@ -443,7 +443,7 @@ export const openApiDocument = {
     '/api/users/reassign-manager-team': {
       post: {
         tags: ['users'],
-        summary: 'Reatribui equipe de gerente (legado)',
+        summary: 'Reatribui equipe de gerente (legado; ADMIN, DIRETOR)',
         deprecated: true,
         security: [{ bearerAuth: [] }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ReassignManagerTeamRequest' } } } },
