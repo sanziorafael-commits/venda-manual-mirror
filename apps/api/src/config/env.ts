@@ -77,7 +77,6 @@ const envSchema = z
     GCS_PROJECT_ID: z.string().optional(),
     GCS_CLIENT_EMAIL: z.string().email().optional(),
     GCS_PRIVATE_KEY: z.string().optional(),
-    GCS_CREDENTIALS_FILE: z.string().optional(),
     GCS_CREDENTIALS_JSON: z.string().optional(),
     GCS_CREDENTIALS_BASE64: z.string().optional(),
     GCS_PUBLIC_BASE_URL: z.string().url().optional(),

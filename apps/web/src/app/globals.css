@@ -125,3 +125,18 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Dedicated global layer for route progress bar rendering. */
+#top-progress-root {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 3px;
+  pointer-events: none;
+  z-index: 2147483647;
+}
+
+#top-progress-root.bprogress-custom-parent {
+  overflow: visible !important;
+}

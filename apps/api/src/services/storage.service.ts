@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { readFileSync } from 'node:fs';
 
 import { Storage, type StorageOptions } from '@google-cloud/storage';
 import { z } from 'zod';
@@ -163,11 +162,9 @@ function getStorageClient() {
 }
 
 function resolveServiceAccountCredentials() {
-  if (env.GCS_CREDENTIALS_FILE?.trim()) {
-    const credentialsFromFile = readServiceAccountFromFile(env.GCS_CREDENTIALS_FILE);
-    if (credentialsFromFile) {
-      return credentialsFromFile;
-    }
+  const parsedBase64Credentials = parseCredentialsFromBase64(env.GCS_CREDENTIALS_BASE64);
+  if (parsedBase64Credentials) {
+    return parsedBase64Credentials;
   }
 
   const parsedJsonCredentials = parseCredentialsFromJson(
@@ -176,11 +173,6 @@ function resolveServiceAccountCredentials() {
   );
   if (parsedJsonCredentials) {
     return parsedJsonCredentials;
-  }
-
-  const parsedBase64Credentials = parseCredentialsFromBase64(env.GCS_CREDENTIALS_BASE64);
-  if (parsedBase64Credentials) {
-    return parsedBase64Credentials;
   }
 
   if (env.GCS_CLIENT_EMAIL?.trim() && env.GCS_PRIVATE_KEY?.trim()) {
@@ -351,15 +343,8 @@ function getFileExtension(fileName: string) {
   return fileName.slice(dotIndex + 1);
 }
 
-export function readServiceAccountFromFile(filePath: string) {
-  try {
-    const rawJson = readFileSync(filePath, 'utf8');
-    return parseCredentialsFromJson(rawJson, 'file');
-  } catch (error) {
-    logger.error({ err: error, filePath }, 'n�o foi poss�vel ler o arquivo de credenciais GCS');
-    throw badRequest('Arquivo de credenciais GCS inv�lido');
-  }
-}
+
+
 
 
 
