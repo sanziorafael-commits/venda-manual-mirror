@@ -427,6 +427,14 @@ export async function deleteUser(actor: AuthActor, user_id: string) {
 }
 
 export async function reassignSupervisor(actor: AuthActor, input: ReassignSupervisorInput) {
+  if (
+    actor.role !== UserRole.ADMIN &&
+    actor.role !== UserRole.DIRETOR &&
+    actor.role !== UserRole.GERENTE_COMERCIAL
+  ) {
+    throw forbidden('Somente admin, diretor ou gerente comercial podem reatribuir supervisores');
+  }
+
   if (input.from_supervisor_id === input.to_supervisor_id) {
     throw badRequest('Supervisor de origem e destino não podem ser iguais');
   }
@@ -438,6 +446,12 @@ export async function reassignSupervisor(actor: AuthActor, input: ReassignSuperv
 
   if (fromSupervisor.company_id !== toSupervisor.company_id) {
     throw badRequest('Supervisores devem pertencer à mesma empresa');
+  }
+
+  if (actor.role === UserRole.DIRETOR) {
+    if (!actor.company_id || actor.company_id !== fromSupervisor.company_id) {
+      throw forbidden('Você não tem acesso ao escopo desta empresa');
+    }
   }
 
   if (actor.role === UserRole.GERENTE_COMERCIAL) {
@@ -470,8 +484,8 @@ export async function reassignSupervisor(actor: AuthActor, input: ReassignSuperv
 }
 
 export async function reassignManagerTeam(actor: AuthActor, input: ReassignManagerTeamInput) {
-  if (actor.role !== UserRole.ADMIN) {
-    throw forbidden('Somente admin pode reatribuir equipes entre gerentes');
+  if (actor.role !== UserRole.ADMIN && actor.role !== UserRole.DIRETOR) {
+    throw forbidden('Somente admin ou diretor pode reatribuir equipes entre gerentes');
   }
 
   if (input.from_manager_id === input.to_manager_id) {
@@ -485,6 +499,12 @@ export async function reassignManagerTeam(actor: AuthActor, input: ReassignManag
 
   if (fromManager.company_id !== toManager.company_id) {
     throw badRequest('Gerentes devem pertencer à mesma empresa');
+  }
+
+  if (actor.role === UserRole.DIRETOR) {
+    if (!actor.company_id || actor.company_id !== fromManager.company_id) {
+      throw forbidden('Você não tem acesso ao escopo desta empresa');
+    }
   }
 
   const result = await prisma.$transaction(async (tx) => {
@@ -550,6 +570,3 @@ function mapPublicUser(user: PublicUserViewInput) {
     updated_at: user.updated_at,
   };
 }
-
-
-

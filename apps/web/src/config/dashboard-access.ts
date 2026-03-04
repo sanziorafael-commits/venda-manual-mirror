@@ -31,6 +31,12 @@ const DASHBOARD_ROUTE_RULES: DashboardRouteRule[] = [
     showInNav: true,
   },
   {
+    path: "/dashboard/users/mass-reassignment",
+    title: "Alteração em Massa",
+    roles: ["ADMIN", "DIRETOR", "GERENTE_COMERCIAL"],
+    showInNav: true,
+  },
+  {
     path: "/dashboard/conversations",
     title: "Histórico de Conversas",
     roles: ["ADMIN", "DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR"],
@@ -84,4 +90,3 @@ function findDashboardRouteRule(pathname: string) {
     (route) => pathname === route.path || pathname.startsWith(`${route.path}/`),
   );
 }
-

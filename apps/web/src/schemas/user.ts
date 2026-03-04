@@ -124,6 +124,29 @@ export const userDetailsApiResponseSchema = z.object({
   data: userListItemSchema,
 });
 
+export const reassignSupervisorResultSchema = z.object({
+  from_supervisor_id: z.string().min(1),
+  to_supervisor_id: z.string().min(1),
+  company_id: z.string().min(1),
+  moved_vendors: z.number().int().nonnegative(),
+});
+
+export const reassignSupervisorApiResponseSchema = z.object({
+  data: reassignSupervisorResultSchema,
+});
+
+export const reassignManagerTeamResultSchema = z.object({
+  from_manager_id: z.string().min(1),
+  to_manager_id: z.string().min(1),
+  company_id: z.string().min(1),
+  supervisors_moved: z.number().int().nonnegative(),
+  vendors_impacted: z.number().int().nonnegative(),
+});
+
+export const reassignManagerTeamApiResponseSchema = z.object({
+  data: reassignManagerTeamResultSchema,
+});
+
 export const updateUserFormSchema = z
   .object({
     full_name: z
@@ -188,4 +211,10 @@ export type UserListItem = z.infer<typeof userListItemSchema>;
 export type UserListMeta = z.infer<typeof userListMetaSchema>;
 export type CreateUserFormInput = z.infer<typeof createUserFormSchema>;
 export type UpdateUserFormInput = z.infer<typeof updateUserFormSchema>;
+export type ReassignSupervisorResult = z.infer<
+  typeof reassignSupervisorResultSchema
+>;
+export type ReassignManagerTeamResult = z.infer<
+  typeof reassignManagerTeamResultSchema
+>;
 

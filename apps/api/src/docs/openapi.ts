@@ -24,6 +24,20 @@ export const openApiDocument = {
         scheme: 'bearer',
         bearerFormat: 'JWT',
       },
+      webhookTimestamp: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'x-webhook-timestamp',
+        description:
+          'Timestamp Unix em segundos usado no calculo da assinatura.',
+      },
+      webhookSignature: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'x-webhook-signature',
+        description:
+          "Assinatura HMAC SHA-256 em hexadecimal do valor '<timestamp>.<rawBody>'.",
+      },
     },
     schemas: {
       ApiErrorResponse: {
@@ -415,7 +429,7 @@ export const openApiDocument = {
     '/api/users/actions/reassign-supervisor': {
       post: {
         tags: ['users'],
-        summary: 'Reatribui carteira de supervisor',
+        summary: 'Reatribui carteira de supervisor (ADMIN, DIRETOR, GERENTE_COMERCIAL)',
         security: [{ bearerAuth: [] }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ReassignSupervisorRequest' } } } },
         responses: { '200': { description: 'OK' } },
@@ -424,7 +438,7 @@ export const openApiDocument = {
     '/api/users/actions/reassign-manager-team': {
       post: {
         tags: ['users'],
-        summary: 'Reatribui equipe de gerente',
+        summary: 'Reatribui equipe de gerente (ADMIN, DIRETOR)',
         security: [{ bearerAuth: [] }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ReassignManagerTeamRequest' } } } },
         responses: { '200': { description: 'OK' } },
@@ -433,8 +447,7 @@ export const openApiDocument = {
     '/api/users/reassign-supervisor': {
       post: {
         tags: ['users'],
-        summary: 'Reatribui carteira de supervisor (legado)',
-        deprecated: true,
+        summary: 'Reatribui carteira de supervisor (legado; ADMIN, DIRETOR, GERENTE_COMERCIAL)',
         security: [{ bearerAuth: [] }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ReassignSupervisorRequest' } } } },
         responses: { '200': { description: 'OK' } },
@@ -443,8 +456,7 @@ export const openApiDocument = {
     '/api/users/reassign-manager-team': {
       post: {
         tags: ['users'],
-        summary: 'Reatribui equipe de gerente (legado)',
-        deprecated: true,
+        summary: 'Reatribui equipe de gerente (legado; ADMIN, DIRETOR)',
         security: [{ bearerAuth: [] }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ReassignManagerTeamRequest' } } } },
         responses: { '200': { description: 'OK' } },
@@ -585,6 +597,7 @@ export const openApiDocument = {
       post: {
         tags: ['conversations'],
         summary: 'Recebe mensagens de historico e detecta produtos citados por texto',
+        security: [{ webhookTimestamp: [], webhookSignature: [] }],
         requestBody: {
           required: true,
           content: {
@@ -598,7 +611,10 @@ export const openApiDocument = {
             },
           },
         },
-        responses: { '201': { description: 'Criado' } },
+        responses: {
+          '201': { description: 'Criado' },
+          '401': { description: 'Assinatura ausente, invalida ou expirada' },
+        },
       },
     },
     '/api/located-clients': {
@@ -648,6 +664,7 @@ export const openApiDocument = {
       post: {
         tags: ['located-clients'],
         summary: 'Recebe clientes localizados pela integracao de IA',
+        security: [{ webhookTimestamp: [], webhookSignature: [] }],
         requestBody: {
           required: true,
           content: {
@@ -661,7 +678,10 @@ export const openApiDocument = {
             },
           },
         },
-        responses: { '201': { description: 'Criado' } },
+        responses: {
+          '201': { description: 'Criado' },
+          '401': { description: 'Assinatura ausente, invalida ou expirada' },
+        },
       },
     },
   },

@@ -5,6 +5,7 @@ import "./globals.css";
 
 import { Toaster } from "sonner";
 import { BRAND_NAME } from "@/lib/metadata";
+import { RouteProgressProvider } from "@/components/providers/route-progress-provider";
 
 const fustat = Fustat({
   variable: "--font-fustat",
@@ -54,7 +55,8 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="//storage.googleapis.com" />
       </head>
       <body className={`${fustat.variable} antialiased`}>
-        {children}
+        <div id="top-progress-root" aria-hidden="true" />
+        <RouteProgressProvider>{children}</RouteProgressProvider>
         <Toaster richColors position="top-right" />
       </body>
     </html>

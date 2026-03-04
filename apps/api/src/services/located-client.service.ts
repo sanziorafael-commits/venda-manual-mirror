@@ -460,12 +460,17 @@ function normalizeLocatedClientWebhookMessage(message: LocatedClientWebhookMessa
     throw badRequest('Dados obrigatorios do cliente localizado nao informados');
   }
 
+  const normalizedContact = normalizeLocatedClientContact({
+    customer_name,
+    address,
+  });
+
   return {
     seller_phone,
-    customer_name,
+    customer_name: normalizedContact.customer_name,
     city,
     state,
-    address,
+    address: normalizedContact.address,
     map_url: sanitizeText(message.map_url),
     identified_at: parseDateTime(
       message.identified_at ??
@@ -498,6 +503,109 @@ function sanitizeText(value: string | null | undefined) {
 
   const normalized = value.replace(/\s+/g, ' ').trim();
   return normalized.length > 0 ? normalized : null;
+}
+
+function normalizeLocatedClientContact(input: { customer_name: string; address: string }) {
+  const fromCustomer = splitCustomerNameAndAddress(input.customer_name);
+  const customer_name = fromCustomer?.customer_name ?? input.customer_name;
+  const mergedAddress = fromCustomer
+    ? mergeAddressSegments(fromCustomer.address, input.address)
+    : input.address;
+
+  return {
+    customer_name,
+    address: dropAddressContextPrefix(mergedAddress),
+  };
+}
+
+function splitCustomerNameAndAddress(value: string) {
+  const separator = findAddressSeparator(value);
+  if (!separator) {
+    return null;
+  }
+
+  const left = sanitizeText(value.slice(0, separator.index));
+  const right = sanitizeText(value.slice(separator.index + separator.value.length));
+  if (!left || !right || !looksLikeAddress(right)) {
+    return null;
+  }
+
+  return {
+    customer_name: left,
+    address: right,
+  };
+}
+
+function dropAddressContextPrefix(value: string) {
+  const separator = findAddressSeparator(value);
+  if (!separator) {
+    return value;
+  }
+
+  const right = sanitizeText(value.slice(separator.index + separator.value.length));
+  if (!right || !looksLikeAddress(right)) {
+    return value;
+  }
+
+  return right;
+}
+
+function findAddressSeparator(value: string) {
+  for (let index = 1; index < value.length - 1; index += 1) {
+    const codePoint = value.codePointAt(index);
+    if (codePoint !== 45 && codePoint !== 8211 && codePoint !== 8212) {
+      continue;
+    }
+
+    const before = value[index - 1] ?? '';
+    const after = value[index + 1] ?? '';
+    if (!/\s/u.test(before) || !/\s/u.test(after)) {
+      continue;
+    }
+
+    return {
+      value: value.slice(index - 1, index + 2),
+      index: index - 1,
+    };
+  }
+
+  return null;
+}
+
+function looksLikeAddress(value: string) {
+  return /(^|\s)(r\.|rua|av\.|avenida|rod\.|rodovia|estr\.|estrada|trav\.|travessa|al\.|alameda|praca|pra(?:c|\u00E7)a|largo|km|n[ºo]?\s*\d|\d{1,5})(\s|,|$)/i.test(
+    value,
+  );
+}
+
+function mergeAddressSegments(primary: string, secondary: string) {
+  const normalizedPrimary = normalizeForCompare(primary);
+  const normalizedSecondary = normalizeForCompare(secondary);
+  if (!normalizedPrimary) {
+    return secondary;
+  }
+
+  if (!normalizedSecondary) {
+    return primary;
+  }
+
+  if (normalizedSecondary.includes(normalizedPrimary)) {
+    return secondary;
+  }
+
+  if (normalizedPrimary.includes(normalizedSecondary)) {
+    return primary;
+  }
+
+  return `${primary}, ${secondary}`;
+}
+
+function normalizeForCompare(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
 }
 
 function assertNonAdminMutation(actor: AuthActor) {

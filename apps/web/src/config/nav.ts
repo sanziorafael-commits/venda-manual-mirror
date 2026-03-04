@@ -1,4 +1,5 @@
 import {
+  ArrowLeftRight,
   Building2,
   LayoutDashboard,
   MapPinned,
@@ -19,6 +20,7 @@ const ICON_BY_PATH: Record<string, LucideIcon> = {
   "/dashboard": LayoutDashboard,
   "/dashboard/companies": Building2,
   "/dashboard/users": User,
+  "/dashboard/users/mass-reassignment": ArrowLeftRight,
   "/dashboard/conversations": MessageSquareMore,
   "/dashboard/located-clients": MapPinned,
   "/dashboard/products": PackageSearch,

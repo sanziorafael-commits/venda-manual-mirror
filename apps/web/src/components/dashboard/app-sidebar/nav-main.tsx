@@ -24,13 +24,17 @@ import type { NavItem } from "@/types/nav";
 export function NavMain({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
 
-  const isRouteActive = (url: string) => {
-    if (url === "/dashboard") {
-      return pathname === url;
-    }
+  const routeUrls = items.flatMap((item) => [
+    item.url,
+    ...(item.items?.map((subItem) => subItem.url) ?? []),
+  ]);
 
-    return pathname === url || pathname.startsWith(`${url}/`);
-  };
+  const activeRouteUrl =
+    routeUrls
+      .filter((url) => pathname === url || pathname.startsWith(`${url}/`))
+      .sort((left, right) => right.length - left.length)[0] ?? null;
+
+  const isRouteActive = (url: string) => activeRouteUrl === url;
 
   return (
     <SidebarGroup>

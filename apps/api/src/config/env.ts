@@ -29,7 +29,8 @@ const envSchema = z
     PORT: z.coerce.number().int().positive().default(3001),
     LOG_LEVEL: z.string().default('info'),
     DATABASE_URL: z.string().url('DATABASE_URL deve ser uma URL v�lida'),
-    JWT_SECRET: z.string().min(16, 'JWT_SECRET deve ter no m�nimo 16 caracteres'),
+    JWT_SECRET: z.string().min(16, 'JWT_SECRET deve ter no minimo 16 caracteres'),
+    WEBHOOK_SECRET: z.string().min(32, 'WEBHOOK_SECRET deve ter no minimo 32 caracteres'),
     JWT_ACCESS_TOKEN_TTL: z
       .string()
       .regex(ttlPattern, 'TTL inv�lido. Use formatos como 15m, 12h, 7d.')
@@ -77,7 +78,6 @@ const envSchema = z
     GCS_PROJECT_ID: z.string().optional(),
     GCS_CLIENT_EMAIL: z.string().email().optional(),
     GCS_PRIVATE_KEY: z.string().optional(),
-    GCS_CREDENTIALS_FILE: z.string().optional(),
     GCS_CREDENTIALS_JSON: z.string().optional(),
     GCS_CREDENTIALS_BASE64: z.string().optional(),
     GCS_PUBLIC_BASE_URL: z.string().url().optional(),
