@@ -194,7 +194,7 @@ export function ConversationDetailWrapper({
                         : "HandSell"}
                     </p>
                     <p className="whitespace-pre-wrap text-sm">
-                      {message.text}
+                      {formatConversationMessageText(message.text)}
                     </p>
                     <p className="mt-2 text-right text-[11px] text-muted-foreground">
                       {formatTime(message.timestamp)}
@@ -252,3 +252,16 @@ function formatDatePillLabel(value: string) {
   });
 }
 
+
+function formatConversationMessageText(value: string) {
+  const normalized = value.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
+  if (normalized.includes("\n")) {
+    return normalized;
+  }
+
+  return normalized
+    .replace(/\s+(?=\d{1,2}[\.\)]\s)/g, "\n")
+    .replace(/([.:;!?])\s+-\s+/g, "$1\n- ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}

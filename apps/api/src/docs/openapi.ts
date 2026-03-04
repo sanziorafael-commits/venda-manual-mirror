@@ -24,6 +24,20 @@ export const openApiDocument = {
         scheme: 'bearer',
         bearerFormat: 'JWT',
       },
+      webhookTimestamp: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'x-webhook-timestamp',
+        description:
+          'Timestamp Unix em segundos usado no calculo da assinatura.',
+      },
+      webhookSignature: {
+        type: 'apiKey',
+        in: 'header',
+        name: 'x-webhook-signature',
+        description:
+          "Assinatura HMAC SHA-256 em hexadecimal do valor '<timestamp>.<rawBody>'.",
+      },
     },
     schemas: {
       ApiErrorResponse: {
@@ -434,7 +448,6 @@ export const openApiDocument = {
       post: {
         tags: ['users'],
         summary: 'Reatribui carteira de supervisor (legado; ADMIN, DIRETOR, GERENTE_COMERCIAL)',
-        deprecated: true,
         security: [{ bearerAuth: [] }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ReassignSupervisorRequest' } } } },
         responses: { '200': { description: 'OK' } },
@@ -444,7 +457,6 @@ export const openApiDocument = {
       post: {
         tags: ['users'],
         summary: 'Reatribui equipe de gerente (legado; ADMIN, DIRETOR)',
-        deprecated: true,
         security: [{ bearerAuth: [] }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ReassignManagerTeamRequest' } } } },
         responses: { '200': { description: 'OK' } },
@@ -585,6 +597,7 @@ export const openApiDocument = {
       post: {
         tags: ['conversations'],
         summary: 'Recebe mensagens de historico e detecta produtos citados por texto',
+        security: [{ webhookTimestamp: [], webhookSignature: [] }],
         requestBody: {
           required: true,
           content: {
@@ -598,7 +611,10 @@ export const openApiDocument = {
             },
           },
         },
-        responses: { '201': { description: 'Criado' } },
+        responses: {
+          '201': { description: 'Criado' },
+          '401': { description: 'Assinatura ausente, invalida ou expirada' },
+        },
       },
     },
     '/api/located-clients': {
@@ -648,6 +664,7 @@ export const openApiDocument = {
       post: {
         tags: ['located-clients'],
         summary: 'Recebe clientes localizados pela integracao de IA',
+        security: [{ webhookTimestamp: [], webhookSignature: [] }],
         requestBody: {
           required: true,
           content: {
@@ -661,7 +678,10 @@ export const openApiDocument = {
             },
           },
         },
-        responses: { '201': { description: 'Criado' } },
+        responses: {
+          '201': { description: 'Criado' },
+          '401': { description: 'Assinatura ausente, invalida ou expirada' },
+        },
       },
     },
   },

@@ -1,11 +1,14 @@
+import { UserRole } from '@prisma/client';
 import compression from 'compression';
 import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
+import type { Request } from 'express';
 
 import { env } from './config/env.js';
 import { openApiDocument } from './docs/openapi.js';
+import { authenticate, authorize } from './middlewares/auth.middleware.js';
 import { errorHandler } from './middlewares/error.middleware.js';
 import { notFound } from './middlewares/not-found.middleware.js';
 import { requestLog } from './middlewares/request-log.middleware.js';
@@ -71,25 +74,36 @@ app.use(
 app.use(helmet());
 app.use(compression());
 app.use(requestLog);
-app.use(express.json({ limit: '10mb' }));
+app.use(
+  express.json({
+    limit: '10mb',
+    verify(req, _res, buffer) {
+      (req as Request).rawBody = buffer.toString('utf8');
+    },
+  }),
+);
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-if (env.NODE_ENV === 'development') {
-  app.get('/api/openapi.json', (_req, res) => {
-    res.status(200).json(openApiDocument);
-  });
+const docsAuthMiddlewares = [
+  authenticate,
+  authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
+] as const;
 
-  app.use(
-    '/api/docs',
-    swaggerUi.serve,
-    swaggerUi.setup(openApiDocument, {
-      explorer: true,
-      swaggerOptions: {
-        persistAuthorization: true,
-      },
-    }),
-  );
-}
+app.get('/api/openapi.json', ...docsAuthMiddlewares, (_req, res) => {
+  res.status(200).json(openApiDocument);
+});
+
+app.use(
+  '/api/docs',
+  ...docsAuthMiddlewares,
+  swaggerUi.serve,
+  swaggerUi.setup(openApiDocument, {
+    explorer: true,
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  }),
+);
 
 app.use('/api', routes);
 

@@ -8,6 +8,7 @@ declare global {
         role: UserRole;
         company_id: string | null;
       };
+      rawBody?: string;
     }
   }
 }

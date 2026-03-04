@@ -29,7 +29,8 @@ const envSchema = z
     PORT: z.coerce.number().int().positive().default(3001),
     LOG_LEVEL: z.string().default('info'),
     DATABASE_URL: z.string().url('DATABASE_URL deve ser uma URL v�lida'),
-    JWT_SECRET: z.string().min(16, 'JWT_SECRET deve ter no m�nimo 16 caracteres'),
+    JWT_SECRET: z.string().min(16, 'JWT_SECRET deve ter no minimo 16 caracteres'),
+    WEBHOOK_SECRET: z.string().min(32, 'WEBHOOK_SECRET deve ter no minimo 32 caracteres'),
     JWT_ACCESS_TOKEN_TTL: z
       .string()
       .regex(ttlPattern, 'TTL inv�lido. Use formatos como 15m, 12h, 7d.')

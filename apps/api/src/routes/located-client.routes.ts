@@ -9,10 +9,11 @@ import {
   updateLocatedClientStatusHandler,
 } from '../controllers/located-client.controller.js';
 import { authenticate, authorize } from '../middlewares/auth.middleware.js';
+import { authenticateWebhook } from '../middlewares/webhook-auth.middleware.js';
 
 const router = Router();
 
-router.post('/webhook', locatedClientWebhookHandler);
+router.post('/webhook', authenticateWebhook, locatedClientWebhookHandler);
 
 router.use(authenticate);
 router.use(
