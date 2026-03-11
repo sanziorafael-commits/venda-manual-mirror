@@ -60,6 +60,11 @@ function parseSessionUser(rawCookieValue?: string) {
   } catch {
     // noop: keep raw value fallback
   }
+  try {
+    candidates.push(decodeURIComponent(candidates[candidates.length - 1]!));
+  } catch {
+    // noop: keep previous fallback
+  }
 
   for (const value of candidates) {
     try {

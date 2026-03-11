@@ -12,12 +12,30 @@ export async function getAuthUserFromServerCookies() {
 export function parseAuthUserCookie(rawUserCookie?: string | null): AuthUser | null {
   if (!rawUserCookie) return null;
 
+  const candidates = [rawUserCookie];
   try {
-    const decoded = decodeURIComponent(rawUserCookie);
-    const parsed = authSessionUserSchema.safeParse(JSON.parse(decoded));
-    return parsed.success ? parsed.data : null;
+    candidates.push(decodeURIComponent(rawUserCookie));
   } catch {
-    return null;
+    // noop: keep raw value fallback
   }
+
+  try {
+    candidates.push(decodeURIComponent(candidates[candidates.length - 1]!));
+  } catch {
+    // noop: keep previous fallback
+  }
+
+  for (const value of candidates) {
+    try {
+      const parsed = authSessionUserSchema.safeParse(JSON.parse(value));
+      if (parsed.success) {
+        return parsed.data;
+      }
+    } catch {
+      // noop: try next candidate
+    }
+  }
+
+  return null;
 }
 
