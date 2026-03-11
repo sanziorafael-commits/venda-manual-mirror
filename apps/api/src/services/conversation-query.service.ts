@@ -5,7 +5,6 @@ import type { AuthActor } from '../types/auth.types.js';
 import type {
   ConversationDetailInput,
   ConversationListInput,
-  ConversationListItem,
   ConversationTimelineMessage,
 } from '../types/conversation.types.js';
 import { badRequest, forbidden, notFound } from '../utils/app-error.js';
@@ -23,51 +22,126 @@ type InteractionRowForDate = {
   created_at: Date | null;
 };
 
+type ConversationGroupingRow = {
+  company_id: string | null;
+  user_id: string | null;
+  vendedor_telefone: string | null;
+  vendedor_nome: string | null;
+  _count: {
+    _all: number;
+  };
+  _max: InteractionRowForDate;
+  _min: InteractionRowForDate;
+};
+
+type ConversationSelector =
+  | {
+      by: 'user';
+      company_id: string | null;
+      user_id: string;
+    }
+  | {
+      by: 'phone';
+      company_id: string | null;
+      phone: string;
+    }
+  | {
+      by: 'name';
+      company_id: string | null;
+      name_key: string;
+      names: Set<string>;
+    }
+  | {
+      by: 'raw';
+      company_id: string | null;
+      user_id: string | null;
+      vendedor_telefone: string | null;
+      vendedor_nome: string | null;
+      unique_key: string;
+    };
+
+type MergedConversationAccumulator = {
+  merge_key: string;
+  selector: ConversationSelector;
+  company_id: string | null;
+  seller_user_id: string | null;
+  vendedor_nome: string | null;
+  vendedor_telefone: string | null;
+  total_interacoes: number;
+  ultima_interacao_em: Date | null;
+  primeira_interacao_em: Date | null;
+};
+
+type ConversationListItemSnapshot = {
+  id: string;
+  company_id: string | null;
+  vendedor_nome: string | null;
+  vendedor_telefone: string | null;
+  seller_user_id: string | null;
+  total_interacoes: number;
+  ultima_interacao_em: Date | null;
+  primeira_interacao_em: Date | null;
+};
+
+type SellerIdentityScope = {
+  userIds: string[];
+  phones: string[];
+};
+
 const EMPTY_WHERE: Prisma.historico_conversasWhereInput = {};
 
 export async function listConversations(actor: AuthActor, input: ConversationListInput) {
   const pagination = getPagination(input.page, input.page_size);
   const scopedCompanyId = resolveScopedCompanyId(actor, input.company_id);
   const range = parseDateRange(input.start_date, input.end_date);
+  const [sellerNameScope, querySellerScope] = await Promise.all([
+    resolveSellerIdentityScopeByName(scopedCompanyId, input.vendedor_nome),
+    resolveSellerIdentityScopeByName(scopedCompanyId, input.q),
+  ]);
   const baseWhere = buildConversationListWhere({
     company_id: scopedCompanyId,
     range,
     q: input.q,
     vendedor_nome: input.vendedor_nome,
     vendedor_telefone: input.vendedor_telefone,
+    seller_name_scope: sellerNameScope,
+    query_seller_scope: querySellerScope,
   });
   const actorScopeWhere = await buildConversationActorScopeWhere(actor, scopedCompanyId);
   const where = combineWhere(baseWhere, actorScopeWhere);
 
-  const grouped = await prisma.historico_conversas.groupBy({
-    by: ['company_id', 'vendedor_telefone', 'vendedor_nome'],
+  const groupedRaw = await prisma.historico_conversas.groupBy({
+    by: ['company_id', 'user_id', 'vendedor_telefone', 'vendedor_nome'],
     where,
     _count: {
       _all: true,
     },
     _max: {
       timestamp_iso: true,
+      data: true,
       created_at: true,
     },
     _min: {
       timestamp_iso: true,
+      data: true,
       created_at: true,
     },
-    orderBy: [{ _max: { timestamp_iso: 'desc' } }, { _max: { created_at: 'desc' } }],
   });
+  const grouped = groupedRaw as ConversationGroupingRow[];
 
-  const total = grouped.length;
-  const pagedGroups = grouped.slice(pagination.skip, pagination.skip + pagination.take);
+  const mergedGroups = mergeConversationGroups(grouped);
+  const total = mergedGroups.length;
+  const pagedGroups = mergedGroups.slice(pagination.skip, pagination.skip + pagination.take);
 
   const itemsWithoutCompanyName = await Promise.all(
-    pagedGroups.map(async (group): Promise<ConversationListItem | null> => {
-      const groupKeyWhere = buildGroupKeyWhere(group);
-      const scopedGroupWhere = combineWhere(where, groupKeyWhere);
+    pagedGroups.map(async (group): Promise<ConversationListItemSnapshot | null> => {
+      const scopedGroupWhere = combineWhere(where, buildConversationSelectorWhere(group.selector));
 
       const latestRow = await prisma.historico_conversas.findFirst({
         where: scopedGroupWhere,
         select: {
           id: true,
+          user_id: true,
           timestamp_iso: true,
           data: true,
           created_at: true,
@@ -84,26 +158,48 @@ export async function listConversations(actor: AuthActor, input: ConversationLis
       return {
         id: latestRow.id,
         company_id: group.company_id ?? null,
-        company_name: null,
         vendedor_nome:
-          sanitizeDisplayText(latestRow.vendedor_nome) ??
-          sanitizeDisplayText(group.vendedor_nome) ??
-          sanitizeDisplayText(latestRow.vendedor_telefone) ??
-          'Vendedor sem nome',
-        vendedor_telefone: sanitizeDisplayText(latestRow.vendedor_telefone),
-        total_interacoes: group._count._all,
-        ultima_interacao_em: resolveInteractionDate({
-          timestamp_iso: latestRow.timestamp_iso,
-          data: latestRow.data,
-          created_at: latestRow.created_at,
-        }),
-        primeira_interacao_em:
-          group._min.timestamp_iso ?? group._min.created_at ?? latestRow.created_at ?? null,
+          sanitizeDisplayText(latestRow.vendedor_nome) ?? sanitizeDisplayText(group.vendedor_nome),
+        vendedor_telefone: sanitizeDisplayText(latestRow.vendedor_telefone) ?? group.vendedor_telefone,
+        seller_user_id: latestRow.user_id ?? group.seller_user_id,
+        total_interacoes: group.total_interacoes,
+        ultima_interacao_em:
+          resolveInteractionDate({
+            timestamp_iso: latestRow.timestamp_iso,
+            data: latestRow.data,
+            created_at: latestRow.created_at,
+          }) ?? group.ultima_interacao_em,
+        primeira_interacao_em: group.primeira_interacao_em,
       };
     }),
   );
 
-  const items = itemsWithoutCompanyName.filter((item): item is ConversationListItem => Boolean(item));
+  const items = itemsWithoutCompanyName.filter(
+    (item): item is ConversationListItemSnapshot => Boolean(item),
+  );
+
+  const sellerUserIds = Array.from(
+    new Set(items.map((item) => item.seller_user_id).filter((user_id): user_id is string => Boolean(user_id))),
+  );
+
+  const sellerUsersById =
+    sellerUserIds.length > 0
+      ? await prisma.user.findMany({
+          where: {
+            id: {
+              in: sellerUserIds,
+            },
+          },
+          select: {
+            id: true,
+            full_name: true,
+          },
+        })
+      : [];
+
+  const sellerNameByUserId = new Map(
+    sellerUsersById.map((user) => [user.id, sanitizeDisplayText(user.full_name)]),
+  );
 
   const companyIds = Array.from(
     new Set(items.map((item) => item.company_id).filter((company_id): company_id is string => Boolean(company_id))),
@@ -126,8 +222,17 @@ export async function listConversations(actor: AuthActor, input: ConversationLis
 
   return {
     items: items.map((item) => ({
-      ...item,
+      id: item.id,
+      company_id: item.company_id,
       company_name: item.company_id ? companyNameById.get(item.company_id) ?? null : null,
+      vendedor_nome: resolveSellerDisplayName({
+        userNameById: item.seller_user_id ? (sellerNameByUserId.get(item.seller_user_id) ?? null) : null,
+        sellerPhone: item.vendedor_telefone,
+      }),
+      vendedor_telefone: item.vendedor_telefone,
+      total_interacoes: item.total_interacoes,
+      ultima_interacao_em: item.ultima_interacao_em,
+      primeira_interacao_em: item.primeira_interacao_em,
     })),
     meta: {
       page: pagination.page,
@@ -149,6 +254,7 @@ export async function getConversationById(
     },
     select: {
       id: true,
+      user_id: true,
       company_id: true,
       vendedor_nome: true,
       vendedor_telefone: true,
@@ -196,37 +302,39 @@ export async function getConversationById(
   }
 
   const vendedor_telefone = sanitizeDisplayText(baseConversation.vendedor_telefone);
-  const vendedor_nome = sanitizeDisplayText(baseConversation.vendedor_nome);
+  const sellerById = baseConversation.user_id
+    ? await prisma.user.findFirst({
+        where: {
+          id: baseConversation.user_id,
+        },
+        select: {
+          full_name: true,
+        },
+      })
+    : null;
+  const vendedor_nome = resolveSellerDisplayName({
+    userNameById: sanitizeDisplayText(sellerById?.full_name),
+    sellerPhone: vendedor_telefone,
+  });
 
-  if (!vendedor_telefone && !vendedor_nome) {
+  if (!vendedor_telefone && vendedor_nome === 'Vendedor sem nome') {
     throw notFound('Não foi possível identificar o vendedor desta conversa');
   }
 
+  const conversationSelector = resolveConversationSelector({
+    company_id: baseConversation.company_id,
+    user_id: baseConversation.user_id,
+    vendedor_telefone: baseConversation.vendedor_telefone,
+    vendedor_nome: baseConversation.vendedor_nome,
+    unknown_key: baseConversation.id,
+  });
   const selectedDate = resolveSelectedDate(input);
   const dateRange = resolveConversationDetailDateRange(input);
 
-  const sharedWhereFilters: Prisma.historico_conversasWhereInput[] = [];
-  if (baseConversation.company_id) {
-    sharedWhereFilters.push({
-      company_id: baseConversation.company_id,
-    });
-  }
-
-  if (vendedor_telefone) {
-    sharedWhereFilters.push({
-      vendedor_telefone: normalizePhone(vendedor_telefone),
-    });
-  } else if (baseConversation.vendedor_nome) {
-    sharedWhereFilters.push({
-      vendedor_nome: baseConversation.vendedor_nome,
-    });
-  }
-  if (Object.keys(actorScopeWhere).length > 0) {
-    sharedWhereFilters.push(actorScopeWhere);
-  }
-
-  const whereWithoutDate =
-    sharedWhereFilters.length > 0 ? { AND: sharedWhereFilters } : EMPTY_WHERE;
+  const whereWithoutDate = combineWhere(
+    buildConversationSelectorWhere(conversationSelector),
+    actorScopeWhere,
+  );
   const whereWithDate = dateRange
     ? combineWhere(whereWithoutDate, buildInteractionDateWhere(dateRange))
     : whereWithoutDate;
@@ -313,7 +421,7 @@ export async function getConversationById(
     id: baseConversation.id,
     company_id: baseConversation.company_id ?? null,
     company_name: company?.name ?? null,
-    vendedor_nome: vendedor_nome ?? 'Vendedor sem nome',
+    vendedor_nome,
     vendedor_telefone: vendedor_telefone ?? null,
     cliente_nome: sanitizeDisplayText(baseConversation.cliente_nome),
     selected_date: selectedDate,
@@ -476,12 +584,51 @@ function resolveSelectedDate(input: ConversationDetailInput) {
   return null;
 }
 
+async function resolveSellerIdentityScopeByName(
+  company_id: string | null,
+  query?: string,
+): Promise<SellerIdentityScope> {
+  const normalizedQuery = sanitizeDisplayText(query);
+  if (!normalizedQuery) {
+    return {
+      userIds: [],
+      phones: [],
+    };
+  }
+
+  const users = await prisma.user.findMany({
+    where: {
+      deleted_at: null,
+      ...(company_id
+        ? {
+            company_id,
+          }
+        : {}),
+      full_name: {
+        contains: normalizedQuery,
+        mode: 'insensitive',
+      },
+    },
+    select: {
+      id: true,
+      phone: true,
+    },
+  });
+
+  return {
+    userIds: Array.from(new Set(users.map((user) => user.id).filter((id) => id.length > 0))),
+    phones: Array.from(new Set(users.map((user) => normalizeConversationPhone(user.phone)).filter(isNonEmptyString))),
+  };
+}
+
 function buildConversationListWhere(input: {
   company_id: string | null;
   range: DateRange | null;
   q?: string;
   vendedor_nome?: string;
   vendedor_telefone?: string;
+  seller_name_scope: SellerIdentityScope;
+  query_seller_scope: SellerIdentityScope;
 }): Prisma.historico_conversasWhereInput {
   const andFilters: Prisma.historico_conversasWhereInput[] = [];
 
@@ -497,12 +644,33 @@ function buildConversationListWhere(input: {
 
   const vendedor_nome = sanitizeDisplayText(input.vendedor_nome);
   if (vendedor_nome) {
-    andFilters.push({
-      vendedor_nome: {
-        contains: vendedor_nome,
-        mode: 'insensitive',
-      },
-    });
+    const sellerNameOrFilters: Prisma.historico_conversasWhereInput[] = [];
+
+    if (input.seller_name_scope.userIds.length > 0) {
+      sellerNameOrFilters.push({
+        user_id: {
+          in: input.seller_name_scope.userIds,
+        },
+      });
+    }
+
+    if (input.seller_name_scope.phones.length > 0) {
+      sellerNameOrFilters.push({
+        vendedor_telefone: {
+          in: input.seller_name_scope.phones,
+        },
+      });
+    }
+
+    if (sellerNameOrFilters.length === 0) {
+      andFilters.push({
+        id: '00000000-0000-0000-0000-000000000000',
+      });
+    } else {
+      andFilters.push({
+        OR: sellerNameOrFilters,
+      });
+    }
   }
 
   const vendedor_telefone = sanitizeDisplayText(input.vendedor_telefone);
@@ -522,12 +690,6 @@ function buildConversationListWhere(input: {
     const qDigits = normalizePhone(q);
     const orFilters: Prisma.historico_conversasWhereInput[] = [
       {
-        vendedor_nome: {
-          contains: q,
-          mode: 'insensitive',
-        },
-      },
-      {
         mensagem: {
           contains: q,
           mode: 'insensitive',
@@ -545,6 +707,22 @@ function buildConversationListWhere(input: {
       orFilters.push({
         vendedor_telefone: {
           contains: qDigits,
+        },
+      });
+    }
+
+    if (input.query_seller_scope.userIds.length > 0) {
+      orFilters.push({
+        user_id: {
+          in: input.query_seller_scope.userIds,
+        },
+      });
+    }
+
+    if (input.query_seller_scope.phones.length > 0) {
+      orFilters.push({
+        vendedor_telefone: {
+          in: input.query_seller_scope.phones,
         },
       });
     }
@@ -636,24 +814,207 @@ function buildInteractionDateWhere(range: DateRange): Prisma.historico_conversas
   };
 }
 
-function buildGroupKeyWhere(group: {
+function mergeConversationGroups(groups: ConversationGroupingRow[]) {
+  const mergedByKey = new Map<string, MergedConversationAccumulator>();
+
+  for (let index = 0; index < groups.length; index += 1) {
+    const group = groups[index];
+    const selector = resolveConversationSelector({
+      company_id: group.company_id,
+      user_id: group.user_id,
+      vendedor_telefone: group.vendedor_telefone,
+      vendedor_nome: group.vendedor_nome,
+      unknown_key: `group_${index}`,
+    });
+    const merge_key = buildConversationMergeKey(selector);
+    const currentFirst = resolveInteractionDate(group._min);
+    const currentLast = resolveInteractionDate(group._max);
+    const currentPhone = normalizeConversationPhone(group.vendedor_telefone);
+    const currentName = sanitizeDisplayText(group.vendedor_nome);
+    const currentUserId = sanitizeDisplayText(group.user_id);
+
+    const existing = mergedByKey.get(merge_key);
+    if (!existing) {
+      mergedByKey.set(merge_key, {
+        merge_key,
+        selector,
+        company_id: group.company_id,
+        seller_user_id: currentUserId,
+        vendedor_nome: currentName,
+        vendedor_telefone: currentPhone,
+        total_interacoes: group._count._all,
+        ultima_interacao_em: currentLast,
+        primeira_interacao_em: currentFirst,
+      });
+      continue;
+    }
+
+    existing.total_interacoes += group._count._all;
+
+    if (isMoreRecentDate(currentLast, existing.ultima_interacao_em)) {
+      existing.ultima_interacao_em = currentLast;
+      if (currentName) {
+        existing.vendedor_nome = currentName;
+      }
+      if (currentPhone) {
+        existing.vendedor_telefone = currentPhone;
+      }
+      if (currentUserId) {
+        existing.seller_user_id = currentUserId;
+      }
+    }
+
+    if (isOlderDate(currentFirst, existing.primeira_interacao_em)) {
+      existing.primeira_interacao_em = currentFirst;
+    }
+
+    if (!existing.seller_user_id && currentUserId) {
+      existing.seller_user_id = currentUserId;
+    }
+
+    if (!existing.vendedor_telefone && currentPhone) {
+      existing.vendedor_telefone = currentPhone;
+    }
+
+    if (!existing.vendedor_nome && currentName) {
+      existing.vendedor_nome = currentName;
+    }
+
+    if (existing.selector.by === 'name' && selector.by === 'name') {
+      for (const name of selector.names) {
+        existing.selector.names.add(name);
+      }
+    }
+  }
+
+  return Array.from(mergedByKey.values()).sort((left, right) => {
+    const lastCompare = compareDateDesc(left.ultima_interacao_em, right.ultima_interacao_em);
+    if (lastCompare !== 0) {
+      return lastCompare;
+    }
+
+    const firstCompare = compareDateDesc(left.primeira_interacao_em, right.primeira_interacao_em);
+    if (firstCompare !== 0) {
+      return firstCompare;
+    }
+
+    return left.merge_key.localeCompare(right.merge_key);
+  });
+}
+
+function resolveConversationSelector(input: {
   company_id: string | null;
+  user_id: string | null;
   vendedor_telefone: string | null;
   vendedor_nome: string | null;
-}): Prisma.historico_conversasWhereInput {
+  unknown_key: string;
+}): ConversationSelector {
+  const company_id = input.company_id ?? null;
+  const phone = normalizeConversationPhone(input.vendedor_telefone);
+  if (phone) {
+    return {
+      by: 'phone',
+      company_id,
+      phone,
+    };
+  }
+
+  const user_id = sanitizeDisplayText(input.user_id);
+  if (user_id) {
+    return {
+      by: 'user',
+      company_id,
+      user_id,
+    };
+  }
+
+  const name = sanitizeDisplayText(input.vendedor_nome);
+  if (name) {
+    return {
+      by: 'name',
+      company_id,
+      name_key: normalizeNameKey(name),
+      names: new Set([name]),
+    };
+  }
+
   return {
-    AND: [
-      {
-        company_id: group.company_id,
-      },
-      {
-        vendedor_telefone: group.vendedor_telefone,
-      },
-      {
-        vendedor_nome: group.vendedor_nome,
-      },
-    ],
+    by: 'raw',
+    company_id,
+    user_id: user_id ?? null,
+    vendedor_telefone: phone,
+    vendedor_nome: name,
+    unique_key: input.unknown_key,
   };
+}
+
+function buildConversationSelectorWhere(
+  selector: ConversationSelector,
+): Prisma.historico_conversasWhereInput {
+  const andFilters: Prisma.historico_conversasWhereInput[] = [];
+
+  andFilters.push({
+    company_id: selector.company_id,
+  });
+
+  if (selector.by === 'user') {
+    andFilters.push({
+      user_id: selector.user_id,
+    });
+  } else if (selector.by === 'phone') {
+    andFilters.push({
+      vendedor_telefone: selector.phone,
+    });
+  } else if (selector.by === 'name') {
+    const names = Array.from(selector.names);
+    if (names.length === 1) {
+      andFilters.push({
+        vendedor_nome: names[0],
+      });
+    } else if (names.length > 1) {
+      andFilters.push({
+        OR: names.map((name) => ({
+          vendedor_nome: name,
+        })),
+      });
+    }
+  } else {
+    andFilters.push({
+      user_id: selector.user_id,
+    });
+    andFilters.push({
+      vendedor_telefone: selector.vendedor_telefone,
+    });
+    andFilters.push({
+      vendedor_nome: selector.vendedor_nome,
+    });
+  }
+
+  if (andFilters.length === 0) {
+    return EMPTY_WHERE;
+  }
+
+  return {
+    AND: andFilters,
+  };
+}
+
+function buildConversationMergeKey(selector: ConversationSelector) {
+  const company_key = selector.company_id ?? '__no_company__';
+
+  if (selector.by === 'user') {
+    return `user:${company_key}:${selector.user_id}`;
+  }
+
+  if (selector.by === 'phone') {
+    return `phone:${company_key}:${selector.phone}`;
+  }
+
+  if (selector.by === 'name') {
+    return `name:${company_key}:${selector.name_key}`;
+  }
+
+  return `raw:${company_key}:${selector.unique_key}`;
 }
 
 function combineWhere(
@@ -674,6 +1035,79 @@ function combineWhere(
   return {
     AND: [left, right],
   };
+}
+
+function resolveSellerDisplayName(input: {
+  userNameById: string | null;
+  sellerPhone: string | null;
+}) {
+  return (
+    input.userNameById ??
+    input.sellerPhone ??
+    'Vendedor sem nome'
+  );
+}
+
+function compareDateDesc(left: Date | null, right: Date | null) {
+  if (left && right) {
+    return right.getTime() - left.getTime();
+  }
+
+  if (right) {
+    return 1;
+  }
+
+  if (left) {
+    return -1;
+  }
+
+  return 0;
+}
+
+function isMoreRecentDate(candidate: Date | null, current: Date | null) {
+  if (!candidate) {
+    return false;
+  }
+
+  if (!current) {
+    return true;
+  }
+
+  return candidate.getTime() > current.getTime();
+}
+
+function isOlderDate(candidate: Date | null, current: Date | null) {
+  if (!candidate) {
+    return false;
+  }
+
+  if (!current) {
+    return true;
+  }
+
+  return candidate.getTime() < current.getTime();
+}
+
+function normalizeNameKey(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function normalizeConversationPhone(value: string | null | undefined) {
+  const normalized = normalizePhone(value ?? '');
+  if (normalized.length > 0) {
+    return normalized;
+  }
+
+  return sanitizeDisplayText(value ?? null);
+}
+
+function isNonEmptyString(value: string | null): value is string {
+  return typeof value === 'string' && value.length > 0;
 }
 
 function sanitizeDisplayText(value: string | null | undefined) {

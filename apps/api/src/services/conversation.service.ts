@@ -95,6 +95,7 @@ async function ingestConversationWebhookMessage(
     company_id: normalized.company_id,
     seller_phone: normalized.vendedor_telefone,
   });
+  const resolvedSellerName = normalizeText(resolvedScope.seller_name);
 
   const record = await prisma.historico_conversas.create({
     data: {
@@ -108,7 +109,7 @@ async function ingestConversationWebhookMessage(
       message_id: normalized.message_id ?? undefined,
       mensagem: normalized.mensagem ?? undefined,
       resposta: normalized.resposta ?? undefined,
-      vendedor_nome: normalized.vendedor_nome ?? undefined,
+      vendedor_nome: resolvedSellerName ?? undefined,
       vendedor_telefone: normalized.vendedor_telefone ?? undefined,
       supervisor: normalized.supervisor ?? undefined,
       cliente_nome: normalized.cliente_nome ?? undefined,
