@@ -110,6 +110,10 @@ export function ProductDetailsWrapper({
     router.push(`/dashboard/products/${product_id}/edit`);
   }, [product_id, router]);
 
+  const handleDuplicateProduct = React.useCallback(() => {
+    router.push(`/dashboard/products/new?duplicate_from=${product_id}`);
+  }, [product_id, router]);
+
   const handleDeleteProduct = React.useCallback(async () => {
     if (!product) {
       return;
@@ -180,6 +184,13 @@ export function ProductDetailsWrapper({
 
         {canManageProducts ? (
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleDuplicateProduct}
+            >
+              Duplicar produto
+            </Button>
             <Button type="button" variant="outline" onClick={handleEditProduct}>
               Editar produto
             </Button>

@@ -23,6 +23,7 @@ export async function linkConversationHistoryByPhone({
 
   const result = await prisma.historico_conversas.updateMany({
     where: {
+      deleted_at: null,
       vendedor_telefone: normalizedPhone,
       OR: [{ company_id: null }, { company_id: company_id }],
     },

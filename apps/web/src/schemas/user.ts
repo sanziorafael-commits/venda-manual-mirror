@@ -37,7 +37,7 @@ export const userListItemSchema = z.object({
   full_name: z.string().min(1),
   cpf: z.string().min(1),
   email: z.string().nullable(),
-  phone: z.string().min(1),
+  phone: z.string(),
   is_active: z.boolean(),
   deleted_at: z.string().nullable().optional(),
   password_status: z.enum(["NOT_APPLICABLE", "PENDING", "SET"]),

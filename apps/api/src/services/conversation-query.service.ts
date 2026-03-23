@@ -10,6 +10,7 @@ import type {
 import { badRequest, forbidden, notFound } from '../utils/app-error.js';
 import { normalizePhone } from '../utils/normalizers.js';
 import { getPagination } from '../utils/pagination.js';
+import { createUuidV7 } from '../utils/uuid.js';
 
 type DateRange = {
   startAt: Date;
@@ -138,7 +139,7 @@ export async function listConversations(actor: AuthActor, input: ConversationLis
       const scopedGroupWhere = combineWhere(where, buildConversationSelectorWhere(group.selector));
 
       const latestRow = await prisma.historico_conversas.findFirst({
-        where: scopedGroupWhere,
+        where: withActiveConversationRows(scopedGroupWhere),
         select: {
           id: true,
           user_id: true,
@@ -251,6 +252,7 @@ export async function getConversationById(
   const baseConversation = await prisma.historico_conversas.findFirst({
     where: {
       id: conversation_id,
+      deleted_at: null,
     },
     select: {
       id: true,
@@ -288,6 +290,7 @@ export async function getConversationById(
       where: combineWhere(
         {
           id: conversation_id,
+          deleted_at: null,
         },
         actorScopeWhere,
       ),
@@ -341,7 +344,7 @@ export async function getConversationById(
 
   const [rows, rowsForAvailableDates, company] = await Promise.all([
     prisma.historico_conversas.findMany({
-      where: whereWithDate,
+      where: withActiveConversationRows(whereWithDate),
       select: {
         id: true,
         timestamp_iso: true,
@@ -355,7 +358,7 @@ export async function getConversationById(
       orderBy: [{ timestamp_iso: 'asc' }, { created_at: 'asc' }],
     }),
     prisma.historico_conversas.findMany({
-      where: whereWithoutDate,
+      where: withActiveConversationRows(whereWithoutDate),
       select: {
         timestamp_iso: true,
         data: true,
@@ -428,6 +431,107 @@ export async function getConversationById(
     available_dates: availableDates,
     total_mensagens: messages.length,
     mensagens: messages,
+  };
+}
+
+export async function deleteConversation(actor: AuthActor, conversation_id: string) {
+  const baseConversation = await prisma.historico_conversas.findFirst({
+    where: {
+      id: conversation_id,
+      deleted_at: null,
+    },
+    select: {
+      id: true,
+      user_id: true,
+      company_id: true,
+      vendedor_nome: true,
+      vendedor_telefone: true,
+    },
+  });
+
+  if (!baseConversation) {
+    throw notFound('Conversa nÃ£o encontrada');
+  }
+
+  if (actor.role !== UserRole.ADMIN) {
+    if (!actor.company_id) {
+      throw forbidden('UsuÃ¡rio nÃ£o vinculado Ã  empresa');
+    }
+
+    if (!baseConversation.company_id || baseConversation.company_id !== actor.company_id) {
+      throw forbidden('VocÃª nÃ£o tem acesso a esta conversa');
+    }
+  }
+
+  const actorScopeWhere = await buildConversationActorScopeWhere(
+    actor,
+    baseConversation.company_id ?? null,
+  );
+
+  if (Object.keys(actorScopeWhere).length > 0) {
+    const scopedConversation = await prisma.historico_conversas.findFirst({
+      where: combineWhere(
+        {
+          id: conversation_id,
+          deleted_at: null,
+        },
+        actorScopeWhere,
+      ),
+      select: {
+        id: true,
+      },
+    });
+
+    if (!scopedConversation) {
+      throw forbidden('Voce nao tem acesso a esta conversa');
+    }
+  }
+
+  const conversationSelector = resolveConversationSelector({
+    company_id: baseConversation.company_id,
+    user_id: baseConversation.user_id,
+    vendedor_telefone: baseConversation.vendedor_telefone,
+    vendedor_nome: baseConversation.vendedor_nome,
+    unknown_key: baseConversation.id,
+  });
+  const now = new Date();
+  const sellerName = sanitizeDisplayText(baseConversation.vendedor_nome);
+  const sellerPhone = normalizeConversationPhone(baseConversation.vendedor_telefone);
+  const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const deletedRows = await tx.historico_conversas.updateMany({
+      where: withActiveConversationRows(
+        combineWhere(buildConversationSelectorWhere(conversationSelector), actorScopeWhere),
+      ),
+      data: {
+        deleted_at: now,
+      },
+    });
+
+    if (deletedRows.count === 0) {
+      throw notFound('Conversa nÃ£o encontrada');
+    }
+
+    await tx.conversationDeletionAudit.create({
+      data: {
+        id: createUuidV7(),
+        targetConversationId: baseConversation.id,
+        targetCompanyId: baseConversation.company_id,
+        targetUserId: baseConversation.user_id,
+        sellerName,
+        sellerPhone,
+        deletedRowsCount: deletedRows.count,
+        actorUserId: actor.user_id,
+        actorRole: actor.role,
+        deleted_at: now,
+      },
+    });
+
+    return deletedRows;
+  });
+
+  return {
+    deleted_at: now,
+    deleted_count: result.count,
   };
 }
 
@@ -630,7 +734,11 @@ function buildConversationListWhere(input: {
   seller_name_scope: SellerIdentityScope;
   query_seller_scope: SellerIdentityScope;
 }): Prisma.historico_conversasWhereInput {
-  const andFilters: Prisma.historico_conversasWhereInput[] = [];
+  const andFilters: Prisma.historico_conversasWhereInput[] = [
+    {
+      deleted_at: null,
+    },
+  ];
 
   if (input.company_id) {
     andFilters.push({
@@ -1035,6 +1143,15 @@ function combineWhere(
   return {
     AND: [left, right],
   };
+}
+
+function withActiveConversationRows(where: Prisma.historico_conversasWhereInput) {
+  return combineWhere(
+    {
+      deleted_at: null,
+    },
+    where,
+  );
 }
 
 function resolveSellerDisplayName(input: {

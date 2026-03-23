@@ -8,7 +8,11 @@ import {
   type ConversationWebhookBodyInput,
   type ConversationWebhookMessageInput,
 } from '../schemas/conversation.schema.js';
-import { getConversationById, listConversations } from '../services/conversation-query.service.js';
+import {
+  deleteConversation,
+  getConversationById,
+  listConversations,
+} from '../services/conversation-query.service.js';
 import { ingestConversationWebhookMessages } from '../services/conversation.service.js';
 import { getAuthUserOrThrow } from '../utils/auth-user.js';
 
@@ -40,6 +44,14 @@ export async function getConversationByIdHandler(req: Request, res: Response) {
   const { conversation_id } = conversationParamSchema.parse(req.params);
   const query = conversationDetailQuerySchema.parse(req.query);
   const data = await getConversationById(authUser, conversation_id, query);
+
+  res.status(200).json({ data });
+}
+
+export async function deleteConversationHandler(req: Request, res: Response) {
+  const authUser = getAuthUserOrThrow(req);
+  const { conversation_id } = conversationParamSchema.parse(req.params);
+  const data = await deleteConversation(authUser, conversation_id);
 
   res.status(200).json({ data });
 }

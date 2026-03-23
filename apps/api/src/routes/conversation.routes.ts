@@ -2,6 +2,7 @@ import { UserRole } from '@prisma/client';
 import { Router } from 'express';
 
 import {
+  deleteConversationHandler,
   conversationWebhookHandler,
   getConversationByIdHandler,
   listConversationsHandler,
@@ -18,6 +19,8 @@ router.use(
 );
 router.get('/', listConversationsHandler);
 router.get('/:conversation_id', getConversationByIdHandler);
+router.use(authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL));
+router.delete('/:conversation_id', deleteConversationHandler);
 
 export default router;
 

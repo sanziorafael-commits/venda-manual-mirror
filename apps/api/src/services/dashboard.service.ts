@@ -844,6 +844,9 @@ function buildHistoryWhere(
 ): PrismaType.historico_conversasWhereInput {
   const filters: PrismaType.historico_conversasWhereInput[] = [
     {
+      deleted_at: null,
+    },
+    {
       OR: [
         {
           timestamp_iso: {
@@ -1211,6 +1214,7 @@ function buildHistorySqlWhere(
 ) {
   const alias = Prisma.raw(tableAlias);
   const conditions: Prisma.Sql[] = [
+    Prisma.sql`${alias}.deleted_at IS NULL`,
     Prisma.sql`COALESCE(${alias}.timestamp_iso, ${alias}.created_at) >= ${startAt}`,
     Prisma.sql`COALESCE(${alias}.timestamp_iso, ${alias}.created_at) <= ${endAt}`,
     actorScopeSqlWhere,
@@ -1233,6 +1237,7 @@ function buildProductSqlWhere(
     Prisma.sql`hcp.cited_at >= ${startAt}`,
     Prisma.sql`hcp.cited_at <= ${endAt}`,
     actorScopeSqlWhere,
+    Prisma.sql`h.deleted_at IS NULL`,
     Prisma.sql`p.deleted_at IS NULL`,
   ];
 
