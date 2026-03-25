@@ -503,6 +503,20 @@ export function mapProductDetailToFormValues(detail: ProductDetail): ProductForm
   };
 }
 
+export function createDuplicatedProductFormValues(
+  detail: ProductDetail,
+  id: string,
+): ProductFormValues {
+  const baseValues = mapProductDetailToFormValues(detail);
+
+  return {
+    ...baseValues,
+    id,
+    fotos_produto: [],
+    videos_material: [],
+  };
+}
+
 export function buildProductPayloadFromForm(values: ProductFormValues) {
   return {
     ...(values.id ? { id: values.id } : {}),

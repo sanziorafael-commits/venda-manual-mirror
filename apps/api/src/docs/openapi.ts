@@ -592,6 +592,15 @@ export const openApiDocument = {
         ],
         responses: { '200': { description: 'OK' } },
       },
+      delete: {
+        tags: ['conversations'],
+        summary: 'Exclusao logica de uma conversa inteira',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { in: 'path', name: 'conversation_id', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: { '200': { description: 'OK' } },
+      },
     },
     '/api/conversations/webhook': {
       post: {

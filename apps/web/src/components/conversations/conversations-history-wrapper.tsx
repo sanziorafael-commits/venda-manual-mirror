@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { format } from "date-fns";
-import { Eye, Loader2, Search } from "lucide-react";
+import { Eye, Loader2, Search, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
@@ -19,6 +19,7 @@ import {
   DEFAULT_PAGE_SIZE,
   PAGE_SIZE_OPTIONS,
 } from "@/lib/pagination";
+import { tryApiDelete } from "@/lib/try-api";
 import {
   conversationsApiResponseSchema,
   type ConversationListItem,
@@ -35,6 +36,10 @@ export function ConversationsHistoryWrapper() {
   const authHydrated = useAuthHydrated();
   const selectedCompanyContext = useSelectedCompanyContext();
   const isAdmin = authUser?.role === "ADMIN";
+  const canDeleteConversations =
+    authUser?.role === "ADMIN" ||
+    authUser?.role === "DIRETOR" ||
+    authUser?.role === "GERENTE_COMERCIAL";
 
   const selectedCompanyId = React.useMemo(() => {
     if (!isAdmin) {
@@ -68,6 +73,9 @@ export function ConversationsHistoryWrapper() {
   const [meta, setMeta] = React.useState<ConversationListMeta>(
     createEmptyPaginationMeta<ConversationListMeta>(),
   );
+  const [actionConversationId, setActionConversationId] = React.useState<
+    string | null
+  >(null);
 
   const conversationsRequestRef = React.useRef(0);
 
@@ -214,6 +222,43 @@ export function ConversationsHistoryWrapper() {
     [],
   );
 
+  const handleDeleteConversation = React.useCallback(
+    async (conversation: ConversationListItem) => {
+      const confirmed = window.confirm(
+        `Confirma a exclusão da conversa de "${conversation.vendedor_nome}"?`,
+      );
+      if (!confirmed) {
+        return;
+      }
+
+      setActionConversationId(conversation.id);
+
+      try {
+        const deleted = await tryApiDelete(
+          `/conversations/${conversation.id}`,
+          "Histórico excluído com sucesso.",
+        );
+        if (!deleted) {
+          return;
+        }
+
+        if (conversations.length === 1 && pageIndex > 0) {
+          setPageIndex((currentPage) => Math.max(0, currentPage - 1));
+          return;
+        }
+
+        void loadConversations();
+      } finally {
+        setActionConversationId((currentConversationId) =>
+          currentConversationId === conversation.id
+            ? null
+            : currentConversationId,
+        );
+      }
+    },
+    [conversations.length, loadConversations, pageIndex],
+  );
+
   const isConversationsSkeletonLoading =
     isLoadingConversations && !hasLoadedConversationsOnce;
   const isConversationsRefreshing =
@@ -304,7 +349,7 @@ export function ConversationsHistoryWrapper() {
                   ) : null}
                   <th className="px-4 py-3 font-semibold">Interações</th>
                   <th className="px-4 py-3 font-semibold">Última interação</th>
-                  <th className="px-4 py-3 font-semibold">Conversa</th>
+                  <th className="px-4 py-3 font-semibold">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -351,20 +396,45 @@ export function ConversationsHistoryWrapper() {
                           {formatDateTime(conversation.ultima_interacao_em)}
                         </td>
                         <td className="px-4 py-4">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
-                            onClick={() =>
-                              router.push(
-                                `/dashboard/conversations/${conversation.id}`,
-                              )
-                            }
-                          >
-                            <Eye className="size-3.5" />
-                            Ver conversa
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                              onClick={() =>
+                                router.push(
+                                  `/dashboard/conversations/${conversation.id}`,
+                                )
+                              }
+                              disabled={
+                                isLoadingConversations ||
+                                actionConversationId === conversation.id
+                              }
+                            >
+                              <Eye className="size-3.5" />
+                              Ver conversa
+                            </Button>
+                            {canDeleteConversations ? (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                onClick={() =>
+                                  void handleDeleteConversation(conversation)
+                                }
+                                disabled={
+                                  isLoadingConversations ||
+                                  actionConversationId === conversation.id
+                                }
+                                title={`Excluir conversa de ${conversation.vendedor_nome}`}
+                                aria-label={`Excluir conversa de ${conversation.vendedor_nome}`}
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            ) : null}
+                          </div>
                         </td>
                       </tr>
                     ))}

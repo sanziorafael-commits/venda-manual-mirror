@@ -5,7 +5,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Eye, Loader2, Pencil, Trash2 } from "lucide-react";
+import { Copy, Eye, Loader2, Pencil, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { PaginationControls } from "@/components/ui/pagination-controls";
@@ -25,6 +25,7 @@ type ProductTableProps = {
   total_pages: number;
   onPageChange: (pageIndex: number) => void;
   onViewDetails: (product: ProductListItem) => void;
+  onDuplicateProduct: (product: ProductListItem) => void;
   onEditProduct: (product: ProductListItem) => void;
   onDeleteProduct: (product: ProductListItem) => void;
 };
@@ -68,6 +69,7 @@ export function ProductTable({
   total_pages,
   onPageChange,
   onViewDetails,
+  onDuplicateProduct,
   onEditProduct,
   onDeleteProduct,
 }: ProductTableProps) {
@@ -130,6 +132,17 @@ export function ProductTable({
                   variant="outline"
                   size="sm"
                   className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                  onClick={() => onDuplicateProduct(row.original)}
+                  disabled={isBusy}
+                >
+                  <Copy className="size-3.5" />
+                  Duplicar
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
                   onClick={() => onEditProduct(row.original)}
                   disabled={isBusy}
                 >
@@ -160,6 +173,7 @@ export function ProductTable({
     canManageProducts,
     isBusy,
     onDeleteProduct,
+    onDuplicateProduct,
     onEditProduct,
     onViewDetails,
   ]);

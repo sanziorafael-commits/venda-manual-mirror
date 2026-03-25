@@ -31,6 +31,7 @@ model Company {
   conversationHistory historico_conversas[]          @relation("HistoricoConversaCompany")
   citedProducts       historico_conversas_produtos[] @relation("HistoricoConversaProdutoCompany")
   userDeletionAudits  UserDeletionAudit[]
+  conversationDeletionAudits ConversationDeletionAudit[]
   deleted_at           DateTime?
   created_at           DateTime                       @default(now())
   updated_at           DateTime                       @updatedAt
@@ -60,6 +61,8 @@ model User {
   passwordResetTokens        PasswordResetToken[]
   userDeletionAuditsAsTarget UserDeletionAudit[]      @relation("UserDeletionTarget")
   userDeletionAuditsAsActor  UserDeletionAudit[]      @relation("UserDeletionActor")
+  conversationDeletionAuditsAsTarget ConversationDeletionAudit[] @relation("ConversationDeletionTargetUser")
+  conversationDeletionAuditsAsActor  ConversationDeletionAudit[] @relation("ConversationDeletionActor")
   identifiedLocatedClients   LocatedClient[]          @relation("LocatedClientIdentifiedBy")
   visitedLocatedClients      LocatedClient[]          @relation("LocatedClientVisitedBy")
   created_at                  DateTime                 @default(now())
@@ -120,6 +123,30 @@ model UserDeletionAudit {
   @@index([deleted_at], map: "user_deletion_audit_deleted_at_idx")
 }
 
+model ConversationDeletionAudit {
+  id                   String   @id @db.Uuid
+  targetConversationId String   @db.Uuid
+  targetCompanyId      String?  @db.Uuid
+  targetCompany        Company? @relation(fields: [targetCompanyId], references: [id], onDelete: SetNull)
+  targetUserId         String?  @db.Uuid
+  targetUser           User?    @relation("ConversationDeletionTargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+  sellerName           String?
+  sellerPhone          String?
+  deletedRowsCount     Int
+  actorUserId          String   @db.Uuid
+  actorUser            User     @relation("ConversationDeletionActor", fields: [actorUserId], references: [id], onDelete: Restrict)
+  actorRole            UserRole
+  deleted_at           DateTime
+  created_at           DateTime @default(now())
+
+  @@index([targetConversationId], map: "conversation_deletion_audit_target_conversation_idx")
+  @@index([targetCompanyId], map: "conversation_deletion_audit_target_company_idx")
+  @@index([targetUserId], map: "conversation_deletion_audit_target_user_idx")
+  @@index([actorUserId], map: "conversation_deletion_audit_actor_user_idx")
+  @@index([deleted_at], map: "conversation_deletion_audit_deleted_at_idx")
+  @@index([sellerPhone], map: "conversation_deletion_audit_seller_phone_idx")
+}
+
 model Session {
   id               String    @id @db.Uuid
   user_id           String    @db.Uuid
@@ -171,6 +198,7 @@ model historico_conversas {
   timestamp_iso     DateTime?                      @db.Timestamptz(6)
   user_id           String?                        @db.Uuid
   company_id        String?                        @db.Uuid
+  deleted_at        DateTime?                      @db.Timestamptz(6)
   user              User?                          @relation("HistoricoConversaUser", fields: [user_id], references: [id], onDelete: SetNull)
   company           Company?                       @relation("HistoricoConversaCompany", fields: [company_id], references: [id], onDelete: SetNull)
   sender_id         String?
@@ -194,6 +222,7 @@ model historico_conversas {
   @@index([timestamp_iso], map: "idx_historico_timestamp")
   @@index([user_id], map: "idx_historico_user_id")
   @@index([company_id], map: "idx_historico_company_id")
+  @@index([deleted_at], map: "idx_historico_deleted_at")
   @@index([vendedor_telefone], map: "idx_historico_vendedor_telefone")
   @@index([company_id, vendedor_telefone], map: "idx_historico_company_phone")
   @@index([vendedor_nome], map: "idx_historico_vendedor")

@@ -1,10 +1,9 @@
 import { UserRole } from '@prisma/client';
 import compression from 'compression';
 import cors from 'cors';
-import express from 'express';
+import express, { type Request } from 'express';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
-import type { Request } from 'express';
 
 import { env } from './config/env.js';
 import { openApiDocument } from './docs/openapi.js';

@@ -198,6 +198,18 @@ export function ProductListWrapper() {
     [canManageProducts, router],
   );
 
+  const handleDuplicateProduct = React.useCallback(
+    (product: ProductListItem) => {
+      if (!canManageProducts) {
+        toast.error("Seu perfil possui acesso somente leitura em produtos.");
+        return;
+      }
+
+      router.push(`/dashboard/products/new?duplicate_from=${product.id}`);
+    },
+    [canManageProducts, router],
+  );
+
   const handleDeleteProduct = React.useCallback(
     async (product: ProductListItem) => {
       if (!canManageProducts) {
@@ -264,6 +276,7 @@ export function ProductListWrapper() {
           total_pages={meta.total_pages}
           onPageChange={setPageIndex}
           onViewDetails={handleViewDetails}
+          onDuplicateProduct={handleDuplicateProduct}
           onEditProduct={handleEditProduct}
           onDeleteProduct={handleDeleteProduct}
         />

@@ -25,6 +25,7 @@ import {
   PRODUCT_READY_TO_USE_OPTIONS,
   PRODUCT_SALE_UNIT_OPTIONS,
   buildProductPayloadFromForm,
+  createDuplicatedProductFormValues,
   createEmptyProductFormValues,
   createEmptyProductObjection,
   createdOrUpdatedProductApiResponseSchema,
@@ -40,6 +41,7 @@ import { useAuthUser } from "@/hooks/use-auth-user";
 type ProductFormWizardProps = {
   mode: "create" | "edit";
   product_id?: string;
+  duplicate_from_product_id?: string;
 };
 
 type ProductStep = 1 | 2 | 3 | 4 | 5;
@@ -102,7 +104,11 @@ function buildMediaPreviewMap(product: ProductDetail) {
   return map;
 }
 
-export function ProductFormWizard({ mode, product_id }: ProductFormWizardProps) {
+export function ProductFormWizard({
+  mode,
+  product_id,
+  duplicate_from_product_id,
+}: ProductFormWizardProps) {
   const router = useRouter();
   const authUser = useAuthUser();
   const canManageProducts =
@@ -110,6 +116,8 @@ export function ProductFormWizard({ mode, product_id }: ProductFormWizardProps) 
     authUser?.role === "GERENTE_COMERCIAL" ||
     authUser?.role === "SUPERVISOR";
 
+  const isDuplicateMode =
+    mode === "create" && Boolean(duplicate_from_product_id);
   const createProductIdRef = React.useRef(createClientUuid());
   const photoInputRef = React.useRef<HTMLInputElement>(null);
   const videoInputRef = React.useRef<HTMLInputElement>(null);
@@ -117,9 +125,12 @@ export function ProductFormWizard({ mode, product_id }: ProductFormWizardProps) 
 
   const [currentStep, setCurrentStep] = React.useState<ProductStep>(1);
   const [isLoadingProduct, setIsLoadingProduct] = React.useState(
-    mode === "edit",
+    mode === "edit" || isDuplicateMode,
   );
   const [loadError, setLoadError] = React.useState<string | null>(null);
+  const [duplicateSourceName, setDuplicateSourceName] = React.useState<
+    string | null
+  >(null);
   const [isUploadingPhotos, setIsUploadingPhotos] = React.useState(false);
   const [isUploadingVideos, setIsUploadingVideos] = React.useState(false);
   const [mediaPreviewByPublicUrl, setMediaPreviewByPublicUrl] = React.useState<
@@ -159,7 +170,11 @@ export function ProductFormWizard({ mode, product_id }: ProductFormWizardProps) 
   }, []);
 
   React.useEffect(() => {
-    if (mode !== "edit" || !product_id) {
+    const sourceProductId =
+      mode === "edit" ? product_id : duplicate_from_product_id;
+    if (!sourceProductId) {
+      setIsLoadingProduct(false);
+      setDuplicateSourceName(null);
       return;
     }
 
@@ -168,16 +183,32 @@ export function ProductFormWizard({ mode, product_id }: ProductFormWizardProps) 
       setLoadError(null);
 
       try {
-        const response = await apiFetch<unknown>(`/products/${product_id}`);
+        const response = await apiFetch<unknown>(`/products/${sourceProductId}`);
         const parsed = productDetailApiResponseSchema.safeParse(response);
         if (!parsed.success) {
-          setLoadError("Não foi possível carregar os dados do produto.");
+          setLoadError(
+            mode === "edit"
+              ? "Nao foi possivel carregar os dados do produto."
+              : "Nao foi possivel carregar o produto base para duplicacao.",
+          );
           return;
         }
 
         const product = parsed.data.data;
-        reset(mapProductDetailToFormValues(product));
-        setMediaPreviewByPublicUrl(buildMediaPreviewMap(product));
+        if (mode === "edit") {
+          reset(mapProductDetailToFormValues(product));
+          setMediaPreviewByPublicUrl(buildMediaPreviewMap(product));
+          setDuplicateSourceName(null);
+        } else {
+          reset(
+            createDuplicatedProductFormValues(
+              product,
+              createProductIdRef.current,
+            ),
+          );
+          setMediaPreviewByPublicUrl({});
+          setDuplicateSourceName(product.nome);
+        }
       } catch (error) {
         setLoadError(parseApiError(error));
       } finally {
@@ -186,7 +217,7 @@ export function ProductFormWizard({ mode, product_id }: ProductFormWizardProps) 
     };
 
     void loadProduct();
-  }, [mode, product_id, reset]);
+  }, [duplicate_from_product_id, mode, product_id, reset]);
 
   const categorias = watch("categorias");
   const tipologias_clientes = watch("tipologias_clientes");
@@ -582,6 +613,16 @@ export function ProductFormWizard({ mode, product_id }: ProductFormWizardProps) 
         event.preventDefault();
       }}
     >
+      {isDuplicateMode ? (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-foreground">
+          {duplicateSourceName
+            ? `Duplicando a partir de "${duplicateSourceName}".`
+            : "Duplicando produto selecionado."}{" "}
+          Revise os dados antes de salvar. Fotos e videos nao sao copiados
+          automaticamente.
+        </div>
+      ) : null}
+
       <ProductStepHeader currentStep={currentStep} />
 
       {currentStep === 1 ? (

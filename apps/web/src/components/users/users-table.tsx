@@ -90,7 +90,10 @@ export function UsersTable({
       {
         accessorKey: "phone",
         header: "Celular",
-        cell: ({ row }) => formatPhoneDisplay(row.original.phone),
+        cell: ({ row }) =>
+          row.original.phone.trim().length > 0
+            ? formatPhoneDisplay(row.original.phone)
+            : "-",
       },
       {
         accessorKey: "role",

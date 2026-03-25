@@ -6,7 +6,17 @@ import { createPageMetadata } from "@/lib/metadata";
 
 export const metadata = createPageMetadata("Cadastrar Produto");
 
-export default function DashboardProductCreatePage() {
+type DashboardProductCreatePageProps = {
+  searchParams: Promise<{
+    duplicate_from?: string;
+  }>;
+};
+
+export default async function DashboardProductCreatePage({
+  searchParams,
+}: DashboardProductCreatePageProps) {
+  const { duplicate_from } = await searchParams;
+
   return (
     <div className="flex w-full max-w-full flex-col gap-6 p-6">
       <div className="flex flex-wrap items-center gap-3 text-sm">
@@ -28,7 +38,10 @@ export default function DashboardProductCreatePage() {
         Cadastro de Produtos
       </h2>
 
-      <ProductFormWizard mode="create" />
+      <ProductFormWizard
+        mode="create"
+        duplicate_from_product_id={duplicate_from ?? undefined}
+      />
     </div>
   );
 }

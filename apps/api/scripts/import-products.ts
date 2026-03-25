@@ -184,16 +184,6 @@ function normalizeText(value: unknown): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
-function isMostlyUppercase(value: string) {
-  const letters = value.match(/\p{L}/gu) ?? [];
-  if (letters.length < 3) {
-    return false;
-  }
-
-  const uppercaseCount = letters.filter((char) => char === char.toLocaleUpperCase('pt-BR')).length;
-  return uppercaseCount / letters.length >= 0.65;
-}
-
 function applyAcronyms(value: string) {
   let current = value;
   for (const acronym of ACRONYM_WORDS) {
