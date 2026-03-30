@@ -691,7 +691,7 @@ export const openApiDocument = {
                 type: 'object',
                 additionalProperties: true,
                 description:
-                  "Payload livre (objeto unico ou lote em 'clientes'/'items'/'messages'). Para resolucao automatica de vendedor/empresa, envie 'seller_phone' ou 'vendedor_telefone'. Telefone e normalizado para somente digitos; quando vier com 10/11 digitos sem DDI, a API prefixa 55.",
+                  "Payload livre (objeto unico ou lote em 'clientes'/'items'/'messages'). Campos minimos por item: 'seller_phone'/'vendedor_telefone', 'customer_name'/'cliente_nome', 'city'/'cidade', 'state'/'estado' e 'address'/'endereco'. Para resolucao automatica de vendedor/empresa, envie o telefone do vendedor cadastrado; sem 'company_id', o telefone precisa existir em exatamente um usuario ativo. Telefone e normalizado para somente digitos; quando vier com 10/11 digitos sem DDI, a API prefixa 55.",
               },
             },
           },

@@ -24,6 +24,7 @@ export async function resolveSellerScopeByPhone(input: ResolveSellerScopeInput) 
     const existingUser = await prisma.user.findFirst({
       where: {
         id: resolvedUserId,
+        is_active: true,
         deleted_at: null,
       },
       select: {
@@ -50,6 +51,7 @@ export async function resolveSellerScopeByPhone(input: ResolveSellerScopeInput) 
         where: {
           phone: normalizedSellerPhone,
           company_id: resolvedCompanyId,
+          is_active: true,
           deleted_at: null,
         },
         select: {
@@ -71,6 +73,7 @@ export async function resolveSellerScopeByPhone(input: ResolveSellerScopeInput) 
       const users = await prisma.user.findMany({
         where: {
           phone: normalizedSellerPhone,
+          is_active: true,
           deleted_at: null,
         },
         select: {

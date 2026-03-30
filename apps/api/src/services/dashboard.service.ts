@@ -103,6 +103,11 @@ export async function getDashboardOverview(actor: AuthActor, input: DashboardOve
   const actorScopeContext = await buildActorScopeContext(actor, company_id);
   const actorScopePrismaWhere = buildHistoryActorScopePrismaWhere(actorScopeContext, scope);
   const actorScopeSqlWhere = buildHistoryActorScopeSqlWhere(actorScopeContext, scope, 'h');
+  const locatedClientActorScopeSqlWhere = buildLocatedClientActorScopeSqlWhere(
+    actorScopeContext,
+    scope,
+    'lc',
+  );
   const historyWhere = buildHistoryWhere(
     company_id,
     range.startAt,
@@ -177,7 +182,12 @@ export async function getDashboardOverview(actor: AuthActor, input: DashboardOve
           actorScopeSqlWhere,
         )
       : Promise.resolve([]),
-    countDistinctClients(company_id, range.startAt, range.endAt, actorScopeSqlWhere),
+    countDistinctLocatedClients(
+      company_id,
+      range.startAt,
+      range.endAt,
+      locatedClientActorScopeSqlWhere,
+    ),
     getProductRanking(
       company_id,
       range.startAt,
@@ -733,6 +743,51 @@ function buildHistoryActorScopeSqlWhere(
   return Prisma.sql`(${Prisma.join(conditions, ' OR ')})`;
 }
 
+function buildLocatedClientActorScopeSqlWhere(
+  scopeContext: DashboardActorScopeContext,
+  scope: DashboardScope,
+  tableAlias: string,
+) {
+  if (!scopeContext.isRestricted) {
+    return Prisma.sql`TRUE`;
+  }
+
+  const alias = Prisma.raw(tableAlias);
+  const includeVendorFilters = scope === 'all' || scope === 'vendors';
+  const includeSupervisorFilters = scope === 'all' || scope === 'supervisors';
+  const conditions: Prisma.Sql[] = [];
+
+  if (includeVendorFilters && scopeContext.vendorIds.length > 0) {
+    conditions.push(
+      Prisma.sql`${alias}.identified_by_user_id IN (${Prisma.join(scopeContext.vendorIds)})`,
+    );
+  }
+
+  if (includeVendorFilters && scopeContext.vendorPhones.length > 0) {
+    conditions.push(
+      Prisma.sql`${alias}.source_seller_phone IN (${Prisma.join(scopeContext.vendorPhones)})`,
+    );
+  }
+
+  if (includeSupervisorFilters && scopeContext.supervisorIds.length > 0) {
+    conditions.push(
+      Prisma.sql`${alias}.identified_by_user_id IN (${Prisma.join(scopeContext.supervisorIds)})`,
+    );
+  }
+
+  if (includeSupervisorFilters && scopeContext.supervisorPhones.length > 0) {
+    conditions.push(
+      Prisma.sql`${alias}.source_seller_phone IN (${Prisma.join(scopeContext.supervisorPhones)})`,
+    );
+  }
+
+  if (conditions.length === 0) {
+    return Prisma.sql`FALSE`;
+  }
+
+  return Prisma.sql`(${Prisma.join(conditions, ' OR ')})`;
+}
+
 function buildRange(input: {
   period: DashboardPeriod;
   start_date?: string;
@@ -1188,27 +1243,55 @@ async function getProductRanking(
   }));
 }
 
-async function countDistinctClients(
+async function countDistinctLocatedClients(
   company_id: string | null,
   startAt: Date,
   endAt: Date,
   actorScopeSqlWhere: Prisma.Sql,
 ) {
-  const whereSql = buildHistorySqlWhere(company_id, startAt, endAt, 'h', actorScopeSqlWhere);
+  const whereSql = buildLocatedClientSqlWhere(company_id, startAt, endAt, 'lc', actorScopeSqlWhere);
 
   const rows = await prisma.$queryRaw<CountRow[]>(Prisma.sql`
     SELECT COUNT(*)::int AS total
     FROM (
-      SELECT LOWER(TRIM(h.cliente_nome)) AS client_key
-      FROM "historico_conversas" h
+      SELECT
+        LOWER(TRIM(lc.customer_name)) AS customer_key,
+        LOWER(TRIM(lc.address)) AS address_key,
+        LOWER(TRIM(lc.city)) AS city_key,
+        LOWER(TRIM(lc.state)) AS state_key
+      FROM "located_clients" lc
       WHERE ${whereSql}
-        AND h.cliente_nome IS NOT NULL
-        AND TRIM(h.cliente_nome) <> ''
-      GROUP BY LOWER(TRIM(h.cliente_nome))
-    ) ranked_clients
+      GROUP BY
+        LOWER(TRIM(lc.customer_name)),
+        LOWER(TRIM(lc.address)),
+        LOWER(TRIM(lc.city)),
+        LOWER(TRIM(lc.state))
+    ) ranked_located_clients
   `);
 
   return rows.length > 0 ? toSafeNumber(rows[0].total) : 0;
+}
+
+function buildLocatedClientSqlWhere(
+  company_id: string | null,
+  startAt: Date,
+  endAt: Date,
+  tableAlias: string,
+  actorScopeSqlWhere: Prisma.Sql = Prisma.sql`TRUE`,
+) {
+  const alias = Prisma.raw(tableAlias);
+  const conditions: Prisma.Sql[] = [
+    Prisma.sql`${alias}.deleted_at IS NULL`,
+    Prisma.sql`${alias}.identified_at >= ${startAt}`,
+    Prisma.sql`${alias}.identified_at <= ${endAt}`,
+    actorScopeSqlWhere,
+  ];
+
+  if (company_id) {
+    conditions.push(Prisma.sql`${alias}.company_id = ${company_id}`);
+  }
+
+  return Prisma.join(conditions, ' AND ');
 }
 
 function buildHistorySqlWhere(
