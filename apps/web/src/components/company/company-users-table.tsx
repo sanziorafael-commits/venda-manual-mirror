@@ -9,6 +9,7 @@ import { Loader2, Mail, Pencil, RotateCcw, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { PaginationControls } from "@/components/ui/pagination-controls";
+import { ROLE_LABEL_BY_VALUE } from "@/lib/role-capabilities";
 import type { CompanyUserItem } from "@/schemas/company";
 
 type CompanyUsersTableProps = {
@@ -26,14 +27,6 @@ type CompanyUsersTableProps = {
   onResendActivation: (user: CompanyUserItem) => void;
   onReactivateUser: (user: CompanyUserItem) => void;
   onDeleteUser: (user: CompanyUserItem) => void;
-};
-
-const ROLE_LABEL_BY_VALUE: Record<CompanyUserItem["role"], string> = {
-  ADMIN: "Admin",
-  DIRETOR: "Diretor",
-  GERENTE_COMERCIAL: "Gerente Comercial",
-  SUPERVISOR: "Supervisor",
-  VENDEDOR: "Vendedor",
 };
 
 function formatCpf(value: string) {

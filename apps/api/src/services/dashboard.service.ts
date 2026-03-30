@@ -369,7 +369,9 @@ export async function getDashboardFilterOptions(actor: AuthActor, input: Dashboa
     period_options: PERIOD_OPTIONS,
     scope_options: scopeOptions,
     view_by_options:
-      actor.role === UserRole.GERENTE_COMERCIAL || actor.role === UserRole.DIRETOR
+      actor.role === UserRole.GERENTE_COMERCIAL ||
+      actor.role === UserRole.DIRETOR ||
+      actor.role === UserRole.RESPONSAVEL_TI
         ? VIEW_BY_OPTIONS
         : VIEW_BY_OPTIONS.filter((option) => option.value === 'vendedor'),
     company_options: mappedCompanyOptions,
@@ -456,7 +458,11 @@ function resolveDashboardScope(
 }
 
 function resolveScopeOptionsByRole(role: UserRole): DashboardFilterOption<DashboardScope>[] {
-  if (role === UserRole.GERENTE_COMERCIAL || role === UserRole.DIRETOR) {
+  if (
+    role === UserRole.GERENTE_COMERCIAL ||
+    role === UserRole.DIRETOR ||
+    role === UserRole.RESPONSAVEL_TI
+  ) {
     return MANAGER_SCOPE_OPTIONS;
   }
 
@@ -503,7 +509,7 @@ async function buildActorScopeContext(
     };
   }
 
-  if (actor.role === UserRole.DIRETOR) {
+  if (actor.role === UserRole.DIRETOR || actor.role === UserRole.RESPONSAVEL_TI) {
     return {
       isRestricted: false,
       vendorIds: [],

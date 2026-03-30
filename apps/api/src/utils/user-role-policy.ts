@@ -1,13 +1,96 @@
 import { UserRole } from '@prisma/client';
 
+import { isRoleWithDashboardAccess as hasDashboardAccess } from './role-capabilities.js';
+
 const INVITABLE_ROLES = new Set<UserRole>([
   UserRole.DIRETOR,
   UserRole.GERENTE_COMERCIAL,
   UserRole.SUPERVISOR,
+  UserRole.RESPONSAVEL_TI,
+  UserRole.TECNICO_GASTRONOMICO,
 ]);
 
+const CREATE_ROLE_MATRIX: Record<UserRole, readonly UserRole[]> = {
+  [UserRole.ADMIN]: [
+    UserRole.ADMIN,
+    UserRole.DIRETOR,
+    UserRole.GERENTE_COMERCIAL,
+    UserRole.SUPERVISOR,
+    UserRole.VENDEDOR,
+    UserRole.RESPONSAVEL_TI,
+    UserRole.TECNICO_GASTRONOMICO,
+  ],
+  [UserRole.DIRETOR]: [
+    UserRole.GERENTE_COMERCIAL,
+    UserRole.SUPERVISOR,
+    UserRole.VENDEDOR,
+    UserRole.RESPONSAVEL_TI,
+    UserRole.TECNICO_GASTRONOMICO,
+  ],
+  [UserRole.GERENTE_COMERCIAL]: [
+    UserRole.SUPERVISOR,
+    UserRole.VENDEDOR,
+    UserRole.RESPONSAVEL_TI,
+    UserRole.TECNICO_GASTRONOMICO,
+  ],
+  [UserRole.SUPERVISOR]: [UserRole.VENDEDOR],
+  [UserRole.VENDEDOR]: [],
+  [UserRole.RESPONSAVEL_TI]: [
+    UserRole.GERENTE_COMERCIAL,
+    UserRole.SUPERVISOR,
+    UserRole.VENDEDOR,
+    UserRole.RESPONSAVEL_TI,
+    UserRole.TECNICO_GASTRONOMICO,
+  ],
+  [UserRole.TECNICO_GASTRONOMICO]: [],
+};
+
+const MANAGE_ROLE_MATRIX: Record<UserRole, readonly UserRole[]> = {
+  [UserRole.ADMIN]: [
+    UserRole.ADMIN,
+    UserRole.DIRETOR,
+    UserRole.GERENTE_COMERCIAL,
+    UserRole.SUPERVISOR,
+    UserRole.VENDEDOR,
+    UserRole.RESPONSAVEL_TI,
+    UserRole.TECNICO_GASTRONOMICO,
+  ],
+  [UserRole.DIRETOR]: [
+    UserRole.GERENTE_COMERCIAL,
+    UserRole.SUPERVISOR,
+    UserRole.VENDEDOR,
+    UserRole.RESPONSAVEL_TI,
+    UserRole.TECNICO_GASTRONOMICO,
+  ],
+  [UserRole.GERENTE_COMERCIAL]: [
+    UserRole.SUPERVISOR,
+    UserRole.VENDEDOR,
+    UserRole.RESPONSAVEL_TI,
+    UserRole.TECNICO_GASTRONOMICO,
+  ],
+  [UserRole.SUPERVISOR]: [UserRole.VENDEDOR],
+  [UserRole.VENDEDOR]: [],
+  [UserRole.RESPONSAVEL_TI]: [
+    UserRole.DIRETOR,
+    UserRole.GERENTE_COMERCIAL,
+    UserRole.SUPERVISOR,
+    UserRole.VENDEDOR,
+    UserRole.RESPONSAVEL_TI,
+    UserRole.TECNICO_GASTRONOMICO,
+  ],
+  [UserRole.TECNICO_GASTRONOMICO]: [],
+};
+
+function hasMappedRoleAccess(
+  actorRole: UserRole,
+  targetRole: UserRole,
+  matrix: Record<UserRole, readonly UserRole[]>,
+) {
+  return matrix[actorRole]?.includes(targetRole) ?? false;
+}
+
 export function isRoleWithDashboardAccess(role: UserRole) {
-  return role !== UserRole.VENDEDOR;
+  return hasDashboardAccess(role);
 }
 
 export function isInvitableRole(role: UserRole) {
@@ -15,31 +98,9 @@ export function isInvitableRole(role: UserRole) {
 }
 
 export function canCreateRole(actorRole: UserRole, targetRole: UserRole) {
-  if (actorRole === UserRole.ADMIN) {
-    return true;
-  }
-
-  if (actorRole === UserRole.DIRETOR) {
-    return (
-      targetRole === UserRole.GERENTE_COMERCIAL ||
-      targetRole === UserRole.SUPERVISOR ||
-      targetRole === UserRole.VENDEDOR
-    );
-  }
-
-  if (actorRole === UserRole.GERENTE_COMERCIAL) {
-    return targetRole === UserRole.SUPERVISOR || targetRole === UserRole.VENDEDOR;
-  }
-
-  if (actorRole === UserRole.SUPERVISOR) {
-    return targetRole === UserRole.VENDEDOR;
-  }
-
-  return false;
+  return hasMappedRoleAccess(actorRole, targetRole, CREATE_ROLE_MATRIX);
 }
 
 export function canManageRole(actorRole: UserRole, targetRole: UserRole) {
-  return canCreateRole(actorRole, targetRole);
+  return hasMappedRoleAccess(actorRole, targetRole, MANAGE_ROLE_MATRIX);
 }
-
-

@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { PasswordField } from "@/components/ui/password-field";
 import { useAuthSubmit } from "@/hooks/use-auth-submit";
+import { getDefaultDashboardPath } from "@/lib/role-capabilities";
 import { cn } from "@/lib/utils";
 import {
   loginResponseSchema,
@@ -55,8 +56,8 @@ export function LoginForm({
     },
     successMessage: "Login realizado com sucesso!",
     invalidMessage: "Não foi possível concluir o login. Tente novamente.",
-    onSuccess: () => {
-      router.push("/dashboard");
+    onSuccess: (result) => {
+      router.push(getDefaultDashboardPath(result.user.role));
     },
   });
 

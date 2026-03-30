@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useAuthHydrated, useAuthUser } from "@/hooks/use-auth-user";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
+import { canManageProducts } from "@/lib/role-capabilities";
 import {
   createEmptyPaginationMeta,
   DEFAULT_PAGE_SIZE,
@@ -31,10 +32,9 @@ export function ProductListWrapper() {
   const authHydrated = useAuthHydrated();
   const selectedCompanyContext = useSelectedCompanyContext();
   const isAdmin = authUser?.role === "ADMIN";
-  const canManageProducts =
-    authUser?.role === "DIRETOR" ||
-    authUser?.role === "GERENTE_COMERCIAL" ||
-    authUser?.role === "SUPERVISOR";
+  const canManageProductsForRole = authUser
+    ? canManageProducts(authUser.role)
+    : false;
 
   const selectedCompanyId = React.useMemo(() => {
     if (!isAdmin) {
@@ -171,13 +171,13 @@ export function ProductListWrapper() {
   }, []);
 
   const handleAddProduct = React.useCallback(() => {
-    if (!canManageProducts) {
+    if (!canManageProductsForRole) {
       toast.error("Seu perfil possui acesso somente leitura em produtos.");
       return;
     }
 
     router.push("/dashboard/products/new");
-  }, [canManageProducts, router]);
+  }, [canManageProductsForRole, router]);
 
   const handleViewDetails = React.useCallback(
     (product: ProductListItem) => {
@@ -188,31 +188,31 @@ export function ProductListWrapper() {
 
   const handleEditProduct = React.useCallback(
     (product: ProductListItem) => {
-      if (!canManageProducts) {
+      if (!canManageProductsForRole) {
         toast.error("Seu perfil possui acesso somente leitura em produtos.");
         return;
       }
 
       router.push(`/dashboard/products/${product.id}/edit`);
     },
-    [canManageProducts, router],
+    [canManageProductsForRole, router],
   );
 
   const handleDuplicateProduct = React.useCallback(
     (product: ProductListItem) => {
-      if (!canManageProducts) {
+      if (!canManageProductsForRole) {
         toast.error("Seu perfil possui acesso somente leitura em produtos.");
         return;
       }
 
       router.push(`/dashboard/products/new?duplicate_from=${product.id}`);
     },
-    [canManageProducts, router],
+    [canManageProductsForRole, router],
   );
 
   const handleDeleteProduct = React.useCallback(
     async (product: ProductListItem) => {
-      if (!canManageProducts) {
+      if (!canManageProductsForRole) {
         toast.error("Seu perfil possui acesso somente leitura em produtos.");
         return;
       }
@@ -239,7 +239,7 @@ export function ProductListWrapper() {
 
       void loadProducts();
     },
-    [canManageProducts, loadProducts, pageIndex, products.length],
+    [canManageProductsForRole, loadProducts, pageIndex, products.length],
   );
 
   const isProductsSkeletonLoading = isLoading && !hasLoadedProductsOnce;
@@ -253,7 +253,7 @@ export function ProductListWrapper() {
         searchValue={searchDraft}
         page_size={page_size}
         isLoading={isLoading}
-        canAddProduct={canManageProducts}
+        canAddProduct={canManageProductsForRole}
         onSearchValueChange={setSearchDraft}
         onPageSizeChange={handlePageSizeChange}
         onSubmit={handleSearch}
@@ -270,7 +270,7 @@ export function ProductListWrapper() {
           isLoading={isProductsSkeletonLoading}
           isRefreshing={isProductsRefreshing}
           isBusy={isLoading}
-          canManageProducts={canManageProducts}
+          canManageProducts={canManageProductsForRole}
           pageIndex={pageIndex}
           page_size={page_size}
           total_pages={meta.total_pages}

@@ -14,6 +14,7 @@ import {
 } from '../controllers/auth.controller.js';
 import { authenticate, authorize } from '../middlewares/auth.middleware.js';
 import { createIpRateLimit } from '../middlewares/rate-limit.middleware.js';
+import { USERS_MODULE_ROLES } from '../utils/role-capabilities.js';
 
 const router = Router();
 
@@ -48,7 +49,7 @@ router.post('/activate-account', activateAccountHandler);
 router.post(
   '/resend-activation',
   authenticate,
-  authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
+  authorize(...USERS_MODULE_ROLES.filter((role) => role !== UserRole.SUPERVISOR)),
   resendActivationHandler,
 );
 

@@ -5,16 +5,12 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { useAuthUser } from "@/hooks/use-auth-user";
+import { canAccessUsersModule } from "@/lib/role-capabilities";
 
 export function MobileAddUserButton() {
   const router = useRouter();
   const authUser = useAuthUser();
-
-  const canManageUsers =
-    authUser?.role === "ADMIN" ||
-    authUser?.role === "DIRETOR" ||
-    authUser?.role === "GERENTE_COMERCIAL" ||
-    authUser?.role === "SUPERVISOR";
+  const canManageUsers = authUser ? canAccessUsersModule(authUser.role) : false;
 
   return (
     <Button

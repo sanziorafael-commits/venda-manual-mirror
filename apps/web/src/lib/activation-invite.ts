@@ -1,5 +1,6 @@
 import type { AuthUser } from "@/schemas/auth";
 import type { UserRole } from "@/schemas/user";
+import { isInvitableRole } from "@/lib/role-capabilities";
 
 type ActivationInvitePasswordStatus = "NOT_APPLICABLE" | "PENDING" | "SET";
 
@@ -12,12 +13,6 @@ type ActivationInviteTarget = {
   deleted_at?: string | null;
   password_status?: ActivationInvitePasswordStatus;
 };
-
-const INVITABLE_ROLES = new Set<UserRole>([
-  "DIRETOR",
-  "GERENTE_COMERCIAL",
-  "SUPERVISOR",
-]);
 
 export function canResendActivationInvite(
   actor: AuthUser | null,
@@ -43,7 +38,7 @@ export function canResendActivationInvite(
     return false;
   }
 
-  if (!INVITABLE_ROLES.has(target.role)) {
+  if (!isInvitableRole(target.role)) {
     return false;
   }
 
@@ -55,14 +50,10 @@ export function canResendActivationInvite(
     return false;
   }
 
-  if (actor.role === "DIRETOR") {
-    return target.role === "GERENTE_COMERCIAL" || target.role === "SUPERVISOR";
-  }
-
-  if (actor.role === "GERENTE_COMERCIAL") {
-    return target.role === "SUPERVISOR" && target.manager_id === actor.id;
-  }
-
-  return false;
+  return (
+    actor.role === "DIRETOR" ||
+    actor.role === "GERENTE_COMERCIAL" ||
+    actor.role === "RESPONSAVEL_TI"
+  );
 }
 

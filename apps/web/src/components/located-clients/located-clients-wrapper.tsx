@@ -13,6 +13,7 @@ import { useAuthHydrated, useAuthUser } from "@/hooks/use-auth-user";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
 import { formatPhoneDisplay } from "@/lib/phone";
+import { canMutateLocatedClients } from "@/lib/role-capabilities";
 import {
   createEmptyPaginationMeta,
   DEFAULT_PAGE_SIZE,
@@ -34,10 +35,9 @@ export function LocatedClientsWrapper() {
   const authHydrated = useAuthHydrated();
   const selectedCompanyContext = useSelectedCompanyContext();
   const isAdmin = authUser?.role === "ADMIN";
-  const canMutateLocatedClients =
-    authUser?.role === "DIRETOR" ||
-    authUser?.role === "GERENTE_COMERCIAL" ||
-    authUser?.role === "SUPERVISOR";
+  const canMutateLocatedClientsForRole = authUser
+    ? canMutateLocatedClients(authUser.role)
+    : false;
 
   const selectedCompanyId = React.useMemo(() => {
     if (!isAdmin) {
@@ -219,7 +219,7 @@ export function LocatedClientsWrapper() {
 
   const handleDelete = React.useCallback(
     async (item: LocatedClientListItem) => {
-      if (!canMutateLocatedClients) {
+      if (!canMutateLocatedClientsForRole) {
         toast.error(
           "Seu perfil possui acesso somente leitura em clientes localizados.",
         );
@@ -249,7 +249,7 @@ export function LocatedClientsWrapper() {
       void loadLocatedClients();
     },
     [
-      canMutateLocatedClients,
+      canMutateLocatedClientsForRole,
       loadLocatedClients,
       locatedClients.length,
       pageIndex,
@@ -352,7 +352,7 @@ export function LocatedClientsWrapper() {
                   <th className="px-4 py-3 font-semibold">Endereço</th>
                   <th className="px-4 py-3 font-semibold">Identificado em</th>
                   <th className="px-4 py-3 font-semibold">Mapa</th>
-                  {canMutateLocatedClients ? (
+                  {canMutateLocatedClientsForRole ? (
                     <th className="px-4 py-3 font-semibold">Ações</th>
                   ) : null}
                 </tr>
@@ -364,7 +364,7 @@ export function LocatedClientsWrapper() {
                       (_, rowIndex) => (
                         <tr key={`loading-${rowIndex}`} className="border-t">
                           {Array.from(
-                            { length: canMutateLocatedClients ? 8 : 7 },
+                            { length: canMutateLocatedClientsForRole ? 8 : 7 },
                             (_, columnIndex) => (
                               <td
                                 key={`loading-${rowIndex}-${columnIndex}`}
@@ -417,7 +417,7 @@ export function LocatedClientsWrapper() {
                             "-"
                           )}
                         </td>
-                        {canMutateLocatedClients ? (
+                        {canMutateLocatedClientsForRole ? (
                           <td className="px-4 py-4">
                             <div className="flex items-center">
                               <Button
@@ -442,7 +442,7 @@ export function LocatedClientsWrapper() {
                 locatedClients.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={canMutateLocatedClients ? 8 : 7}
+                      colSpan={canMutateLocatedClientsForRole ? 8 : 7}
                       className="px-4 py-8 text-center text-sm text-muted-foreground"
                     >
                       Nenhum cliente localizado encontrado.

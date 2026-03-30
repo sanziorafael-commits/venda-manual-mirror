@@ -14,6 +14,7 @@ import { useAuthHydrated, useAuthUser } from "@/hooks/use-auth-user";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
 import { formatPhoneDisplay } from "@/lib/phone";
+import { canDeleteConversations } from "@/lib/role-capabilities";
 import {
   createEmptyPaginationMeta,
   DEFAULT_PAGE_SIZE,
@@ -36,10 +37,9 @@ export function ConversationsHistoryWrapper() {
   const authHydrated = useAuthHydrated();
   const selectedCompanyContext = useSelectedCompanyContext();
   const isAdmin = authUser?.role === "ADMIN";
-  const canDeleteConversations =
-    authUser?.role === "ADMIN" ||
-    authUser?.role === "DIRETOR" ||
-    authUser?.role === "GERENTE_COMERCIAL";
+  const canDeleteConversationsForRole = authUser
+    ? canDeleteConversations(authUser.role)
+    : false;
 
   const selectedCompanyId = React.useMemo(() => {
     if (!isAdmin) {
@@ -415,7 +415,7 @@ export function ConversationsHistoryWrapper() {
                               <Eye className="size-3.5" />
                               Ver conversa
                             </Button>
-                            {canDeleteConversations ? (
+                            {canDeleteConversationsForRole ? (
                               <Button
                                 type="button"
                                 variant="ghost"

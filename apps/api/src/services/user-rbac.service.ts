@@ -18,17 +18,39 @@ export function canReadUserByHierarchy(actor: AuthActor, target: ScopedTargetUse
     return true;
   }
 
+  if (!actor.company_id || actor.company_id !== target.company_id) {
+    return false;
+  }
+
   if (actor.role === UserRole.DIRETOR) {
     return (
-      Boolean(actor.company_id) &&
-      actor.company_id === target.company_id &&
-      (target.role === UserRole.GERENTE_COMERCIAL ||
-        target.role === UserRole.SUPERVISOR ||
-        target.role === UserRole.VENDEDOR)
+      target.role === UserRole.GERENTE_COMERCIAL ||
+      target.role === UserRole.SUPERVISOR ||
+      target.role === UserRole.VENDEDOR ||
+      target.role === UserRole.RESPONSAVEL_TI ||
+      target.role === UserRole.TECNICO_GASTRONOMICO
+    );
+  }
+
+  if (actor.role === UserRole.RESPONSAVEL_TI) {
+    return (
+      target.role === UserRole.DIRETOR ||
+      target.role === UserRole.GERENTE_COMERCIAL ||
+      target.role === UserRole.SUPERVISOR ||
+      target.role === UserRole.VENDEDOR ||
+      target.role === UserRole.RESPONSAVEL_TI ||
+      target.role === UserRole.TECNICO_GASTRONOMICO
     );
   }
 
   if (actor.role === UserRole.GERENTE_COMERCIAL) {
+    if (
+      target.role === UserRole.RESPONSAVEL_TI ||
+      target.role === UserRole.TECNICO_GASTRONOMICO
+    ) {
+      return true;
+    }
+
     if (target.role === UserRole.SUPERVISOR) {
       return target.manager_id === actor.user_id;
     }
@@ -53,17 +75,17 @@ export function assertManageScope(actor: AuthActor, target: ScopedTargetUser) {
   }
 
   if (!canManageRole(actor.role, target.role)) {
-    throw forbidden('Você não tem permissão para editar este cargo');
+    throw forbidden('Voce nao tem permissao para editar este cargo');
   }
 
   if (!canReadUserByHierarchy(actor, target)) {
-    throw forbidden('Você não tem permissão para operar este usuário');
+    throw forbidden('Voce nao tem permissao para operar este usuario');
   }
 }
 
 export function validateCreatePermissions(actor: AuthActor, role: UserRole) {
   if (!canCreateRole(actor.role, role)) {
-    throw forbidden('Você não tem permissão para criar este cargo');
+    throw forbidden('Voce nao tem permissao para criar este cargo');
   }
 }
 
@@ -73,44 +95,42 @@ export function validateUpdatePermissions(
   nextRole?: UserRole,
 ) {
   if (!canManageRole(actor.role, existingRole)) {
-    throw forbidden('Você não tem permissão para editar este cargo');
+    throw forbidden('Voce nao tem permissao para editar este cargo');
   }
 
-  if (nextRole && !canCreateRole(actor.role, nextRole)) {
-    throw forbidden('Você não tem permissão para definir este cargo');
+  if (nextRole && nextRole !== existingRole && !canCreateRole(actor.role, nextRole)) {
+    throw forbidden('Voce nao tem permissao para definir este cargo');
   }
 }
 
 export function validateCredentialsForRole(role: UserRole, email?: string | null, password?: string) {
   if (role === UserRole.VENDEDOR) {
     if (password) {
-      throw badRequest('Vendedor não deve possuir senha');
+      throw badRequest('Vendedor nao deve possuir senha');
     }
 
     return;
   }
 
   if (!email) {
-    throw badRequest('E-mail obrigatório para cargos com acesso ao dashboard');
+    throw badRequest('E-mail obrigatorio para cargos com acesso ao dashboard');
   }
 
   if (isInvitableRole(role) && password) {
-    throw badRequest('Gerente comercial e supervisor devem ativar senha via convite');
+    throw badRequest('Este cargo deve ativar senha via convite');
   }
 
   if (role === UserRole.ADMIN && !password) {
-    throw badRequest('Senha obrigatória para admin');
+    throw badRequest('Senha obrigatoria para admin');
   }
 }
 
 export function validateCompanyForRole(role: UserRole, company_id: string | null) {
   if (role === UserRole.ADMIN && company_id) {
-    throw badRequest('Admin não deve estar vinculado à empresa');
+    throw badRequest('Admin nao deve estar vinculado a empresa');
   }
 
   if (role !== UserRole.ADMIN && !company_id) {
-    throw badRequest('company_id obrigatório para cargos não-admin');
+    throw badRequest('company_id obrigatorio para cargos nao-admin');
   }
 }
-
-

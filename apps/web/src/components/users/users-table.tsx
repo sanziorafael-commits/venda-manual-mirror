@@ -10,6 +10,7 @@ import { Loader2, Mail, Pencil, RotateCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { formatPhoneDisplay } from "@/lib/phone";
+import { ROLE_LABEL_BY_VALUE } from "@/lib/role-capabilities";
 import type { UserListItem } from "@/schemas/user";
 
 type UsersTableProps = {
@@ -29,14 +30,6 @@ type UsersTableProps = {
   onResendActivation: (user: UserListItem) => void;
   onReactivateUser: (user: UserListItem) => void;
   onDeleteUser: (user: UserListItem) => void;
-};
-
-const ROLE_LABEL_BY_VALUE: Record<UserListItem["role"], string> = {
-  ADMIN: "Admin",
-  DIRETOR: "Diretor",
-  GERENTE_COMERCIAL: "Gerente Comercial",
-  SUPERVISOR: "Supervisor",
-  VENDEDOR: "Vendedor",
 };
 
 function formatCpf(value: string) {

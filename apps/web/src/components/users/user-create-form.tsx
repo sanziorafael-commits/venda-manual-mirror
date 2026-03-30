@@ -11,6 +11,11 @@ import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
 import { formatPhoneInput } from "@/lib/phone";
 import {
+  getCreatableUserRoles,
+  ROLE_LABEL_BY_VALUE,
+  type PanelRole,
+} from "@/lib/role-capabilities";
+import {
   companiesApiResponseSchema,
   type CompanyListItem,
 } from "@/schemas/company";
@@ -40,36 +45,12 @@ type UserCreateFormProps = {
   prefilledCompanyId?: string | null;
 };
 
-const ROLE_LABEL_BY_VALUE: Record<UserRole, string> = {
-  ADMIN: "Admin",
-  DIRETOR: "Diretor",
-  GERENTE_COMERCIAL: "Gerente Comercial",
-  SUPERVISOR: "Supervisor",
-  VENDEDOR: "Vendedor",
-};
-
-function getAllowedRoleOptions(actorRole: UserRole): UserRole[] {
-  if (actorRole === "ADMIN") {
-    return ["ADMIN", "DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR", "VENDEDOR"];
-  }
-
-  if (actorRole === "DIRETOR") {
-    return ["GERENTE_COMERCIAL", "SUPERVISOR", "VENDEDOR"];
-  }
-
-  if (actorRole === "GERENTE_COMERCIAL") {
-    return ["SUPERVISOR", "VENDEDOR"];
-  }
-
-  return ["VENDEDOR"];
-}
-
-function getDefaultRole(actorRole: UserRole): UserRole {
-  if (actorRole === "ADMIN") {
-    return "GERENTE_COMERCIAL";
-  }
-
-  if (actorRole === "DIRETOR") {
+function getDefaultRole(actorRole: PanelRole): UserRole {
+  if (
+    actorRole === "ADMIN" ||
+    actorRole === "DIRETOR" ||
+    actorRole === "RESPONSAVEL_TI"
+  ) {
     return "GERENTE_COMERCIAL";
   }
 
@@ -77,7 +58,11 @@ function getDefaultRole(actorRole: UserRole): UserRole {
     return "SUPERVISOR";
   }
 
-  return "VENDEDOR";
+  if (actorRole === "SUPERVISOR") {
+    return "VENDEDOR";
+  }
+
+  return "TECNICO_GASTRONOMICO";
 }
 
 function formatCpfInput(value: string) {
@@ -207,9 +192,11 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
   const actorRole = authUser?.role ?? null;
   const isAdminActor = actorRole === "ADMIN";
   const isDirectorActor = actorRole === "DIRETOR";
+  const isResponsavelTiActor = actorRole === "RESPONSAVEL_TI";
   const isManagerActor = actorRole === "GERENTE_COMERCIAL";
   const canUseCompanyScopeFilters =
-    (isAdminActor || isDirectorActor) && Boolean(selectedCompanyId);
+    (isAdminActor || isDirectorActor || isResponsavelTiActor) &&
+    Boolean(selectedCompanyId);
   const shouldShowCompanyField = isAdminActor && selectedRole !== "ADMIN";
   const shouldShowManagerField =
     selectedRole === "SUPERVISOR" && canUseCompanyScopeFilters;
@@ -222,7 +209,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
       return ["VENDEDOR"];
     }
 
-    return getAllowedRoleOptions(actorRole);
+    return getCreatableUserRoles(actorRole);
   }, [actorRole]);
 
   React.useEffect(() => {
@@ -371,7 +358,8 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
       try {
         const options = await fetchUserOptionsByRole({
           role: "SUPERVISOR",
-          ...((isAdminActor || isDirectorActor) && selectedCompanyId
+          ...((isAdminActor || isDirectorActor || isResponsavelTiActor) &&
+          selectedCompanyId
             ? { company_id: selectedCompanyId }
             : {}),
         });
@@ -405,6 +393,7 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
     authHydrated,
     isAdminActor,
     isDirectorActor,
+    isResponsavelTiActor,
     selectedCompanyId,
     shouldShowSupervisorField,
   ]);
@@ -464,11 +453,20 @@ export function UserCreateForm({ prefilledCompanyId = null }: UserCreateFormProp
         payload.company_id = company_id;
       }
 
-      if ((isAdminActor || isDirectorActor) && input.role === "SUPERVISOR") {
+      if (
+        (isAdminActor || isDirectorActor || isResponsavelTiActor) &&
+        input.role === "SUPERVISOR"
+      ) {
         payload.manager_id = manager_id;
       }
 
-      if ((isAdminActor || isDirectorActor || isManagerActor) && input.role === "VENDEDOR") {
+      if (
+        (isAdminActor ||
+          isDirectorActor ||
+          isResponsavelTiActor ||
+          isManagerActor) &&
+        input.role === "VENDEDOR"
+      ) {
         payload.supervisor_id = supervisor_id;
       }
 

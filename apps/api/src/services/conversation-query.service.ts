@@ -551,7 +551,11 @@ async function buildConversationActorScopeWhere(
   actor: AuthActor,
   company_id: string | null,
 ): Promise<Prisma.historico_conversasWhereInput> {
-  if (actor.role === UserRole.ADMIN || actor.role === UserRole.DIRETOR) {
+  if (
+    actor.role === UserRole.ADMIN ||
+    actor.role === UserRole.DIRETOR ||
+    actor.role === UserRole.RESPONSAVEL_TI
+  ) {
     return EMPTY_WHERE;
   }
 

@@ -1,4 +1,3 @@
-import { UserRole } from '@prisma/client';
 import { Router } from 'express';
 
 import {
@@ -9,6 +8,7 @@ import {
   updateProductHandler,
 } from '../controllers/product.controller.js';
 import { authenticate, authorize } from '../middlewares/auth.middleware.js';
+import { PRODUCT_MUTATION_ROLES, PRODUCT_READ_ROLES } from '../utils/role-capabilities.js';
 
 const router = Router();
 
@@ -16,30 +16,18 @@ router.use(authenticate);
 
 router.get(
   '/',
-  authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
+  authorize(...PRODUCT_READ_ROLES),
   listProductsHandler,
 );
 router.get(
   '/:product_id',
-  authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
+  authorize(...PRODUCT_READ_ROLES),
   getProductByIdHandler,
 );
 
-router.post(
-  '/',
-  authorize(UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
-  createProductHandler,
-);
-router.patch(
-  '/:product_id',
-  authorize(UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
-  updateProductHandler,
-);
-router.delete(
-  '/:product_id',
-  authorize(UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
-  deleteProductHandler,
-);
+router.post('/', authorize(...PRODUCT_MUTATION_ROLES), createProductHandler);
+router.patch('/:product_id', authorize(...PRODUCT_MUTATION_ROLES), updateProductHandler);
+router.delete('/:product_id', authorize(...PRODUCT_MUTATION_ROLES), deleteProductHandler);
 
 export default router;
 

@@ -1,11 +1,14 @@
+import { UserRole } from '@prisma/client';
+
 import { logger } from '../lib/logger.js';
 import { prisma } from '../lib/prisma.js';
+import type { AuthActor } from '../types/auth.types.js';
 import type {
   CompanyListInput,
   CreateCompanyInput,
   UpdateCompanyInput,
 } from '../types/company.types.js';
-import { conflict, notFound } from '../utils/app-error.js';
+import { conflict, forbidden, notFound } from '../utils/app-error.js';
 import { normalizeCnpj } from '../utils/normalizers.js';
 import { getPagination } from '../utils/pagination.js';
 import { createUuidV7 } from '../utils/uuid.js';
@@ -15,11 +18,20 @@ import {
   deleteStorageObjectByPublicUrl,
 } from './storage.service.js';
 
-export async function listCompanies(input: CompanyListInput) {
+export async function listCompanies(actor: AuthActor, input: CompanyListInput) {
   const pagination = getPagination(input.page, input.page_size);
+
+  if (actor.role !== UserRole.ADMIN && !actor.company_id) {
+    throw forbidden('Usuario nao vinculado a empresa');
+  }
 
   const where = {
     deleted_at: null,
+    ...(actor.role !== UserRole.ADMIN && actor.company_id
+      ? {
+          id: actor.company_id,
+        }
+      : {}),
     ...(input.q
       ? {
           name: {
@@ -64,7 +76,9 @@ export async function listCompanies(input: CompanyListInput) {
   };
 }
 
-export async function getCompanyById(company_id: string) {
+export async function getCompanyById(actor: AuthActor, company_id: string) {
+  assertCompanyScope(actor, company_id);
+
   const company = await prisma.company.findFirst({
     where: {
       id: company_id,
@@ -119,8 +133,12 @@ export async function createCompany(input: CreateCompanyInput) {
   return company;
 }
 
-export async function updateCompany(company_id: string, input: UpdateCompanyInput) {
-  const existing = await getCompanyById(company_id);
+export async function updateCompany(
+  actor: AuthActor,
+  company_id: string,
+  input: UpdateCompanyInput,
+) {
+  const existing = await getCompanyById(actor, company_id);
 
   const company = await prisma.company.update({
     where: { id: company_id },
@@ -150,7 +168,21 @@ export async function updateCompany(company_id: string, input: UpdateCompanyInpu
 }
 
 export async function deleteCompany(company_id: string) {
-  const company = await getCompanyById(company_id);
+  const company = await prisma.company.findFirst({
+    where: {
+      id: company_id,
+      deleted_at: null,
+    },
+    include: {
+      _count: {
+        select: { users: { where: { deleted_at: null } } },
+      },
+    },
+  });
+
+  if (!company) {
+    throw notFound('Empresa nao encontrada');
+  }
 
   const activeUsersCount = await prisma.user.count({
     where: {
@@ -182,6 +214,16 @@ export async function deleteCompany(company_id: string) {
         'failed to delete company logo from storage after company deletion',
       );
     }
+  }
+}
+
+function assertCompanyScope(actor: AuthActor, company_id: string) {
+  if (actor.role === UserRole.ADMIN) {
+    return;
+  }
+
+  if (!actor.company_id || actor.company_id !== company_id) {
+    throw forbidden('Voce nao tem acesso ao escopo desta empresa');
   }
 }
 

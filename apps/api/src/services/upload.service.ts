@@ -28,19 +28,33 @@ const IMAGE_ALLOWED_MIME_TYPES = [
 const UPLOAD_TARGET_POLICY: Record<UploadTarget, UploadTargetPolicy> = {
   COMPANY_LOGO: {
     max_size_bytes: 3 * 1024 * 1024,
-    allowed_roles: [UserRole.ADMIN],
+    allowed_roles: [UserRole.ADMIN, UserRole.RESPONSAVEL_TI],
     allowed_mime_prefixes: [],
     allowed_mime_exact: IMAGE_ALLOWED_MIME_TYPES,
   },
   PRODUCT_IMAGE: {
     max_size_bytes: 3 * 1024 * 1024,
-    allowed_roles: [UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR],
+    allowed_roles: [
+      UserRole.ADMIN,
+      UserRole.DIRETOR,
+      UserRole.GERENTE_COMERCIAL,
+      UserRole.SUPERVISOR,
+      UserRole.RESPONSAVEL_TI,
+      UserRole.TECNICO_GASTRONOMICO,
+    ],
     allowed_mime_prefixes: [],
     allowed_mime_exact: IMAGE_ALLOWED_MIME_TYPES,
   },
   PRODUCT_VIDEO: {
     max_size_bytes: 100 * 1024 * 1024,
-    allowed_roles: [UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR],
+    allowed_roles: [
+      UserRole.ADMIN,
+      UserRole.DIRETOR,
+      UserRole.GERENTE_COMERCIAL,
+      UserRole.SUPERVISOR,
+      UserRole.RESPONSAVEL_TI,
+      UserRole.TECNICO_GASTRONOMICO,
+    ],
     allowed_mime_prefixes: ['video/'],
   },
 };

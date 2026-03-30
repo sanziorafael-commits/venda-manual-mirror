@@ -6,6 +6,7 @@ import type { AuthActor } from '../types/auth.types.js';
 import type { CreateProductInput, ProductListInput, ProductObjectionInput, UpdateProductInput } from '../types/product.types.js';
 import { badRequest, forbidden, notFound } from '../utils/app-error.js';
 import { getPagination } from '../utils/pagination.js';
+import { canMutateProducts } from '../utils/role-capabilities.js';
 import { createUuidV7 } from '../utils/uuid.js';
 
 import {
@@ -457,11 +458,7 @@ function assertMutateProductScope(actor: AuthActor, targetCompanyId: string | nu
 }
 
 function assertCanMutateProducts(actor: AuthActor) {
-  if (
-    actor.role !== UserRole.DIRETOR &&
-    actor.role !== UserRole.GERENTE_COMERCIAL &&
-    actor.role !== UserRole.SUPERVISOR
-  ) {
+  if (!canMutateProducts(actor.role)) {
     throw forbidden('Perfil sem permissao para alterar produtos');
   }
 

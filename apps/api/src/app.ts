@@ -1,4 +1,3 @@
-import { UserRole } from '@prisma/client';
 import compression from 'compression';
 import cors from 'cors';
 import express, { type Request } from 'express';
@@ -12,6 +11,7 @@ import { errorHandler } from './middlewares/error.middleware.js';
 import { notFound } from './middlewares/not-found.middleware.js';
 import { requestLog } from './middlewares/request-log.middleware.js';
 import routes from './routes.js';
+import { DOCS_ACCESS_ROLES } from './utils/role-capabilities.js';
 
 const app = express();
 
@@ -85,7 +85,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 const docsAuthMiddlewares = [
   authenticate,
-  authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
+  authorize(...DOCS_ACCESS_ROLES),
 ] as const;
 
 app.get('/api/openapi.json', ...docsAuthMiddlewares, (_req, res) => {

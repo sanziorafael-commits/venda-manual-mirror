@@ -6,6 +6,8 @@ export const userRoleSchema = z.enum([
   "GERENTE_COMERCIAL",
   "SUPERVISOR",
   "VENDEDOR",
+  "RESPONSAVEL_TI",
+  "TECNICO_GASTRONOMICO",
 ]);
 
 export const userCompanySchema = z.object({

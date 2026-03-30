@@ -1,4 +1,3 @@
-import { UserRole } from '@prisma/client';
 import { Router } from 'express';
 
 import {
@@ -11,34 +10,37 @@ import {
   updateUserHandler,
 } from '../controllers/user.controller.js';
 import { authenticate, authorize } from '../middlewares/auth.middleware.js';
+import {
+  MASS_REASSIGN_MANAGER_TEAM_ROLES,
+  MASS_REASSIGN_SUPERVISOR_ROLES,
+  USERS_MODULE_ROLES,
+} from '../utils/role-capabilities.js';
 
 const router = Router();
 
 router.use(authenticate);
-router.use(
-  authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR),
-);
+router.use(authorize(...USERS_MODULE_ROLES));
 
 router.post(
   '/actions/reassign-supervisor',
-  authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL),
+  authorize(...MASS_REASSIGN_SUPERVISOR_ROLES),
   reassignSupervisorHandler,
 );
 router.post(
   '/actions/reassign-manager-team',
-  authorize(UserRole.ADMIN, UserRole.DIRETOR),
+  authorize(...MASS_REASSIGN_MANAGER_TEAM_ROLES),
   reassignManagerTeamHandler,
 );
 
 // Compatibilidade temporaria para clientes legados.
 router.post(
   '/reassign-supervisor',
-  authorize(UserRole.ADMIN, UserRole.DIRETOR, UserRole.GERENTE_COMERCIAL),
+  authorize(...MASS_REASSIGN_SUPERVISOR_ROLES),
   reassignSupervisorHandler,
 );
 router.post(
   '/reassign-manager-team',
-  authorize(UserRole.ADMIN, UserRole.DIRETOR),
+  authorize(...MASS_REASSIGN_MANAGER_TEAM_ROLES),
   reassignManagerTeamHandler,
 );
 

@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
+import { canManageProducts } from "@/lib/role-capabilities";
 import {
   uploadSignedUrlApiResponseSchema,
   type UploadSignedUrlData,
@@ -111,10 +112,9 @@ export function ProductFormWizard({
 }: ProductFormWizardProps) {
   const router = useRouter();
   const authUser = useAuthUser();
-  const canManageProducts =
-    authUser?.role === "DIRETOR" ||
-    authUser?.role === "GERENTE_COMERCIAL" ||
-    authUser?.role === "SUPERVISOR";
+  const canManageProductsForRole = authUser
+    ? canManageProducts(authUser.role)
+    : false;
 
   const isDuplicateMode =
     mode === "create" && Boolean(duplicate_from_product_id);
@@ -582,7 +582,7 @@ export function ProductFormWizard({
     [handleSubmit, onSubmit],
   );
 
-  if (!canManageProducts) {
+  if (!canManageProductsForRole) {
     return (
       <div className="rounded-xl border p-6 text-sm text-muted-foreground">
         Seu perfil possui acesso somente leitura para produtos.

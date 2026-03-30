@@ -5,6 +5,7 @@ import {
   canAccessDashboardPath,
   type DashboardRole,
 } from "@/config/dashboard-access";
+import { getDefaultDashboardPath } from "@/lib/role-capabilities";
 
 const REFRESH_COOKIE_KEY = "handsell.refresh_token_v2";
 const USER_COOKIE_KEY = "handsell.user_v2";
@@ -38,13 +39,13 @@ export function proxy(request: NextRequest) {
     }
 
     if (!canAccessDashboardPath(pathname, user.role)) {
-      const fallbackUrl = new URL("/dashboard", request.url);
+      const fallbackUrl = new URL(getDefaultDashboardPath(user.role), request.url);
       return NextResponse.redirect(fallbackUrl);
     }
   }
 
   if (isLoginRoute(pathname) && hasSession && user) {
-    const dashboardUrl = new URL("/dashboard", request.url);
+    const dashboardUrl = new URL(getDefaultDashboardPath(user.role), request.url);
     return NextResponse.redirect(dashboardUrl);
   }
 
@@ -85,7 +86,9 @@ function isSessionUser(value: unknown): value is SessionUser {
     role === "ADMIN" ||
     role === "DIRETOR" ||
     role === "GERENTE_COMERCIAL" ||
-    role === "SUPERVISOR"
+    role === "SUPERVISOR" ||
+    role === "RESPONSAVEL_TI" ||
+    role === "TECNICO_GASTRONOMICO"
   );
 }
 

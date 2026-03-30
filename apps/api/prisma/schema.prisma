@@ -13,6 +13,8 @@ enum UserRole {
   GERENTE_COMERCIAL
   SUPERVISOR
   VENDEDOR
+  RESPONSAVEL_TI
+  TECNICO_GASTRONOMICO
 }
 
 enum LocatedClientStatus {

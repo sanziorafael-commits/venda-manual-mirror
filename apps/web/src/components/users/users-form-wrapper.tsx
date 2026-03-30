@@ -12,6 +12,7 @@ import {
   createEmptyPaginationMeta,
   DEFAULT_PAGE_SIZE,
 } from "@/lib/pagination";
+import { canAccessUsersModule } from "@/lib/role-capabilities";
 import { tryApiDelete } from "@/lib/try-api";
 import {
   userDetailsApiResponseSchema,
@@ -36,11 +37,7 @@ export function UsersFormWrapper() {
   const authHydrated = useAuthHydrated();
   const selectedCompanyContext = useSelectedCompanyContext();
   const isAdmin = authUser?.role === "ADMIN";
-  const canManageUsers =
-    authUser?.role === "ADMIN" ||
-    authUser?.role === "DIRETOR" ||
-    authUser?.role === "GERENTE_COMERCIAL" ||
-    authUser?.role === "SUPERVISOR";
+  const canManageUsers = authUser ? canAccessUsersModule(authUser.role) : false;
   const isPlatformAdminSelected =
     isAdmin && isPlatformAdminContext(selectedCompanyContext);
 

@@ -252,7 +252,11 @@ async function assertActorCanAccessLocatedClient(
 ) {
   assertActorCompanyScope(actor, locatedClient.company_id);
 
-  if (actor.role === UserRole.ADMIN || actor.role === UserRole.DIRETOR) {
+  if (
+    actor.role === UserRole.ADMIN ||
+    actor.role === UserRole.DIRETOR ||
+    actor.role === UserRole.RESPONSAVEL_TI
+  ) {
     return;
   }
 
@@ -269,7 +273,11 @@ async function assertActorCanAccessLocatedClient(
 }
 
 async function buildActorScope(actor: AuthActor, company_id: string | null): Promise<LocatedClientActorScope> {
-  if (actor.role === UserRole.ADMIN || actor.role === UserRole.DIRETOR) {
+  if (
+    actor.role === UserRole.ADMIN ||
+    actor.role === UserRole.DIRETOR ||
+    actor.role === UserRole.RESPONSAVEL_TI
+  ) {
     return {
       isRestricted: false,
       userIds: [],

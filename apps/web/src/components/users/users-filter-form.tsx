@@ -3,6 +3,7 @@ import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PAGE_SIZE_OPTIONS } from "@/lib/pagination";
+import { ROLE_LABEL_BY_VALUE } from "@/lib/role-capabilities";
 import type { UserRole } from "@/schemas/user";
 
 type UserStatusFilter = "ALL" | "ACTIVE" | "INACTIVE";
@@ -26,11 +27,16 @@ type UsersFilterFormProps = {
 
 const ROLE_OPTIONS: Array<{ value: "ALL" | UserRole; label: string }> = [
   { value: "ALL", label: "Todos os cargos" },
-  { value: "ADMIN", label: "Admin" },
-  { value: "DIRETOR", label: "Diretor" },
-  { value: "GERENTE_COMERCIAL", label: "Gerente Comercial" },
-  { value: "SUPERVISOR", label: "Supervisor" },
-  { value: "VENDEDOR", label: "Vendedor" },
+  { value: "ADMIN", label: ROLE_LABEL_BY_VALUE.ADMIN },
+  { value: "DIRETOR", label: ROLE_LABEL_BY_VALUE.DIRETOR },
+  { value: "GERENTE_COMERCIAL", label: ROLE_LABEL_BY_VALUE.GERENTE_COMERCIAL },
+  { value: "SUPERVISOR", label: ROLE_LABEL_BY_VALUE.SUPERVISOR },
+  { value: "VENDEDOR", label: ROLE_LABEL_BY_VALUE.VENDEDOR },
+  { value: "RESPONSAVEL_TI", label: ROLE_LABEL_BY_VALUE.RESPONSAVEL_TI },
+  {
+    value: "TECNICO_GASTRONOMICO",
+    label: ROLE_LABEL_BY_VALUE.TECNICO_GASTRONOMICO,
+  },
 ];
 const STATUS_OPTIONS: Array<{ value: UserStatusFilter; label: string }> = [
   { value: "ACTIVE", label: "Ativos" },

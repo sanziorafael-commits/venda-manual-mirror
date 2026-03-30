@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuthHydrated, useAuthUser } from "@/hooks/use-auth-user";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
+import { canAccessDashboardOverview } from "@/lib/role-capabilities";
 import { dashboardFilterOptionsApiResponseSchema } from "@/schemas/dashboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -37,7 +38,11 @@ export function CompanyContextSelect() {
   const hasRequestedOptions = optionsRequestRef.current > 0;
 
   React.useEffect(() => {
-    if (!authHydrated || !authUser) {
+    if (
+      !authHydrated ||
+      !authUser ||
+      !canAccessDashboardOverview(authUser.role)
+    ) {
       return;
     }
 
@@ -137,6 +142,10 @@ export function CompanyContextSelect() {
 
   if (!authHydrated || !authUser) {
     return <CompanyNameSkeleton />;
+  }
+
+  if (!canAccessDashboardOverview(authUser.role)) {
+    return null;
   }
 
   if (authUser.role !== "ADMIN") {

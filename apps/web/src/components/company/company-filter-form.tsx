@@ -8,6 +8,7 @@ type CompanyFilterFormProps = {
   searchValue: string;
   page_size: number;
   isLoading: boolean;
+  canAddCompany: boolean;
   onSearchValueChange: (value: string) => void;
   onPageSizeChange: (page_size: number) => void;
   onSubmit: () => void;
@@ -18,6 +19,7 @@ export function CompanyFilterForm({
   searchValue,
   page_size,
   isLoading,
+  canAddCompany,
   onSearchValueChange,
   onPageSizeChange,
   onSubmit,
@@ -58,7 +60,7 @@ export function CompanyFilterForm({
           type="button"
           className="min-w-42.5"
           onClick={onAddCompany}
-          disabled={isLoading}
+          disabled={isLoading || !canAddCompany}
         >
           Adicionar empresa
           <Plus className="size-4" />

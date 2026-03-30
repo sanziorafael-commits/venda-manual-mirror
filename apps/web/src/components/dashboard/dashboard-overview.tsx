@@ -9,6 +9,7 @@ import { DateRangePicker } from "@/components/conversations/date-range-picker";
 import { useAuthHydrated, useAuthUser } from "@/hooks/use-auth-user";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
+import { canSelectDashboardScope } from "@/lib/role-capabilities";
 import { cn } from "@/lib/utils";
 import {
   dashboardFilterOptionsApiResponseSchema,
@@ -38,8 +39,7 @@ export function DashboardOverviewPanel() {
   const authUser = useAuthUser();
   const authHydrated = useAuthHydrated();
   const isAdmin = authUser?.role === "ADMIN";
-  const canSelectScope =
-    authUser?.role === "GERENTE_COMERCIAL" || authUser?.role === "DIRETOR";
+  const canSelectScope = authUser ? canSelectDashboardScope(authUser.role) : false;
   const selectedCompanyContext = useSelectedCompanyContext();
 
   const [isLoadingOptions, setIsLoadingOptions] = React.useState(true);

@@ -17,8 +17,9 @@ import {
 import { createUserForCompany } from '../services/user.service.js';
 
 export async function listCompaniesHandler(req: Request, res: Response) {
+  const authUser = req.authUser!;
   const query = companyQuerySchema.parse(req.query);
-  const result = await listCompanies(query);
+  const result = await listCompanies(authUser, query);
 
   res.status(200).json({
     data: result.items,
@@ -27,8 +28,9 @@ export async function listCompaniesHandler(req: Request, res: Response) {
 }
 
 export async function getCompanyByIdHandler(req: Request, res: Response) {
+  const authUser = req.authUser!;
   const { company_id } = companyParamSchema.parse(req.params);
-  const data = await getCompanyById(company_id);
+  const data = await getCompanyById(authUser, company_id);
 
   res.status(200).json({ data });
 }
@@ -41,9 +43,10 @@ export async function createCompanyHandler(req: Request, res: Response) {
 }
 
 export async function updateCompanyHandler(req: Request, res: Response) {
+  const authUser = req.authUser!;
   const { company_id } = companyParamSchema.parse(req.params);
   const payload = updateCompanySchema.parse(req.body);
-  const data = await updateCompany(company_id, payload);
+  const data = await updateCompany(authUser, company_id, payload);
 
   res.status(200).json({ data });
 }

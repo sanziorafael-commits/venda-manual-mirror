@@ -11,6 +11,12 @@ import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
 import { formatPhoneInput } from "@/lib/phone";
 import {
+  canManageUserRole,
+  getCreatableUserRoles,
+  ROLE_LABEL_BY_VALUE,
+  type PanelRole,
+} from "@/lib/role-capabilities";
+import {
   companiesApiResponseSchema,
   type CompanyListItem,
 } from "@/schemas/company";
@@ -40,30 +46,6 @@ type UserEditFormProps = {
   user_id: string;
   backHref: string;
 };
-
-const ROLE_LABEL_BY_VALUE: Record<UserRole, string> = {
-  ADMIN: "Admin",
-  DIRETOR: "Diretor",
-  GERENTE_COMERCIAL: "Gerente Comercial",
-  SUPERVISOR: "Supervisor",
-  VENDEDOR: "Vendedor",
-};
-
-function getAllowedRoleOptions(actorRole: UserRole): UserRole[] {
-  if (actorRole === "ADMIN") {
-    return ["ADMIN", "DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR", "VENDEDOR"];
-  }
-
-  if (actorRole === "DIRETOR") {
-    return ["GERENTE_COMERCIAL", "SUPERVISOR", "VENDEDOR"];
-  }
-
-  if (actorRole === "GERENTE_COMERCIAL") {
-    return ["SUPERVISOR", "VENDEDOR"];
-  }
-
-  return ["VENDEDOR"];
-}
 
 function formatCpfInput(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 11);
@@ -223,9 +205,11 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
   const actorRole = authUser?.role ?? null;
   const isAdminActor = actorRole === "ADMIN";
   const isDirectorActor = actorRole === "DIRETOR";
+  const isResponsavelTiActor = actorRole === "RESPONSAVEL_TI";
   const isManagerActor = actorRole === "GERENTE_COMERCIAL";
   const canUseCompanyScopeFilters =
-    (isAdminActor || isDirectorActor) && Boolean(selectedCompanyId);
+    (isAdminActor || isDirectorActor || isResponsavelTiActor) &&
+    Boolean(selectedCompanyId);
   const shouldShowCompanyField = isAdminActor && selectedRole !== "ADMIN";
   const shouldShowManagerField =
     selectedRole === "SUPERVISOR" && canUseCompanyScopeFilters;
@@ -235,12 +219,17 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
   const shouldShowPasswordField = selectedRole === "ADMIN";
 
   const roleOptions = React.useMemo<UserRole[]>(() => {
-    if (!actorRole) {
+    if (!actorRole || !userData) {
       return ["VENDEDOR"];
     }
 
-    return getAllowedRoleOptions(actorRole);
-  }, [actorRole]);
+    const nextOptions = new Set<UserRole>(getCreatableUserRoles(actorRole as PanelRole));
+    if (canManageUserRole(actorRole as PanelRole, userData.role)) {
+      nextOptions.add(userData.role);
+    }
+
+    return Array.from(nextOptions);
+  }, [actorRole, userData]);
 
   React.useEffect(() => {
     if (!authHydrated) {
@@ -432,7 +421,8 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
       try {
         const options = await fetchUserOptionsByRole({
           role: "SUPERVISOR",
-          ...((isAdminActor || isDirectorActor) && selectedCompanyId
+          ...((isAdminActor || isDirectorActor || isResponsavelTiActor) &&
+          selectedCompanyId
             ? { company_id: selectedCompanyId }
             : {}),
         });
@@ -466,6 +456,7 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
     authHydrated,
     isAdminActor,
     isDirectorActor,
+    isResponsavelTiActor,
     selectedCompanyId,
     shouldShowSupervisorField,
   ]);
@@ -539,13 +530,13 @@ export function UserEditForm({ user_id, backHref }: UserEditFormProps) {
       }
 
       if (selectedRole === "SUPERVISOR") {
-        if (isAdminActor || isDirectorActor) {
+        if (isAdminActor || isDirectorActor || isResponsavelTiActor) {
           payload.manager_id = manager_id;
         }
       }
 
       if (selectedRole === "VENDEDOR") {
-        if (isAdminActor || isDirectorActor) {
+        if (isAdminActor || isDirectorActor || isResponsavelTiActor) {
           payload.supervisor_id = supervisor_id;
         } else if (isManagerActor) {
           payload.supervisor_id = supervisor_id;

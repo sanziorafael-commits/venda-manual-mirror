@@ -3,6 +3,7 @@ import { UserRole, type Prisma } from '@prisma/client';
 import type { AuthActor } from '../types/auth.types.js';
 
 import { forbidden } from './app-error.js';
+import { hasCompanyWideScope } from './role-capabilities.js';
 
 export type RbacScopeContext = 'users' | 'dashboard' | 'conversations' | 'locatedClients';
 
@@ -50,11 +51,23 @@ function buildManagerScopedWhere(actorUserId: string): Prisma.UserWhereInput {
   };
 }
 
-function buildDirectorUsersScopedWhere(): Prisma.UserWhereInput {
+function buildCompanyScopedUsersWhere(roles: readonly UserRole[]): Prisma.UserWhereInput {
   return {
     role: {
-      in: [UserRole.GERENTE_COMERCIAL, UserRole.SUPERVISOR, UserRole.VENDEDOR],
+      in: [...roles],
     },
+  };
+}
+
+function buildManagerUsersScopedWhere(actorUserId: string): Prisma.UserWhereInput {
+  return {
+    OR: [
+      buildManagerScopedWhere(actorUserId),
+      buildCompanyScopedUsersWhere([
+        UserRole.RESPONSAVEL_TI,
+        UserRole.TECNICO_GASTRONOMICO,
+      ]),
+    ],
   };
 }
 
@@ -90,18 +103,43 @@ export function getUserReadScopeWhere(
 
   if (actor.role === UserRole.DIRETOR) {
     if (context === 'users') {
-      return buildDirectorUsersScopedWhere();
+      return buildCompanyScopedUsersWhere([
+        UserRole.GERENTE_COMERCIAL,
+        UserRole.SUPERVISOR,
+        UserRole.VENDEDOR,
+        UserRole.RESPONSAVEL_TI,
+        UserRole.TECNICO_GASTRONOMICO,
+      ]);
+    }
+
+    return {};
+  }
+
+  if (actor.role === UserRole.RESPONSAVEL_TI) {
+    if (context === 'users') {
+      return buildCompanyScopedUsersWhere([
+        UserRole.DIRETOR,
+        UserRole.GERENTE_COMERCIAL,
+        UserRole.SUPERVISOR,
+        UserRole.VENDEDOR,
+        UserRole.RESPONSAVEL_TI,
+        UserRole.TECNICO_GASTRONOMICO,
+      ]);
     }
 
     return {};
   }
 
   if (actor.role === UserRole.GERENTE_COMERCIAL) {
-    return buildManagerScopedWhere(actor.user_id);
+    return context === 'users' ? buildManagerUsersScopedWhere(actor.user_id) : buildManagerScopedWhere(actor.user_id);
   }
 
   if (actor.role === UserRole.SUPERVISOR) {
     return buildSupervisorScopedWhere(context, actor.user_id);
+  }
+
+  if (hasCompanyWideScope(actor.role)) {
+    return {};
   }
 
   return {

@@ -88,6 +88,8 @@ export const dashboardUserRoleSchema = z.enum([
   "DIRETOR",
   "GERENTE_COMERCIAL",
   "SUPERVISOR",
+  "RESPONSAVEL_TI",
+  "TECNICO_GASTRONOMICO",
 ]);
 
 export const authSessionUserSchema = z.object({

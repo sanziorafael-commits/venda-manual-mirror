@@ -70,6 +70,8 @@ export const companyUserRoleSchema = z.enum([
   "GERENTE_COMERCIAL",
   "SUPERVISOR",
   "VENDEDOR",
+  "RESPONSAVEL_TI",
+  "TECNICO_GASTRONOMICO",
 ]);
 
 export const companyUserPasswordStatusSchema = z.enum([

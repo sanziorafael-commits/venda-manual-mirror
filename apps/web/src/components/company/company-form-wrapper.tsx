@@ -8,6 +8,11 @@ import { useAuthUser } from "@/hooks/use-auth-user";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
 import {
+  canAccessCompaniesModule,
+  canCreateCompanies,
+  canDeleteCompanies,
+} from "@/lib/role-capabilities";
+import {
   createEmptyPaginationMeta,
   DEFAULT_PAGE_SIZE,
 } from "@/lib/pagination";
@@ -24,7 +29,9 @@ import { CompanyTable } from "./company-table";
 export function CompanyFormWrapper() {
   const router = useRouter();
   const authUser = useAuthUser();
-  const canDeleteCompanies = authUser?.role === "ADMIN";
+  const canAccessCompanies = authUser ? canAccessCompaniesModule(authUser.role) : false;
+  const canCreateCompany = authUser ? canCreateCompanies(authUser.role) : false;
+  const canDeleteCompany = authUser ? canDeleteCompanies(authUser.role) : false;
   const [searchDraft, setSearchDraft] = React.useState("");
   const [query, setQuery] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(true);
@@ -107,8 +114,13 @@ export function CompanyFormWrapper() {
   }, []);
 
   const handleAddCompany = React.useCallback(() => {
+    if (!canCreateCompany) {
+      toast.error("Perfil sem permissao para cadastrar empresas.");
+      return;
+    }
+
     router.push("/dashboard/companies/new");
-  }, [router]);
+  }, [canCreateCompany, router]);
 
   const handleViewDetails = React.useCallback((company: CompanyListItem) => {
     router.push(`/dashboard/companies/${company.id}`);
@@ -116,7 +128,7 @@ export function CompanyFormWrapper() {
 
   const handleDeleteCompany = React.useCallback(
     async (company: CompanyListItem) => {
-      if (!canDeleteCompanies) {
+      if (!canDeleteCompany) {
         toast.error("Perfil sem permissão para excluir empresas.");
         return;
       }
@@ -151,8 +163,16 @@ export function CompanyFormWrapper() {
         );
       }
     },
-    [canDeleteCompanies, companies.length, loadCompanies, pageIndex],
+    [canDeleteCompany, companies.length, loadCompanies, pageIndex],
   );
+
+  if (!canAccessCompanies) {
+    return (
+      <div className="rounded-xl border border-dashed bg-card p-6 text-sm text-muted-foreground">
+        Seu perfil nao possui acesso ao modulo de empresas.
+      </div>
+    );
+  }
 
   return (
     <section className="flex flex-col gap-5">
@@ -162,6 +182,7 @@ export function CompanyFormWrapper() {
         searchValue={searchDraft}
         page_size={page_size}
         isLoading={isLoading}
+        canAddCompany={canCreateCompany}
         onSearchValueChange={setSearchDraft}
         onPageSizeChange={handlePageSizeChange}
         onSubmit={handleSearch}
@@ -172,7 +193,7 @@ export function CompanyFormWrapper() {
         data={companies}
         isLoading={isLoading}
         actionCompanyId={actionCompanyId}
-        canDeleteCompanies={canDeleteCompanies}
+        canDeleteCompanies={canDeleteCompany}
         pageIndex={pageIndex}
         page_size={page_size}
         total_pages={meta.total_pages}

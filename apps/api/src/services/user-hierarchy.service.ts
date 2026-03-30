@@ -17,6 +17,16 @@ type ExistingHierarchyInput = {
   supervisor: { id: string; manager_id: string | null } | null;
 };
 
+function isRoleWithoutHierarchy(role: UserRole) {
+  return (
+    role === UserRole.ADMIN ||
+    role === UserRole.DIRETOR ||
+    role === UserRole.GERENTE_COMERCIAL ||
+    role === UserRole.RESPONSAVEL_TI ||
+    role === UserRole.TECNICO_GASTRONOMICO
+  );
+}
+
 export async function resolveHierarchyForCreate(
   actor: AuthActor,
   input: {
@@ -26,13 +36,9 @@ export async function resolveHierarchyForCreate(
     supervisor_id?: string | null;
   },
 ): Promise<ResolvedHierarchy> {
-  if (
-    input.role === UserRole.ADMIN ||
-    input.role === UserRole.DIRETOR ||
-    input.role === UserRole.GERENTE_COMERCIAL
-  ) {
+  if (isRoleWithoutHierarchy(input.role)) {
     if (input.manager_id || input.supervisor_id) {
-      throw badRequest('manager_id e supervisor_id não são permitidos para este cargo');
+      throw badRequest('manager_id e supervisor_id nao sao permitidos para este cargo');
     }
 
     return {
@@ -43,12 +49,12 @@ export async function resolveHierarchyForCreate(
 
   if (input.role === UserRole.SUPERVISOR) {
     if (input.supervisor_id) {
-      throw badRequest('supervisor_id não é permitido para cargo SUPERVISOR');
+      throw badRequest('supervisor_id nao e permitido para cargo SUPERVISOR');
     }
 
     if (actor.role === UserRole.GERENTE_COMERCIAL) {
       if (input.manager_id && input.manager_id !== actor.user_id) {
-        throw forbidden('Gerente só pode vincular supervisor a si mesmo');
+        throw forbidden('Gerente so pode vincular supervisor a si mesmo');
       }
 
       return {
@@ -59,7 +65,7 @@ export async function resolveHierarchyForCreate(
 
     const manager_id = input.manager_id;
     if (!manager_id || !input.company_id) {
-      throw badRequest('manager_id obrigatório para criar SUPERVISOR');
+      throw badRequest('manager_id obrigatorio para criar SUPERVISOR');
     }
 
     await assertManagerLink(manager_id, input.company_id);
@@ -70,12 +76,12 @@ export async function resolveHierarchyForCreate(
   }
 
   if (input.manager_id) {
-    throw badRequest('manager_id não é permitido para cargo VENDEDOR');
+    throw badRequest('manager_id nao e permitido para cargo VENDEDOR');
   }
 
   if (actor.role === UserRole.SUPERVISOR) {
     if (input.supervisor_id && input.supervisor_id !== actor.user_id) {
-      throw forbidden('Supervisor só pode vincular vendedor a si mesmo');
+      throw forbidden('Supervisor so pode vincular vendedor a si mesmo');
     }
 
     return {
@@ -86,12 +92,12 @@ export async function resolveHierarchyForCreate(
 
   const supervisor_id = input.supervisor_id;
   if (!supervisor_id || !input.company_id) {
-    throw badRequest('supervisor_id obrigatório para criar VENDEDOR');
+    throw badRequest('supervisor_id obrigatorio para criar VENDEDOR');
   }
 
   const supervisor = await assertSupervisorLink(supervisor_id, input.company_id);
   if (actor.role === UserRole.GERENTE_COMERCIAL && supervisor.manager_id !== actor.user_id) {
-    throw forbidden('Você só pode vincular vendedores a supervisores do seu escopo');
+    throw forbidden('Voce so pode vincular vendedores a supervisores do seu escopo');
   }
 
   return {
@@ -112,13 +118,9 @@ export async function resolveHierarchyForUpdate(
 ): Promise<ResolvedHierarchy> {
   const { existing, nextRole, company_id } = input;
 
-  if (
-    nextRole === UserRole.ADMIN ||
-    nextRole === UserRole.DIRETOR ||
-    nextRole === UserRole.GERENTE_COMERCIAL
-  ) {
+  if (isRoleWithoutHierarchy(nextRole)) {
     if (input.manager_id || input.supervisor_id) {
-      throw badRequest('manager_id e supervisor_id não são permitidos para este cargo');
+      throw badRequest('manager_id e supervisor_id nao sao permitidos para este cargo');
     }
 
     return {
@@ -129,16 +131,16 @@ export async function resolveHierarchyForUpdate(
 
   if (nextRole === UserRole.SUPERVISOR) {
     if (input.supervisor_id) {
-      throw badRequest('supervisor_id não é permitido para cargo SUPERVISOR');
+      throw badRequest('supervisor_id nao e permitido para cargo SUPERVISOR');
     }
 
     if (!company_id) {
-      throw badRequest('company_id obrigatório para SUPERVISOR');
+      throw badRequest('company_id obrigatorio para SUPERVISOR');
     }
 
     if (actor.role === UserRole.GERENTE_COMERCIAL) {
       if (input.manager_id !== undefined && input.manager_id !== actor.user_id) {
-        throw forbidden('Gerente só pode vincular supervisor a si mesmo');
+        throw forbidden('Gerente so pode vincular supervisor a si mesmo');
       }
 
       return {
@@ -149,7 +151,7 @@ export async function resolveHierarchyForUpdate(
 
     const manager_id = input.manager_id === undefined ? existing.manager_id : input.manager_id;
     if (!manager_id) {
-      throw badRequest('manager_id obrigatório para cargo SUPERVISOR');
+      throw badRequest('manager_id obrigatorio para cargo SUPERVISOR');
     }
 
     await assertManagerLink(manager_id, company_id);
@@ -160,16 +162,16 @@ export async function resolveHierarchyForUpdate(
   }
 
   if (!company_id) {
-    throw badRequest('company_id obrigatório para VENDEDOR');
+    throw badRequest('company_id obrigatorio para VENDEDOR');
   }
 
   if (input.manager_id) {
-    throw badRequest('manager_id não é permitido para cargo VENDEDOR');
+    throw badRequest('manager_id nao e permitido para cargo VENDEDOR');
   }
 
   if (actor.role === UserRole.SUPERVISOR) {
     if (input.supervisor_id !== undefined && input.supervisor_id !== actor.user_id) {
-      throw forbidden('Supervisor não pode mover vendedor para outro supervisor');
+      throw forbidden('Supervisor nao pode mover vendedor para outro supervisor');
     }
 
     return {
@@ -181,12 +183,12 @@ export async function resolveHierarchyForUpdate(
   const supervisor_id =
     input.supervisor_id === undefined ? existing.supervisor_id : input.supervisor_id;
   if (!supervisor_id) {
-    throw badRequest('supervisor_id obrigatório para cargo VENDEDOR');
+    throw badRequest('supervisor_id obrigatorio para cargo VENDEDOR');
   }
 
   const supervisor = await assertSupervisorLink(supervisor_id, company_id);
   if (actor.role === UserRole.GERENTE_COMERCIAL && supervisor.manager_id !== actor.user_id) {
-    throw forbidden('Você só pode vincular vendedor a supervisores do seu escopo');
+    throw forbidden('Voce so pode vincular vendedores a supervisores do seu escopo');
   }
 
   return {
@@ -209,7 +211,7 @@ export async function assertCompanyExistsIfRequired(company_id: string | null) {
   });
 
   if (!company) {
-    throw notFound('Empresa não encontrada');
+    throw notFound('Empresa nao encontrada');
   }
 }
 
@@ -228,7 +230,7 @@ export async function getSupervisorForReassign(supervisor_id: string) {
   });
 
   if (!supervisor || !supervisor.company_id) {
-    throw badRequest('Supervisor de origem ou destino inválido');
+    throw badRequest('Supervisor de origem ou destino invalido');
   }
 
   return supervisor;
@@ -248,7 +250,7 @@ export async function getManagerForReassign(manager_id: string) {
   });
 
   if (!manager || !manager.company_id) {
-    throw badRequest('Gerente comercial de origem ou destino inválido');
+    throw badRequest('Gerente comercial de origem ou destino invalido');
   }
 
   return manager;
@@ -267,7 +269,7 @@ async function assertManagerLink(manager_id: string, company_id: string) {
   });
 
   if (!manager) {
-    throw badRequest('Gerente comercial inválido para esta empresa');
+    throw badRequest('Gerente comercial invalido para esta empresa');
   }
 }
 
@@ -287,10 +289,8 @@ async function assertSupervisorLink(supervisor_id: string, company_id: string) {
   });
 
   if (!supervisor) {
-    throw badRequest('Supervisor inválido para esta empresa');
+    throw badRequest('Supervisor invalido para esta empresa');
   }
 
   return supervisor;
 }
-
-

@@ -9,6 +9,10 @@ import { useAuthHydrated, useAuthUser } from "@/hooks/use-auth-user";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
 import { formatPhoneDisplay } from "@/lib/phone";
+import {
+  canReassignManagers,
+  canReassignSupervisors,
+} from "@/lib/role-capabilities";
 import { dashboardFilterOptionsApiResponseSchema } from "@/schemas/dashboard";
 import {
   reassignManagerTeamApiResponseSchema,
@@ -40,10 +44,12 @@ export function UsersMassReassignmentWrapper() {
   const selectedCompanyContext = useSelectedCompanyContext();
 
   const isAdmin = authUser?.role === "ADMIN";
-  const canReassignManagers =
-    authUser?.role === "ADMIN" || authUser?.role === "DIRETOR";
-  const canReassignSupervisors =
-    canReassignManagers || authUser?.role === "GERENTE_COMERCIAL";
+  const canReassignManagersForRole = authUser
+    ? canReassignManagers(authUser.role)
+    : false;
+  const canReassignSupervisorsForRole = authUser
+    ? canReassignSupervisors(authUser.role)
+    : false;
 
   const selectedCompanyFromHeader = React.useMemo(() => {
     if (!isAdmin) {
@@ -168,7 +174,7 @@ export function UsersMassReassignmentWrapper() {
   }, [authHydrated, authUser, selectedCompanyFromHeader]);
 
   React.useEffect(() => {
-    if (!authHydrated || !authUser || !canReassignSupervisors) {
+    if (!authHydrated || !authUser || !canReassignSupervisorsForRole) {
       return;
     }
 
@@ -188,7 +194,7 @@ export function UsersMassReassignmentWrapper() {
     const loadUsersByScope = async () => {
       try {
         const [managers, supervisors] = await Promise.all([
-          canReassignManagers
+          canReassignManagersForRole
             ? fetchAllUsersByRole({
                 role: "GERENTE_COMERCIAL",
                 companyId: selectedCompanyId,
@@ -250,8 +256,8 @@ export function UsersMassReassignmentWrapper() {
   }, [
     authHydrated,
     authUser,
-    canReassignManagers,
-    canReassignSupervisors,
+    canReassignManagersForRole,
+    canReassignSupervisorsForRole,
     isAdmin,
     selectedCompanyId,
   ]);
@@ -279,7 +285,7 @@ export function UsersMassReassignmentWrapper() {
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
-      if (!canReassignManagers) {
+      if (!canReassignManagersForRole) {
         toast.error("Perfil sem permissao para troca de gerentes.");
         return;
       }
@@ -343,7 +349,7 @@ export function UsersMassReassignmentWrapper() {
       }
     },
     [
-      canReassignManagers,
+      canReassignManagersForRole,
       fromManagerId,
       managerOptions,
       selectedCompanyId,
@@ -356,7 +362,7 @@ export function UsersMassReassignmentWrapper() {
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
-      if (!canReassignSupervisors) {
+      if (!canReassignSupervisorsForRole) {
         toast.error("Perfil sem permissao para troca de supervisores.");
         return;
       }
@@ -420,7 +426,7 @@ export function UsersMassReassignmentWrapper() {
       }
     },
     [
-      canReassignSupervisors,
+      canReassignSupervisorsForRole,
       fromSupervisorId,
       selectedCompanyId,
       selectedCompanyLabel,
@@ -433,7 +439,7 @@ export function UsersMassReassignmentWrapper() {
     return null;
   }
 
-  if (!canReassignSupervisors) {
+  if (!canReassignSupervisorsForRole) {
     return (
       <div className="rounded-xl border border-dashed bg-card p-6 text-sm text-muted-foreground">
         Seu perfil nao possui permissao para alteracoes em massa.
@@ -494,7 +500,7 @@ export function UsersMassReassignmentWrapper() {
         </div>
       ) : null}
 
-      {canReassignManagers ? (
+      {canReassignManagersForRole ? (
         <form
           onSubmit={handleSubmitManagerTeam}
           className="rounded-xl border bg-card p-5"

@@ -65,7 +65,15 @@ export const openApiDocument = {
       },
       UserRole: {
         type: 'string',
-        enum: ['ADMIN', 'DIRETOR', 'GERENTE_COMERCIAL', 'SUPERVISOR', 'VENDEDOR'],
+        enum: [
+          'ADMIN',
+          'DIRETOR',
+          'GERENTE_COMERCIAL',
+          'SUPERVISOR',
+          'VENDEDOR',
+          'RESPONSAVEL_TI',
+          'TECNICO_GASTRONOMICO',
+        ],
       },
       DashboardPeriod: {
         type: 'string',
@@ -307,7 +315,8 @@ export const openApiDocument = {
     '/api/auth/resend-activation': {
       post: {
         tags: ['auth'],
-        summary: 'Reenvia ativacao',
+        summary:
+          'Reenvia ativacao para conta pendente (`ADMIN` global; `DIRETOR`, `GERENTE_COMERCIAL` e `RESPONSAVEL_TI` na propria empresa)',
         security: [{ bearerAuth: [] }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ResendActivationRequest' } } } },
         responses: { '200': { description: 'OK' } },

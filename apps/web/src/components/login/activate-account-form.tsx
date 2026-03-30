@@ -11,6 +11,7 @@ import { Field, FieldDescription, FieldGroup } from "@/components/ui/field";
 import { PasswordField } from "@/components/ui/password-field";
 import { useAuthSubmit } from "@/hooks/use-auth-submit";
 import { useUrlToken } from "@/hooks/use-url-token";
+import { getDefaultDashboardPath } from "@/lib/role-capabilities";
 import {
   activateAccountSchema,
   loginResponseSchema,
@@ -68,8 +69,8 @@ export function ActivateAccountForm({
     },
     successMessage: "Conta ativada com sucesso!",
     invalidMessage: "Não foi possível ativar a conta.",
-    onSuccess: () => {
-      router.push("/dashboard");
+    onSuccess: (result) => {
+      router.push(getDefaultDashboardPath(result.user.role));
     },
   });
 

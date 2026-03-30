@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useAuthHydrated, useAuthUser } from "@/hooks/use-auth-user";
 import { apiFetch } from "@/lib/api-client";
 import { parseApiError } from "@/lib/api-error";
+import { canManageProducts } from "@/lib/role-capabilities";
 import { tryApiDelete } from "@/lib/try-api";
 import {
   CATEGORY_LABEL_BY_VALUE,
@@ -36,10 +37,9 @@ export function ProductDetailsWrapper({
   const authUser = useAuthUser();
   const selectedCompanyContext = useSelectedCompanyContext();
   const isAdmin = authUser?.role === "ADMIN";
-  const canManageProducts =
-    authUser?.role === "DIRETOR" ||
-    authUser?.role === "GERENTE_COMERCIAL" ||
-    authUser?.role === "SUPERVISOR";
+  const canManageProductsForRole = authUser
+    ? canManageProducts(authUser.role)
+    : false;
 
   const selectedCompanyId = React.useMemo(() => {
     if (!isAdmin) {
@@ -182,7 +182,7 @@ export function ProductDetailsWrapper({
           </p>
         </div>
 
-        {canManageProducts ? (
+        {canManageProductsForRole ? (
           <div className="flex items-center gap-2">
             <Button
               type="button"

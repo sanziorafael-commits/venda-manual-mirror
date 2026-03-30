@@ -8,7 +8,7 @@ import type { AuthActor } from '../types/auth.types.js';
 import { badRequest, forbidden, notFound } from '../utils/app-error.js';
 import { sha256 } from '../utils/hash.js';
 import { ttlToDate } from '../utils/time.js';
-import { canManageRole, isInvitableRole } from '../utils/user-role-policy.js';
+import { isInvitableRole } from '../utils/user-role-policy.js';
 import { createUuidV7 } from '../utils/uuid.js';
 
 import { sendActivationInviteEmail } from './email.service.js';
@@ -36,7 +36,7 @@ export async function createActivationInviteForUser(user_id: string) {
   });
 
   if (!user) {
-    throw notFound('Usuário não encontrado');
+    throw notFound('Usuario nao encontrado');
   }
 
   assertUserCanReceiveActivationInvite(user.role, user.email, user.passwordHash);
@@ -97,7 +97,7 @@ export async function resendActivationInvite(actor: AuthActor, user_id: string) 
   });
 
   if (!user) {
-    throw notFound('Usuário não encontrado');
+    throw notFound('Usuario nao encontrado');
   }
 
   assertResendScope(actor, user);
@@ -125,7 +125,7 @@ export async function activateAccountWithToken(token: string, passwordHash: stri
     });
 
     if (!activationToken) {
-      throw badRequest('Token de ativação inválido ou expirado');
+      throw badRequest('Token de ativacao invalido ou expirado');
     }
 
     const user = activationToken.user;
@@ -134,11 +134,11 @@ export async function activateAccountWithToken(token: string, passwordHash: stri
     }
 
     if (!isInvitableRole(user.role)) {
-      throw forbidden('Este cargo não pode ativar conta por token de convite');
+      throw forbidden('Este cargo nao pode ativar conta por token de convite');
     }
 
     if (user.passwordHash) {
-      throw badRequest('A conta já está ativa');
+      throw badRequest('A conta ja esta ativa');
     }
 
     if (user.role !== UserRole.ADMIN && user.company_id) {
@@ -171,7 +171,7 @@ export async function activateAccountWithToken(token: string, passwordHash: stri
     });
 
     if (consumedToken.count === 0) {
-      throw badRequest('Token de ativação inválido ou expirado');
+      throw badRequest('Token de ativacao invalido ou expirado');
     }
 
     const updated = await tx.user.updateMany({
@@ -187,7 +187,7 @@ export async function activateAccountWithToken(token: string, passwordHash: stri
     });
 
     if (updated.count === 0) {
-      throw badRequest('A conta já está ativa');
+      throw badRequest('A conta ja esta ativa');
     }
 
     await tx.accountActivationToken.updateMany({
@@ -222,18 +222,16 @@ function assertResendScope(
     return;
   }
 
+  if (
+    actor.role !== UserRole.DIRETOR &&
+    actor.role !== UserRole.GERENTE_COMERCIAL &&
+    actor.role !== UserRole.RESPONSAVEL_TI
+  ) {
+    throw forbidden('Voce nao tem permissao para reenviar convite');
+  }
+
   if (!actor.company_id || actor.company_id !== target.company_id) {
-    throw forbidden('Você não tem acesso ao escopo desta empresa');
-  }
-
-  if (!canManageRole(actor.role, target.role)) {
-    throw forbidden('Você não tem permissão para reenviar convite deste cargo');
-  }
-
-  if (actor.role === UserRole.GERENTE_COMERCIAL && target.role === UserRole.SUPERVISOR) {
-    if (target.manager_id !== actor.user_id) {
-      throw forbidden('Você não tem permissão para reenviar convite deste supervisor');
-    }
+    throw forbidden('Voce nao tem acesso ao escopo desta empresa');
   }
 }
 
@@ -243,16 +241,14 @@ function assertUserCanReceiveActivationInvite(
   passwordHash: string | null,
 ) {
   if (!isInvitableRole(role)) {
-    throw badRequest('O cargo informado não suporta ativação por convite');
+    throw badRequest('O cargo informado nao suporta ativacao por convite');
   }
 
   if (!email) {
-    throw badRequest('Email obrigatório para envio de convite');
+    throw badRequest('Email obrigatorio para envio de convite');
   }
 
   if (passwordHash) {
-    throw badRequest('O usuário já possui senha');
+    throw badRequest('O usuario ja possui senha');
   }
 }
-
-

@@ -3,14 +3,19 @@
 import Link from "next/link";
 import Image from "next/image";
 
+import { useAuthUser } from "@/hooks/use-auth-user";
+import { getDefaultDashboardPath } from "@/lib/role-capabilities";
 import { SidebarMenu, SidebarMenuItem } from "@/components/ui/sidebar";
 
 export function TeamSwitcher() {
+  const authUser = useAuthUser();
+  const homeHref = authUser ? getDefaultDashboardPath(authUser.role) : "/dashboard";
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <Link
-          href="/dashboard"
+          href={homeHref}
           className="group flex w-full items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg">

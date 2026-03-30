@@ -15,7 +15,13 @@ export const dashboardTeamSummarySchema = z.object({
 });
 
 export const dashboardFilterOptionsSchema = z.object({
-  role: z.enum(["ADMIN", "DIRETOR", "GERENTE_COMERCIAL", "SUPERVISOR"]),
+  role: z.enum([
+    "ADMIN",
+    "DIRETOR",
+    "GERENTE_COMERCIAL",
+    "SUPERVISOR",
+    "RESPONSAVEL_TI",
+  ]),
   period_options: z.array(dashboardOptionSchema),
   scope_options: z.array(dashboardOptionSchema),
   view_by_options: z.array(dashboardOptionSchema),

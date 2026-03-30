@@ -5,22 +5,21 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { useAuthUser } from "@/hooks/use-auth-user";
+import { canManageProducts } from "@/lib/role-capabilities";
 
 export function MobileAddProductButton() {
   const router = useRouter();
   const authUser = useAuthUser();
-
-  const canManageProducts =
-    authUser?.role === "DIRETOR" ||
-    authUser?.role === "GERENTE_COMERCIAL" ||
-    authUser?.role === "SUPERVISOR";
+  const canManageProductsForRole = authUser
+    ? canManageProducts(authUser.role)
+    : false;
 
   return (
     <Button
       type="button"
       className="min-w-45 lg:hidden"
       onClick={() => router.push("/dashboard/products/new")}
-      disabled={!canManageProducts}
+      disabled={!canManageProductsForRole}
     >
       Adicionar produto
       <Plus className="size-4" />
