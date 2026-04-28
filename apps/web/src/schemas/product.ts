@@ -35,6 +35,7 @@ export const PRODUCT_CLIENT_TYPE_OPTIONS = [
   { value: "DELIVERY", label: "Delivery" },
   { value: "COZINHA_INDUSTRIAL", label: "Cozinha industrial" },
   { value: "OUTRO", label: "Outro" },
+  { value: "VAREJO", label: "Varejo" },
 ] as const;
 
 export const PRODUCT_OBJECTION_TYPE_OPTIONS = [
@@ -80,7 +81,10 @@ export const OBJECTION_TYPE_LABEL_BY_VALUE = Object.fromEntries(
 ) as Record<string, string>;
 
 export const CONSERVATION_LABEL_BY_VALUE = Object.fromEntries(
-  PRODUCT_CONSERVATION_TYPE_OPTIONS.map((option) => [option.value, option.label]),
+  PRODUCT_CONSERVATION_TYPE_OPTIONS.map((option) => [
+    option.value,
+    option.label,
+  ]),
 ) as Record<string, string>;
 
 export const SALE_UNIT_LABEL_BY_VALUE = Object.fromEntries(
@@ -167,7 +171,9 @@ export const productDetailSchema = z.object({
   validade_apos_preparo: z.string().nullable(),
   instrucoes_conservacao_produto: z.string().nullable(),
   restricoes_produto: z.string().nullable(),
-  unidade_venda: z.enum(["UNIDADE", "CAIXA", "LITRO", "GALAO", "OUTRO"]).nullable(),
+  unidade_venda: z
+    .enum(["UNIDADE", "CAIXA", "LITRO", "GALAO", "OUTRO"])
+    .nullable(),
   unidade_venda_outro: z.string().nullable(),
   peso_liquido_volume: z.string().nullable(),
   peso_bruto: z.string().nullable(),
@@ -232,7 +238,9 @@ export const productFormSchema = z
     validade_apos_preparo: z.string().trim().max(255),
     instrucoes_conservacao_produto: z.string().trim().max(4000),
     restricoes_produto: z.string().trim().max(4000),
-    unidade_venda: z.enum(["UNIDADE", "CAIXA", "LITRO", "GALAO", "OUTRO"]).nullable(),
+    unidade_venda: z
+      .enum(["UNIDADE", "CAIXA", "LITRO", "GALAO", "OUTRO"])
+      .nullable(),
     unidade_venda_outro: z.string().trim().max(4000),
     peso_liquido_volume: z.string().trim().max(255),
     peso_bruto: z.string().trim().max(255),
@@ -297,18 +305,25 @@ export const productFormSchema = z
       });
     }
 
-    if (value.tipo_conservacao === "OUTRO" && !value.tipo_conservacao_outro.trim()) {
+    if (
+      value.tipo_conservacao === "OUTRO" &&
+      !value.tipo_conservacao_outro.trim()
+    ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["tipo_conservacao_outro"],
         message: "Preencha o tipo de conservação 'Outro'.",
       });
     }
-    if (value.tipo_conservacao !== "OUTRO" && value.tipo_conservacao_outro.trim()) {
+    if (
+      value.tipo_conservacao !== "OUTRO" &&
+      value.tipo_conservacao_outro.trim()
+    ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["tipo_conservacao_outro"],
-        message: "Campo deve ficar vazio quando tipo de conservação não é 'Outro'.",
+        message:
+          "Campo deve ficar vazio quando tipo de conservação não é 'Outro'.",
       });
     }
 
@@ -323,18 +338,25 @@ export const productFormSchema = z
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["unidade_venda_outro"],
-        message: "Campo deve ficar vazio quando unidade de venda não é 'Outro'.",
+        message:
+          "Campo deve ficar vazio quando unidade de venda não é 'Outro'.",
       });
     }
 
-    if (value.produto_pronto_uso === "OUTRO" && !value.produto_pronto_uso_outro.trim()) {
+    if (
+      value.produto_pronto_uso === "OUTRO" &&
+      !value.produto_pronto_uso_outro.trim()
+    ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["produto_pronto_uso_outro"],
         message: "Preencha o campo 'Outro' de pronto para uso.",
       });
     }
-    if (value.produto_pronto_uso !== "OUTRO" && value.produto_pronto_uso_outro.trim()) {
+    if (
+      value.produto_pronto_uso !== "OUTRO" &&
+      value.produto_pronto_uso_outro.trim()
+    ) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["produto_pronto_uso_outro"],
@@ -372,7 +394,8 @@ export const productFormSchema = z
         context.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["objecoes_argumentacoes", index, "tipo_objecao_outro"],
-          message: "Campo deve ficar vazio quando o tipo de objeção não é 'Outro'.",
+          message:
+            "Campo deve ficar vazio quando o tipo de objeção não é 'Outro'.",
         });
       }
     });
@@ -445,7 +468,9 @@ export function createEmptyProductFormValues(id?: string): ProductFormValues {
   };
 }
 
-export function mapProductDetailToFormValues(detail: ProductDetail): ProductFormValues {
+export function mapProductDetailToFormValues(
+  detail: ProductDetail,
+): ProductFormValues {
   return {
     id: detail.id,
     nome: detail.nome,
@@ -472,7 +497,8 @@ export function mapProductDetailToFormValues(detail: ProductDetail): ProductForm
     peso_liquido_volume: detail.peso_liquido_volume ?? "",
     peso_bruto: detail.peso_bruto ?? "",
     qtd_unidades_por_caixa: detail.qtd_unidades_por_caixa ?? "",
-    instrucoes_conservacao_embalagem: detail.instrucoes_conservacao_embalagem ?? "",
+    instrucoes_conservacao_embalagem:
+      detail.instrucoes_conservacao_embalagem ?? "",
     restricoes_embalagem: detail.restricoes_embalagem ?? "",
     possui_ingredientes: detail.possui_ingredientes,
     ingredientes: detail.ingredientes ?? "",
@@ -527,18 +553,26 @@ export function buildProductPayloadFromForm(values: ProductFormValues) {
     categorias: normalizeStringList(values.categorias),
     categoria_outro: normalizeOptionalText(values.categoria_outro),
     tipologias_clientes: normalizeStringList(values.tipologias_clientes),
-    tipologia_cliente_outro: normalizeOptionalText(values.tipologia_cliente_outro),
+    tipologia_cliente_outro: normalizeOptionalText(
+      values.tipologia_cliente_outro,
+    ),
     sugestoes_receitas: normalizeOptionalText(values.sugestoes_receitas),
     codigo_barras_ean: normalizeOptionalShortText(values.codigo_barras_ean),
     codigo_barras_dun: normalizeOptionalShortText(values.codigo_barras_dun),
     codigo_fiscal_ncm: normalizeOptionalShortText(values.codigo_fiscal_ncm),
     tipo_conservacao: values.tipo_conservacao,
-    tipo_conservacao_outro: normalizeOptionalText(values.tipo_conservacao_outro),
+    tipo_conservacao_outro: normalizeOptionalText(
+      values.tipo_conservacao_outro,
+    ),
     validade_embalagem_fechada: normalizeOptionalShortText(
       values.validade_embalagem_fechada,
     ),
-    validade_apos_abertura: normalizeOptionalShortText(values.validade_apos_abertura),
-    validade_apos_preparo: normalizeOptionalShortText(values.validade_apos_preparo),
+    validade_apos_abertura: normalizeOptionalShortText(
+      values.validade_apos_abertura,
+    ),
+    validade_apos_preparo: normalizeOptionalShortText(
+      values.validade_apos_preparo,
+    ),
     instrucoes_conservacao_produto: normalizeOptionalText(
       values.instrucoes_conservacao_produto,
     ),
@@ -547,7 +581,9 @@ export function buildProductPayloadFromForm(values: ProductFormValues) {
     unidade_venda_outro: normalizeOptionalText(values.unidade_venda_outro),
     peso_liquido_volume: normalizeOptionalShortText(values.peso_liquido_volume),
     peso_bruto: normalizeOptionalShortText(values.peso_bruto),
-    qtd_unidades_por_caixa: normalizeOptionalShortText(values.qtd_unidades_por_caixa),
+    qtd_unidades_por_caixa: normalizeOptionalShortText(
+      values.qtd_unidades_por_caixa,
+    ),
     instrucoes_conservacao_embalagem: normalizeOptionalText(
       values.instrucoes_conservacao_embalagem,
     ),
@@ -556,7 +592,9 @@ export function buildProductPayloadFromForm(values: ProductFormValues) {
     ingredientes: normalizeOptionalText(values.ingredientes),
     alergenos: normalizeOptionalText(values.alergenos),
     produto_pronto_uso: values.produto_pronto_uso,
-    produto_pronto_uso_outro: normalizeOptionalText(values.produto_pronto_uso_outro),
+    produto_pronto_uso_outro: normalizeOptionalText(
+      values.produto_pronto_uso_outro,
+    ),
     modo_preparo: normalizeOptionalText(values.modo_preparo),
     observacoes_uso: normalizeOptionalText(values.observacoes_uso),
     objecoes_argumentacoes: values.objecoes_argumentacoes
@@ -574,8 +612,12 @@ export function buildProductPayloadFromForm(values: ProductFormValues) {
     informacoes_tecnicas_complementares: normalizeOptionalText(
       values.informacoes_tecnicas_complementares,
     ),
-    certificacoes_registros: normalizeOptionalText(values.certificacoes_registros),
-    observacoes_comerciais: normalizeOptionalText(values.observacoes_comerciais),
+    certificacoes_registros: normalizeOptionalText(
+      values.certificacoes_registros,
+    ),
+    observacoes_comerciais: normalizeOptionalText(
+      values.observacoes_comerciais,
+    ),
     diferenciais_produto: normalizeOptionalText(values.diferenciais_produto),
     observacoes_gerais: normalizeOptionalText(values.observacoes_gerais),
   };
@@ -584,9 +626,7 @@ export function buildProductPayloadFromForm(values: ProductFormValues) {
 function normalizeStringList(values: string[]) {
   return Array.from(
     new Set(
-      values
-        .map((value) => value.trim())
-        .filter((value) => value.length > 0),
+      values.map((value) => value.trim()).filter((value) => value.length > 0),
     ),
   );
 }
@@ -606,4 +646,3 @@ export type ProductListItem = z.infer<typeof productListItemSchema>;
 export type ProductListMeta = z.infer<typeof productListMetaSchema>;
 export type ProductDetail = z.infer<typeof productDetailSchema>;
 export type ProductFormValues = z.infer<typeof productFormSchema>;
-
